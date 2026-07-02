@@ -4,8 +4,8 @@ import { Component } from '@angular/core';
   selector: 'app-dashboard',
   standalone: true,
   template: `
-    <div class="flex flex-column gap-4">
-      <div class="flex align-items-center justify-content-between">
+    <div class="flex flex-col gap-4">
+      <div class="flex items-center justify-between">
         <h1 class="text-2xl font-bold text-surface-800">Dashboard</h1>
         <span class="text-sm text-surface-400">Resumen del día</span>
       </div>
@@ -14,9 +14,9 @@ import { Component } from '@angular/core';
         @for (item of stats; track item.label) {
           <div class="col-span-12 sm:col-span-6 xl:col-span-3">
             <div class="card">
-              <div class="flex align-items-center gap-3">
+              <div class="flex items-center gap-3">
                 <div
-                  class="flex align-items-center justify-content-center w-3rem h-3rem border-round"
+                  class="flex items-center justify-center w-12 h-12 rounded-xl"
                   [style]="{ background: item.iconBg }"
                 >
                   <i [class]="item.icon" style="font-size: 1.25rem; color: white;"></i>

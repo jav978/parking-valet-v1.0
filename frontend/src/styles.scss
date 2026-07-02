@@ -44,6 +44,7 @@
 }
 
 @import "./app/layout/layout-menu.scss";
+@import "./app/layout/layout.scss";
 
 @layer primeng;
 
@@ -65,4 +66,8 @@
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border-width: 0;
+}
+
+#p-license-host {
+  display: none !important;
 }

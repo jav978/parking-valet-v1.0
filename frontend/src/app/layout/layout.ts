@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject } from '@angular/core';
+import { Component, computed, effect, inject, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AppTopbar } from './app.topbar';
@@ -10,7 +10,8 @@ import { LayoutService } from './layout.service';
   standalone: true,
   imports: [CommonModule, RouterModule, AppTopbar, AppSidebar],
   templateUrl: './layout.html',
-  styleUrl: './layout.scss'
+  styleUrl: './layout.scss',
+  encapsulation: ViewEncapsulation.None
 })
 export class Layout {
   layoutService = inject(LayoutService);
