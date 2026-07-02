@@ -1,0 +1,733 @@
+// ─────────────────────────────────────────────────────────────
+// Parking Management System - Prisma Schema
+// PostgreSQL 16 | UUID Primary Keys | Soft Delete | Audit
+// ─────────────────────────────────────────────────────────────
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ═════════════════════════════════════════════════════════════
+// ENUMS
+// ═════════════════════════════════════════════════════════════
+
+enum TicketStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  REFUNDED
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  TRANSFER
+  SUBSCRIPTION
+  APP
+  OTHER
+}
+
+enum VehicleType {
+  CAR
+  MOTORCYCLE
+  TRUCK
+  SUV
+  VAN
+  BUS
+  BICYCLE
+  OTHER
+}
+
+enum RateType {
+  HOURLY
+  HALF_HOURLY
+  FRACTIONAL
+  DAILY
+  NIGHTLY
+  MONTHLY
+  SPECIAL
+}
+
+enum SpotStatus {
+  AVAILABLE
+  OCCUPIED
+  RESERVED
+  MAINTENANCE
+}
+
+enum DocumentType {
+  ID
+  PASSPORT
+  DRIVERS_LICENSE
+  OTHER
+}
+
+enum ClientType {
+  REGULAR
+  FREQUENT
+  VIP
+  CORPORATE
+}
+
+enum CashRegisterStatus {
+  OPEN
+  CLOSED
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+  SUSPENDED
+}
+
+enum ReservationStatus {
+  CONFIRMED
+  CHECKED_IN
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum MovementType {
+  INCOME
+  EXPENSE
+}
+
+enum PrinterInterface {
+  USB
+  NETWORK
+}
+
+enum PaperWidth {
+  MM_58
+  MM_80
+}
+
+enum AccessEventType {
+  ENTRY
+  EXIT
+}
+
+enum NotificationType {
+  INFO
+  WARNING
+  SUCCESS
+  ERROR
+}
+
+// ═════════════════════════════════════════════════════════════
+// MODELS
+// ═════════════════════════════════════════════════════════════
+
+// ─── SECURITY & AUTH ────────────────────────────────────────
+
+model Role {
+  id          String            @id @default(uuid()) @db.Uuid
+  name        String            @unique
+  description String?
+  isSystem    Boolean           @default(false) @map("is_system")
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime          @updatedAt @map("updated_at")
+
+  users          User[]
+  rolePermissions RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String            @id @default(uuid()) @db.Uuid
+  code        String            @unique
+  name        String
+  description String?
+  module      String
+  createdAt   DateTime          @default(now()) @map("created_at")
+
+  rolePermissions RolePermission[]
+
+  @@index([module])
+  @@index([code])
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String   @map("role_id") @db.Uuid
+  permissionId String   @map("permission_id") @db.Uuid
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model User {
+  id           String    @id @default(uuid()) @db.Uuid
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  firstName    String    @map("first_name")
+  lastName     String    @map("last_name")
+  phone        String?
+  isActive     Boolean   @default(true) @map("is_active")
+  roleId       String    @map("role_id") @db.Uuid
+  lastLoginAt  DateTime? @map("last_login_at")
+  createdById  String?   @map("created_by") @db.Uuid
+  updatedById  String?   @map("updated_by") @db.Uuid
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  deletedAt    DateTime? @map("deleted_at")
+
+  role             Role        @relation(fields: [roleId], references: [id])
+  createdBy        User?       @relation("UserCreatedBy", fields: [createdById], references: [id])
+  updatedBy        User?       @relation("UserUpdatedBy", fields: [updatedById], references: [id])
+  createdUsers     User[]      @relation("UserCreatedBy")
+  updatedUsers     User[]      @relation("UserUpdatedBy")
+  clientsCreated   Client[]    @relation("ClientCreatedBy")
+  clientsUpdated   Client[]    @relation("ClientUpdatedBy")
+
+  ticketsEntry     Ticket[]    @relation("TicketEntryOperator")
+  ticketsExit      Ticket[]    @relation("TicketExitOperator")
+  payments         Payment[]
+  cashRegistersOpened CashRegister[] @relation("CashRegisterOpenedBy")
+  cashRegistersClosed CashRegister[] @relation("CashRegisterClosedBy")
+  cashMovements    CashRegisterMovement[]
+  accessLogs       AccessLog[]
+  auditLogs        AuditLog[]
+  notifications    Notification[]
+  subscriptions    Subscription[] @relation("SubscriptionCreatedBy")
+  printers         PrinterConfig[]
+  backubs          Backup[]    @relation("BackupCreatedBy")
+
+  @@index([email])
+  @@index([roleId])
+  @@index([isActive])
+  @@map("users")
+}
+
+model BlacklistedToken {
+  id        String   @id @default(uuid()) @db.Uuid
+  tokenJti  String   @map("token_jti")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([tokenJti])
+  @@index([expiresAt])
+  @@map("blacklisted_tokens")
+}
+
+// ─── CLIENTS & VEHICLES ─────────────────────────────────────
+
+model Client {
+  id           String       @id @default(uuid()) @db.Uuid
+  firstName    String       @map("first_name")
+  lastName     String       @map("last_name")
+  documentType DocumentType @map("document_type")
+  documentNumber String      @map("document_number")
+  email        String?
+  phone        String?
+  address      String?
+  clientType   ClientType   @default(REGULAR) @map("client_type")
+  notes        String?
+  isActive     Boolean      @default(true) @map("is_active")
+  createdById  String?      @map("created_by") @db.Uuid
+  updatedById  String?      @map("updated_by") @db.Uuid
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+  deletedAt    DateTime?    @map("deleted_at")
+
+  createdBy     User?       @relation("ClientCreatedBy", fields: [createdById], references: [id])
+  updatedBy     User?       @relation("ClientUpdatedBy", fields: [updatedById], references: [id])
+  vehicles      Vehicle[]
+  tickets       Ticket[]
+  subscriptions Subscription[]
+  reservations  Reservation[]
+
+  @@unique([documentType, documentNumber])
+  @@index([email])
+  @@index([phone])
+  @@index([isActive])
+  @@map("clients")
+}
+
+model Vehicle {
+  id          String      @id @default(uuid()) @db.Uuid
+  clientId    String?     @map("client_id") @db.Uuid
+  plateNumber String      @unique @map("plate_number")
+  brand       String?
+  model       String?
+  year        Int?
+  color       String?
+  vehicleType VehicleType @default(CAR) @map("vehicle_type")
+  photoUrl    String?     @map("photo_url")
+  isActive    Boolean     @default(true) @map("is_active")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+  deletedAt   DateTime?   @map("deleted_at")
+
+  client       Client?       @relation(fields: [clientId], references: [id])
+  tickets      Ticket[]
+  subscriptions Subscription[]
+  reservations Reservation[]
+
+  @@index([plateNumber])
+  @@index([clientId])
+  @@index([vehicleType])
+  @@map("vehicles")
+}
+
+// ─── PARKING INFRASTRUCTURE ─────────────────────────────────
+
+model ParkingLot {
+  id              String   @id @default(uuid()) @db.Uuid
+  name            String
+  code            String   @unique
+  address         String?
+  city            String?
+  state           String?
+  country         String?
+  phone           String?
+  email           String?
+  totalSpots      Int      @default(0) @map("total_spots")
+  availableSpots  Int      @default(0) @map("available_spots")
+  openingTime     String?  @map("opening_time")
+  closingTime     String?  @map("closing_time")
+  is24h           Boolean  @default(false) @map("is_24h")
+  isActive        Boolean  @default(true) @map("is_active")
+  hasEvCharging   Boolean  @default(false) @map("has_ev_charging")
+  hasSecurity     Boolean  @default(false) @map("has_security")
+  hasCovered      Boolean  @default(false) @map("has_covered")
+  taxPercentage   Decimal  @default(0) @map("tax_percentage") @db.Decimal(5, 2)
+  currency        String   @default("USD")
+  logoUrl         String?  @map("logo_url")
+  ticketPrefix    String   @default("TKT") @map("ticket_prefix")
+  ticketNextNum   Int      @default(1) @map("ticket_next_num")
+  notes           String?
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  deletedAt       DateTime? @map("deleted_at")
+
+  parkingSpots    ParkingSpot[]
+  rates           Rate[]
+  tickets         Ticket[]
+  cashRegisters   CashRegister[]
+  subscriptions   Subscription[]
+  reservations    Reservation[]
+  printers        PrinterConfig[]
+
+  @@index([code])
+  @@index([isActive])
+  @@map("parking_lots")
+}
+
+model SpotType {
+  id          String   @id @default(uuid()) @db.Uuid
+  code        String   @unique
+  name        String
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  parkingSpots ParkingSpot[]
+  rates        Rate[]
+
+  @@index([code])
+  @@map("spot_types")
+}
+
+model ParkingSpot {
+  id          String     @id @default(uuid()) @db.Uuid
+  lotId       String     @map("lot_id") @db.Uuid
+  spotNumber  String     @map("spot_number")
+  floor       Int        @default(0)
+  section     String?
+  spotTypeId  String     @map("spot_type_id") @db.Uuid
+  status      SpotStatus @default(AVAILABLE)
+  isActive    Boolean    @default(true) @map("is_active")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+  deletedAt   DateTime?  @map("deleted_at")
+
+  lot     ParkingLot @relation(fields: [lotId], references: [id])
+  spotType SpotType  @relation(fields: [spotTypeId], references: [id])
+  tickets Ticket[]
+
+  @@unique([lotId, spotNumber])
+  @@index([lotId, status])
+  @@index([spotTypeId])
+  @@map("parking_spots")
+}
+
+// ─── RATES ──────────────────────────────────────────────────
+
+model Rate {
+  id               String   @id @default(uuid()) @db.Uuid
+  lotId            String   @map("lot_id") @db.Uuid
+  spotTypeId       String   @map("spot_type_id") @db.Uuid
+  name             String
+  rateType         RateType @map("rate_type")
+  baseAmount       Decimal  @map("base_amount") @db.Decimal(10, 2)
+  fractionalMinutes Int?    @map("fractional_minutes")
+  fractionalRate   Decimal? @map("fractional_rate") @db.Decimal(10, 2)
+  dailyMax         Decimal? @map("daily_max") @db.Decimal(10, 2)
+  nightRate        Decimal? @map("night_rate") @db.Decimal(10, 2)
+  monthlyRate      Decimal? @map("monthly_rate") @db.Decimal(10, 2)
+  isActive         Boolean  @default(true) @map("is_active")
+  effectiveFrom    DateTime? @map("effective_from")
+  effectiveTo      DateTime? @map("effective_to")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+  deletedAt        DateTime? @map("deleted_at")
+
+  lot     ParkingLot @relation(fields: [lotId], references: [id])
+  spotType SpotType  @relation(fields: [spotTypeId], references: [id])
+  tickets Ticket[]
+
+  @@index([lotId, isActive])
+  @@index([rateType])
+  @@map("rates")
+}
+
+// ─── TICKETS (CORE) ─────────────────────────────────────────
+
+model Ticket {
+  id             String        @id @default(uuid()) @db.Uuid
+  ticketNumber   String        @unique @map("ticket_number")
+  lotId          String        @map("lot_id") @db.Uuid
+  spotId         String?       @map("spot_id") @db.Uuid
+  clientId       String?       @map("client_id") @db.Uuid
+  vehicleId      String?       @map("vehicle_id") @db.Uuid
+  plateNumber    String        @map("plate_number")
+  entryTime      DateTime      @map("entry_time")
+  exitTime       DateTime?     @map("exit_time")
+  durationMinutes Int?         @map("duration_minutes")
+  rateId         String?       @map("rate_id") @db.Uuid
+  baseAmount     Decimal?      @map("base_amount") @db.Decimal(10, 2)
+  discountAmount Decimal?      @default(0) @map("discount_amount") @db.Decimal(10, 2)
+  taxAmount      Decimal?      @default(0) @map("tax_amount") @db.Decimal(10, 2)
+  totalAmount    Decimal?      @map("total_amount") @db.Decimal(10, 2)
+  status         TicketStatus  @default(ACTIVE)
+  paymentStatus  PaymentStatus @default(PENDING) @map("payment_status")
+  entryOperatorId String       @map("entry_operator_id") @db.Uuid
+  exitOperatorId  String?      @map("exit_operator_id") @db.Uuid
+  entryCashRegisterId String?  @map("entry_cash_register_id") @db.Uuid
+  notes          String?
+  entryPhotoUrl  String?       @map("entry_photo_url")
+  platePhotoUrl  String?       @map("plate_photo_url")
+  qrHash         String?       @map("qr_hash")
+  cancelledAt    DateTime?     @map("cancelled_at")
+  cancelReason   String?       @map("cancel_reason")
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+  deletedAt      DateTime?     @map("deleted_at")
+
+  lot             ParkingLot @relation(fields: [lotId], references: [id])
+  spot            ParkingSpot? @relation(fields: [spotId], references: [id])
+  client          Client?    @relation(fields: [clientId], references: [id])
+  vehicle         Vehicle?   @relation(fields: [vehicleId], references: [id])
+  rate            Rate?      @relation(fields: [rateId], references: [id])
+  entryOperator   User       @relation("TicketEntryOperator", fields: [entryOperatorId], references: [id])
+  exitOperator    User?      @relation("TicketExitOperator", fields: [exitOperatorId], references: [id])
+  entryCashRegister CashRegister? @relation(fields: [entryCashRegisterId], references: [id])
+
+  payments    Payment[]
+  accessLogs  AccessLog[]
+  reservation Reservation[]
+
+  @@index([ticketNumber])
+  @@index([plateNumber, status])
+  @@index([entryTime])
+  @@index([lotId, status])
+  @@index([clientId])
+  @@index([vehicleId])
+  @@index([qrHash])
+  @@index([status, paymentStatus])
+  @@map("tickets")
+}
+
+// ─── PAYMENTS ───────────────────────────────────────────────
+
+model Payment {
+  id             String        @id @default(uuid()) @db.Uuid
+  ticketId       String        @map("ticket_id") @db.Uuid
+  paymentMethod  PaymentMethod @map("payment_method")
+  amount         Decimal       @db.Decimal(10, 2)
+  referenceNumber String?      @map("reference_number")
+  paidAt         DateTime      @default(now()) @map("paid_at")
+  createdById    String        @map("created_by") @db.Uuid
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+  deletedAt      DateTime?     @map("deleted_at")
+
+  ticket             Ticket                @relation(fields: [ticketId], references: [id])
+  createdBy          User                  @relation(fields: [createdById], references: [id])
+  subscriptionPayments SubscriptionPayment[]
+
+  @@index([ticketId])
+  @@index([paidAt])
+  @@index([paymentMethod])
+  @@map("payments")
+}
+
+// ─── CASH REGISTER ──────────────────────────────────────────
+
+model CashRegister {
+  id              String              @id @default(uuid()) @db.Uuid
+  lotId           String              @map("lot_id") @db.Uuid
+  name            String
+  openedById      String              @map("opened_by") @db.Uuid
+  closedById      String?             @map("closed_by") @db.Uuid
+  openingBalance  Decimal             @default(0) @map("opening_balance") @db.Decimal(10, 2)
+  closingBalance  Decimal?            @map("closing_balance") @db.Decimal(10, 2)
+  expectedBalance Decimal?            @map("expected_balance") @db.Decimal(10, 2)
+  difference      Decimal?            @db.Decimal(10, 2)
+  status          CashRegisterStatus  @default(OPEN)
+  openedAt        DateTime            @default(now()) @map("opened_at")
+  closedAt        DateTime?           @map("closed_at")
+  notes           String?
+  createdAt       DateTime            @default(now()) @map("created_at")
+  updatedAt       DateTime            @updatedAt @map("updated_at")
+  deletedAt       DateTime?           @map("deleted_at")
+
+  lot       ParkingLot @relation(fields: [lotId], references: [id])
+  openedBy  User       @relation("CashRegisterOpenedBy", fields: [openedById], references: [id])
+  closedBy  User?      @relation("CashRegisterClosedBy", fields: [closedById], references: [id])
+
+  movements CashRegisterMovement[]
+  tickets   Ticket[]
+
+  @@index([lotId, status])
+  @@index([openedAt])
+  @@map("cash_registers")
+}
+
+model CashRegisterMovement {
+  id             String       @id @default(uuid()) @db.Uuid
+  cashRegisterId String       @map("cash_register_id") @db.Uuid
+  type           MovementType
+  amount         Decimal      @db.Decimal(10, 2)
+  referenceNumber String?     @map("reference_number")
+  description    String?
+  createdById    String       @map("created_by") @db.Uuid
+  createdAt      DateTime     @default(now()) @map("created_at")
+
+  cashRegister CashRegister @relation(fields: [cashRegisterId], references: [id], onDelete: Cascade)
+  createdBy    User         @relation(fields: [createdById], references: [id])
+
+  @@index([cashRegisterId])
+  @@index([createdAt])
+  @@map("cash_register_movements")
+}
+
+// ─── SUBSCRIPTIONS ──────────────────────────────────────────
+
+model Subscription {
+  id              String             @id @default(uuid()) @db.Uuid
+  clientId        String             @map("client_id") @db.Uuid
+  vehicleId       String             @map("vehicle_id") @db.Uuid
+  lotId           String             @map("lot_id") @db.Uuid
+  spotId          String?            @map("spot_id") @db.Uuid
+  subscriptionType RateType          @default(MONTHLY) @map("subscription_type")
+  startDate       DateTime           @map("start_date")
+  endDate         DateTime           @map("end_date")
+  rateId          String             @map("rate_id") @db.Uuid
+  amount          Decimal            @db.Decimal(10, 2)
+  status          SubscriptionStatus @default(ACTIVE)
+  autoRenew       Boolean            @default(false) @map("auto_renew")
+  notes           String?
+  createdById     String             @map("created_by") @db.Uuid
+  createdAt       DateTime           @default(now()) @map("created_at")
+  updatedAt       DateTime           @updatedAt @map("updated_at")
+  deletedAt       DateTime?          @map("deleted_at")
+
+  client    Client     @relation(fields: [clientId], references: [id])
+  vehicle   Vehicle    @relation(fields: [vehicleId], references: [id])
+  lot       ParkingLot @relation(fields: [lotId], references: [id])
+  createdBy User       @relation("SubscriptionCreatedBy", fields: [createdById], references: [id])
+  payments  SubscriptionPayment[]
+
+  @@index([clientId])
+  @@index([vehicleId])
+  @@index([lotId, status])
+  @@index([endDate])
+  @@map("subscriptions")
+}
+
+model SubscriptionPayment {
+  id             String   @id @default(uuid()) @db.Uuid
+  subscriptionId String   @map("subscription_id") @db.Uuid
+  paymentId      String   @map("payment_id") @db.Uuid
+  periodStart    DateTime @map("period_start")
+  periodEnd      DateTime @map("period_end")
+  amount         Decimal  @db.Decimal(10, 2)
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  payment      Payment      @relation(fields: [paymentId], references: [id])
+
+  @@index([subscriptionId])
+  @@map("subscription_payments")
+}
+
+// ─── RESERVATIONS ───────────────────────────────────────────
+
+model Reservation {
+  id          String             @id @default(uuid()) @db.Uuid
+  clientId    String             @map("client_id") @db.Uuid
+  vehicleId   String             @map("vehicle_id") @db.Uuid
+  lotId       String             @map("lot_id") @db.Uuid
+  spotId      String?            @map("spot_id") @db.Uuid
+  ticketId    String?            @map("ticket_id") @db.Uuid
+  date        DateTime
+  startTime   String             @map("start_time")
+  endTime     String             @map("end_time")
+  status      ReservationStatus  @default(CONFIRMED)
+  amount      Decimal            @db.Decimal(10, 2)
+  notes       String?
+  createdAt   DateTime           @default(now()) @map("created_at")
+  updatedAt   DateTime           @updatedAt @map("updated_at")
+  deletedAt   DateTime?          @map("deleted_at")
+
+  client  Client      @relation(fields: [clientId], references: [id])
+  vehicle Vehicle     @relation(fields: [vehicleId], references: [id])
+  lot     ParkingLot  @relation(fields: [lotId], references: [id])
+  ticket  Ticket?     @relation(fields: [ticketId], references: [id])
+
+  @@index([lotId, date])
+  @@index([clientId])
+  @@index([status])
+  @@map("reservations")
+}
+
+// ─── ACCESS LOGS ────────────────────────────────────────────
+
+model AccessLog {
+  id          String          @id @default(uuid()) @db.Uuid
+  ticketId    String          @map("ticket_id") @db.Uuid
+  eventType   AccessEventType @map("event_type")
+  accessTime  DateTime        @default(now()) @map("access_time")
+  operatorId  String          @map("operator_id") @db.Uuid
+  gateNumber  String?         @map("gate_number")
+  plateNumber String?         @map("plate_number")
+  imageUrl    String?         @map("image_url")
+  notes       String?
+  createdAt   DateTime        @default(now()) @map("created_at")
+
+  ticket   Ticket @relation(fields: [ticketId], references: [id])
+  operator User   @relation(fields: [operatorId], references: [id])
+
+  @@index([ticketId])
+  @@index([accessTime])
+  @@index([eventType])
+  @@map("access_logs")
+}
+
+// ─── AUDIT ──────────────────────────────────────────────────
+
+model AuditLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String?  @map("user_id") @db.Uuid
+  action     String
+  entityType String   @map("entity_type")
+  entityId   String   @map("entity_id") @db.Uuid
+  oldValues  Json?    @map("old_values") @db.JsonB
+  newValues  Json?    @map("new_values") @db.JsonB
+  ipAddress  String?  @map("ip_address")
+  userAgent  String?  @map("user_agent")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([entityType, entityId])
+  @@index([action])
+  @@index([createdAt])
+  @@index([userId])
+  @@map("audit_logs")
+}
+
+// ─── NOTIFICATIONS ──────────────────────────────────────────
+
+model Notification {
+  id        String           @id @default(uuid()) @db.Uuid
+  userId    String?          @map("user_id") @db.Uuid
+  type      NotificationType @default(INFO)
+  title     String
+  message   String?
+  isRead    Boolean          @default(false) @map("is_read")
+  readAt    DateTime?        @map("read_at")
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([userId, isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+// ─── SETTINGS ───────────────────────────────────────────────
+
+model Setting {
+  id          String   @id @default(uuid()) @db.Uuid
+  key         String   @unique
+  value       Json     @db.JsonB
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([key])
+  @@map("settings")
+}
+
+// ─── PRINTER CONFIG ─────────────────────────────────────────
+
+model PrinterConfig {
+  id            String          @id @default(uuid()) @db.Uuid
+  lotId         String          @map("lot_id") @db.Uuid
+  name          String
+  interfaceType PrinterInterface @map("interface_type")
+  devicePath    String?         @map("device_path")
+  ipAddress     String?         @map("ip_address")
+  port          Int?
+  paperWidth    PaperWidth      @default(MM_80) @map("paper_width")
+  charactersPerLine Int?        @default(42) @map("characters_per_line")
+  isDefault     Boolean         @default(false) @map("is_default")
+  isActive      Boolean         @default(true) @map("is_active")
+  createdById   String?         @map("created_by") @db.Uuid
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+
+  lot       ParkingLot @relation(fields: [lotId], references: [id])
+  createdBy User?      @relation(fields: [createdById], references: [id])
+
+  @@index([lotId, isDefault])
+  @@map("printer_configs")
+}
+
+// ─── BACKUPS ────────────────────────────────────────────────
+
+model Backup {
+  id          String   @id @default(uuid()) @db.Uuid
+  filename    String
+  filepath    String
+  filesize    BigInt?
+  description String?
+  createdById String?  @map("created_by") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  createdBy User? @relation("BackupCreatedBy", fields: [createdById], references: [id])
+
+  @@index([createdAt])
+  @@map("backups")
+}

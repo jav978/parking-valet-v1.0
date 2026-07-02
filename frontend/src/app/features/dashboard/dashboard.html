@@ -1,0 +1,53 @@
+<div class="dashboard">
+  <div class="dashboard-header">
+    <h1>Dashboard</h1>
+    <p>Bienvenido, {{ user()?.firstName }} {{ user()?.lastName }}</p>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon" style="background: var(--p-blue-100); color: var(--p-blue-700);">
+        <i class="pi pi-ticket"></i>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">--</span>
+        <span class="stat-label">Tickets Activos</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon" style="background: var(--p-green-100); color: var(--p-green-700);">
+        <i class="pi pi-car"></i>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">--</span>
+        <span class="stat-label">Vehículos Estacionados</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon" style="background: var(--p-yellow-100); color: var(--p-yellow-700);">
+        <i class="pi pi-dollar"></i>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">--</span>
+        <span class="stat-label">Ingresos del Día</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon" style="background: var(--p-purple-100); color: var(--p-purple-700);">
+        <i class="pi pi-building"></i>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">--</span>
+        <span class="stat-label">Disponibles</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="dashboard-placeholder">
+    <i class="pi pi-chart-line"></i>
+    <p>Los módulos de reportes y estadísticas estarán disponibles próximamente.</p>
+  </div>
+</div>

@@ -1,0 +1,54 @@
+<div class="flex align-items-center justify-content-center min-h-screen">
+  <div class="card w-full max-w-md">
+    <div class="text-center mb-5">
+      <i class="pi pi-car mb-3" style="font-size: 3rem; color: var(--p-primary-color);"></i>
+      <h1 class="text-2xl font-bold">Parking System</h1>
+      <p class="text-sm text-surface-500 mt-2">Inicia sesión para continuar</p>
+    </div>
+
+    @if (error()) {
+      <p-message severity="error" styleClass="mb-3 w-full">{{ error() }}</p-message>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
+      <p-fluid>
+        <div class="flex flex-col gap-1">
+          <label for="email" class="text-sm font-medium">Correo electrónico</label>
+          <input
+            pInputText
+            id="email"
+            type="email"
+            formControlName="email"
+            placeholder="admin@parking.com"
+            [class.ng-invalid]="form.get('email')?.invalid && form.get('email')?.touched"
+          />
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label for="password" class="text-sm font-medium">Contraseña</label>
+          <p-password
+            id="password"
+            formControlName="password"
+            [feedback]="false"
+            [toggleMask]="true"
+            placeholder="Ingresa tu contraseña"
+          />
+        </div>
+      </p-fluid>
+
+      <p-button
+        type="submit"
+        label="Iniciar sesión"
+        icon="pi pi-sign-in"
+        [loading]="loading()"
+        styleClass="w-full"
+      />
+    </form>
+
+    <div class="mt-4 pt-3 border-t border-surface-200">
+      <p class="text-xs text-surface-400 text-center">
+        Demo: admin@parking.com / Admin123!
+      </p>
+    </div>
+  </div>
+</div>

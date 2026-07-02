@@ -1,0 +1,476 @@
+Objetivo General
+El sistema permitirá administrar completamente un estacionamiento privado o público.
+
+Debe controlar:
+
+• Entrada de vehículos
+• Salida
+• Tiempo de permanencia
+• Tarifas
+• Cobros
+• Caja
+• Usuarios
+• Reportes
+• Estadísticas
+• Tickets
+• QR
+• Historial
+• Clientes
+• Vehículos
+• Configuración
+Módulos
+1 Usuarios
+Login
+Roles
+Permisos
+Auditoría
+
+Roles
+
+Administrador
+Supervisor
+Cajero
+Operador
+2 Clientes
+
+Registrar
+
+Nombre
+Documento
+Teléfono
+Correo
+Dirección
+Tipo
+Observaciones
+3 Vehículos
+
+Registrar
+
+Placa
+Marca
+Modelo
+Año
+Color
+Tipo
+Cliente
+Fotografía
+4 Entradas
+
+Registrar
+
+Fecha
+
+Hora
+
+Vehículo
+
+Operador
+
+Caja
+
+Observaciones
+
+Fotografía del vehículo
+
+Fotografía de la placa
+
+Estado
+
+Al registrar la entrada automáticamente debe:
+
+Generar Ticket
+
+Generar QR
+
+Generar Código Único
+
+Guardar fecha y hora exacta
+
+5 Tickets
+
+Cada ticket debe contener
+
+Logo
+
+Nombre del estacionamiento
+
+Dirección
+
+Teléfono
+
+Número Ticket
+
+Código QR
+
+Número QR
+
+Placa
+
+Vehículo
+
+Fecha entrada
+
+Hora entrada
+
+Operador
+
+Caja
+
+Tarifa
+
+Observaciones
+
+Formato 58 mm y 80 mm
+
+Compatible con impresoras térmicas ESC/POS
+
+6 QR
+
+Cada ticket debe tener un QR.
+
+El QR contendrá
+
+TicketID
+
+VehicleID
+
+Fecha
+
+Hash de seguridad
+
+El QR permitirá localizar inmediatamente el ticket.
+
+7 Salidas
+
+Al escanear el QR
+
+Debe abrir automáticamente el ticket.
+
+Mostrar
+
+Hora entrada
+
+Hora salida
+
+Tiempo
+
+Costo
+
+Tarifa aplicada
+
+IVA
+
+Descuentos
+
+Total
+
+Registrar pago
+
+Cerrar Ticket
+
+8 Tarifas
+
+Por Hora
+
+Media Hora
+
+Fracción
+
+Día
+
+Noche
+
+Mensual
+
+Especial
+
+Moto
+
+Carro
+
+Camión
+
+9 Caja
+
+Abrir Caja
+
+Cerrar Caja
+
+Movimientos
+
+Ingresos
+
+Egresos
+
+Arqueo
+
+Historial
+
+10 Reportes
+
+Ingresos diarios
+
+Mensuales
+
+Anuales
+
+Vehículos
+
+Clientes
+
+Rentabilidad
+
+Vehículos activos
+
+Vehículos históricos
+
+Caja
+
+Operadores
+
+Tarifas
+
+Tiempo promedio
+
+Horas pico
+
+Exportar
+
+PDF
+
+Excel
+
+CSV
+
+11 Dashboard
+
+Vehículos dentro
+
+Espacios disponibles
+
+Ocupación
+
+Ingresos Hoy
+
+Ingresos Mes
+
+Entradas
+
+Salidas
+
+Gráficos
+
+Top Clientes
+
+Top Vehículos
+
+12 Configuración
+
+Empresa
+
+Logo
+
+Moneda
+
+Impuestos
+
+Tarifas
+
+Impresoras
+
+Correo
+
+Respaldos
+
+Numeración Tickets
+
+Funcionalidades Especiales
+
+El sistema deberá incluir
+
+✔ Generación automática de QR
+
+✔ Escaneo mediante cámara
+
+✔ Escaneo mediante lector USB
+
+✔ Impresión térmica
+
+✔ Reimpresión
+
+✔ Tickets anulados
+
+✔ Auditoría
+
+✔ Logs
+
+✔ Historial
+
+✔ Soft Delete
+
+✔ Backup
+
+✔ Restauración
+
+✔ Configuración de impresoras
+
+✔ Múltiples cajas
+
+✔ Múltiples operadores
+
+✔ Múltiples sucursales (preparado para el futuro)
+
+Arquitectura
+
+El proyecto deberá dividirse en módulos independientes.
+
+Cada módulo debe contener
+
+DTO
+
+Entities
+
+Repository
+
+Service
+
+Controller
+
+Validators
+
+Interfaces
+
+Enums
+
+Constants
+
+Helpers
+
+Utils
+
+Guards
+
+Middlewares
+
+Base de Datos
+
+Diseñar completamente el modelo de datos.
+
+Crear
+
+Modelo ER
+
+Diagrama
+
+Migraciones
+
+Prisma Schema
+
+Índices
+
+Restricciones
+
+Auditoría
+
+Soft Delete
+
+Flujo de Desarrollo
+
+Antes de escribir código debes generar
+
+1 Arquitectura General
+
+2 Casos de Uso
+
+3 Diagrama ER
+
+4 Modelo Relacional
+
+5 Estructura de Carpetas
+
+6 Diseño UI
+
+7 Diseño UX
+
+8 Base de Datos
+
+9 API
+
+10 Frontend
+
+11 Testing
+
+12 Deployment
+
+No avanzar al siguiente paso hasta terminar completamente el anterior.
+
+Siempre explicar las decisiones técnicas y proponer mejoras cuando sea necesario.
+
+
+---
+
+# Planificación del Proyecto
+
+## Fase 1 — Análisis y Diseño (1 semana)
+- Levantamiento de requisitos.
+- Casos de uso.
+- Historias de usuario.
+- Arquitectura.
+- Modelo entidad-relación.
+- Prototipos UI/UX.
+
+## Fase 2 — Base de Datos (1 semana)
+- Diseño en PostgreSQL.
+- Esquema Prisma.
+- Migraciones.
+- Datos de prueba.
+
+## Fase 3 — Backend (2 semanas)
+- Autenticación.
+- Roles y permisos.
+- CRUD de entidades.
+- API REST.
+- Generación de QR.
+- Gestión de tickets.
+- Cálculo automático de tarifas.
+
+## Fase 4 — Frontend Desktop (3 semanas)
+- Aplicación Angular con Electron.
+- Componentes PrimeNG.
+- Dashboard.
+- Módulos administrativos.
+- Formularios.
+- Reportes.
+
+## Fase 5 — Integraciones (1 semana)
+- Impresoras térmicas ESC/POS.
+- Lectores de códigos QR USB.
+- Cámara para escaneo de QR.
+- Exportación a PDF y Excel.
+
+## Fase 6 — Pruebas y Optimización (1 semana)
+- Pruebas unitarias.
+- Pruebas de integración.
+- Pruebas de rendimiento.
+- Validación del flujo de caja y cobros.
+
+## Fase 7 — Despliegue (1 semana)
+- Empaquetado con Electron.
+- Instalador para Windows.
+- Configuración de PostgreSQL.
+- Manual de usuario y respaldo de la base de datos.
+
+### Mejoras futuras recomendadas
+Dejaría preparadas algunas capacidades desde el diseño inicial, aunque no se implementen en la primera versión:
+
+- **Reserva de espacios** para clientes frecuentes.
+- **Reconocimiento automático de placas (LPR/ANPR)** mediante cámara e inteligencia artificial.
+- **Integración con pasarelas de pago** (tarjetas, pagos móviles, billeteras digitales).
+- **Notificaciones** por SMS o correo cuando un vehículo exceda cierto tiempo.
+- **Modo offline** con sincronización posterior para garantizar continuidad ante fallos de red.
+- **API pública** para integraciones con condominios, centros comerciales u otros sistemas.
+- **Arquitectura multiempresa y multisucursal**, de forma que el sistema pueda administrar varios estacionamientos desde una sola instalación sin rediseños importantes.
+
+Con esta planificación y el prompt maestro tendrás una base sólida para desarrollar una aplicación de nivel comercial, escalable y preparada para evolucionar con nuevos módulos.
+Ads do not influence the answers you get from ChatGPT. Your chats stay private. 
+Learn about ads and personalization

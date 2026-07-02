@@ -1,0 +1,68 @@
+@import "tailwindcss";
+@import "primeicons/primeicons.css";
+
+@plugin "tailwindcss-primeui";
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    font-size: 14px;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-family);
+    font-weight: normal;
+    background: var(--p-surface-50);
+    color: var(--p-text-color);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    margin: 0;
+  }
+
+  p {
+    margin: 0;
+  }
+
+  .blocked-scroll {
+    overflow: hidden;
+  }
+}
+
+@import "./app/layout/layout-menu.scss";
+
+@layer primeng;
+
+.card {
+  background: var(--p-surface-0);
+  border: 1px solid var(--p-surface-200);
+  padding: 1.5rem;
+  border-radius: var(--p-border-radius-xl);
+  margin-bottom: 1.5rem;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
