@@ -14,7 +14,7 @@ interface LayoutState {
 @Injectable({ providedIn: 'root' })
 export class LayoutService {
   layoutConfig = signal<LayoutConfig>({
-    darkTheme: false,
+    darkTheme: typeof window !== 'undefined' ? window.matchMedia('(prefers-color-scheme: dark)').matches : false,
     menuMode: 'static'
   });
 
@@ -28,15 +28,11 @@ export class LayoutService {
   isOverlay = computed(() => this.layoutConfig().menuMode === 'overlay');
   isSidebarActive = computed(() => this.layoutState().overlayMenuActive || this.layoutState().mobileMenuActive);
 
-  private initialized = false;
-
   constructor() {
+    this.toggleDarkMode();
+
     effect(() => {
       const config = this.layoutConfig();
-      if (!this.initialized) {
-        this.initialized = true;
-        return;
-      }
       this.toggleDarkMode(config);
     });
   }
@@ -62,7 +58,9 @@ export class LayoutService {
 
   toggleDarkMode(config?: LayoutConfig): void {
     const cfg = config || this.layoutConfig();
-    document.documentElement.classList.toggle('app-dark', cfg.darkTheme);
+    if (typeof document !== 'undefined') {
+      document.documentElement.classList.toggle('dark', cfg.darkTheme);
+    }
   }
 
   isDesktop(): boolean {

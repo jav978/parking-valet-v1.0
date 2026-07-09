@@ -1,6 +1,6 @@
 import { Component, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { MenuItem } from 'primeng/api';
 import { AuthService } from '../core/services/auth.service';
 
@@ -56,18 +56,16 @@ import { AuthService } from '../core/services/auth.service';
 })
 export class AppMenu {
   private authService = inject(AuthService);
+  private router = inject(Router);
   user = this.authService.user;
   expandedMenus = new Set<MenuItem>();
   currentPath = '';
 
   constructor() {
-    import('@angular/router').then(({ Router }) => {
-      const router = inject(Router);
-      router.events.subscribe((event: any) => {
-        if (event.url) {
-          this.currentPath = event.url;
-        }
-      });
+    this.router.events.subscribe((event: any) => {
+      if (event && 'url' in event) {
+        this.currentPath = event.url as string;
+      }
     });
   }
 

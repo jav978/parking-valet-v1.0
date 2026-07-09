@@ -34,6 +34,10 @@ export const routes: Routes = [
         path: 'permisos',
         loadComponent: () => import('./features/permisos/permisos').then((m) => m.Permisos),
       },
+      {
+        path: 'tickets',
+        loadComponent: () => import('./features/tickets/tickets').then((m) => m.Tickets),
+      },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
     ],
   },

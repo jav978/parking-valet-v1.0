@@ -14,10 +14,6 @@ import { AuthService } from '../core/services/auth.service';
         <button class="layout-menu-button layout-topbar-action" (click)="layoutService.onMenuToggle()">
           <i class="pi pi-bars"></i>
         </button>
-        <a class="layout-topbar-logo" routerLink="/">
-          <i class="pi pi-car" style="font-size: 1.5rem; color: var(--p-primary-color);"></i>
-          <span>Parking System</span>
-        </a>
       </div>
 
       <div class="layout-topbar-actions">

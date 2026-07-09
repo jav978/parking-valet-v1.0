@@ -1,0 +1,57 @@
+:host {
+  display: block;
+}
+
+.tickets-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+
+  h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--p-surface-800);
+    margin: 0;
+  }
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--p-border-radius-sm);
+  font-size: 0.75rem;
+  font-weight: 600;
+
+  &.active {
+    background: var(--p-green-100);
+    color: var(--p-green-700);
+  }
+
+  &.completed {
+    background: var(--p-blue-100);
+    color: var(--p-blue-700);
+  }
+
+  &.cancelled {
+    background: var(--p-red-100);
+    color: var(--p-red-700);
+  }
+
+  &.pending {
+    background: var(--p-yellow-100);
+    color: var(--p-yellow-700);
+  }
+
+  &.paid {
+    background: var(--p-green-100);
+    color: var(--p-green-700);
+  }
+
+  &.refunded {
+    background: var(--p-orange-100);
+    color: var(--p-orange-700);
+  }
+}

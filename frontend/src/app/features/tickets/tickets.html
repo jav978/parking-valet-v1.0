@@ -1,0 +1,306 @@
+<div class="tickets-header">
+  <h1>Tickets</h1>
+  <p-button
+    label="Nuevo Ticket"
+    icon="pi pi-plus"
+    (click)="showCreateDialog = true"
+    [disabled]="!lots().length"
+  />
+</div>
+
+@if (error()) {
+  <p-message severity="error" styleClass="mb-3 w-full">{{ error() }}</p-message>
+}
+
+<div class="card">
+  <div class="flex flex-wrap gap-3 mb-3">
+    <p-iconfield>
+      <p-inputicon styleClass="pi pi-search" />
+      <input
+        pInputText
+        type="text"
+        placeholder="Buscar ticket o placa..."
+        [ngModel]="search()"
+        (ngModelChange)="search.set($event); loadTickets()"
+        class="w-64"
+      />
+    </p-iconfield>
+
+    <p-select
+      [options]="statusOptions"
+      placeholder="Estado"
+      [ngModel]="statusFilter()"
+      (ngModelChange)="statusFilter.set($event); loadTickets()"
+      class="w-40"
+      clearable
+    />
+
+    <p-select
+      [options]="paymentStatusOptions"
+      placeholder="Pago"
+      [ngModel]="paymentFilter()"
+      (ngModelChange)="paymentFilter.set($event); loadTickets()"
+      class="w-40"
+      clearable
+    />
+  </div>
+
+  <p-table
+    [value]="tickets()"
+    [loading]="loading()"
+    [paginator]="true"
+    [rows]="limit"
+    [totalRecords]="total()"
+    [rowsPerPageOptions]="[10, 25, 50]"
+    (onPage)="onPageChange($event)"
+    [lazy]="true"
+    [sortField]="sortBy()"
+    [sortOrder]="sortOrder() === 'asc' ? 1 : -1"
+    (onSort)="onSort($event)"
+    dataKey="id"
+  >
+    <ng-template pTemplate="header">
+      <tr>
+        <th># Ticket</th>
+        <th>Placa</th>
+        <th>Ingreso</th>
+        <th>Salida</th>
+        <th>Duración</th>
+        <th>Total</th>
+        <th>Estado</th>
+        <th>Pago</th>
+        <th style="width: 8rem"></th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-ticket>
+      <tr>
+        <td class="font-medium">{{ ticket.ticketNumber }}</td>
+        <td>{{ ticket.plateNumber }}</td>
+        <td>{{ ticket.entryTime | date:'dd/MM/yy HH:mm' }}</td>
+        <td>{{ (ticket.exitTime | date:'dd/MM/yy HH:mm') || '-' }}</td>
+        <td>{{ ticket.durationMinutes ? (ticket.durationMinutes + ' min') : '-' }}</td>
+        <td class="font-medium">{{ ticket.totalAmount ? ('$' + ticket.totalAmount) : '-' }}</td>
+        <td>
+          <span class="status-badge" [class]="ticket.status.toLowerCase()">
+            {{ statusLabel(ticket.status) }}
+          </span>
+        </td>
+        <td>
+          <span class="status-badge" [class]="ticket.paymentStatus.toLowerCase()">
+            {{ paymentLabel(ticket.paymentStatus) }}
+          </span>
+        </td>
+        <td>
+          <div class="flex gap-1">
+            <p-button icon="pi pi-eye" severity="secondary" size="small" (click)="viewTicket(ticket)" />
+            @if (ticket.status === 'ACTIVE') {
+              <p-button icon="pi pi-check" severity="success" size="small" (click)="openCloseDialog(ticket)" />
+              <p-button icon="pi pi-times" severity="danger" size="small" (click)="cancelTicket(ticket)" />
+            }
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<p-dialog
+  header="Nuevo Ticket"
+  [(visible)]="showCreateDialog"
+  [modal]="true"
+  [style]="{ width: '500px' }"
+>
+  <form #createForm="ngForm" (ngSubmit)="createTicket()" class="flex flex-col gap-3">
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium">Estacionamiento *</label>
+      <p-select
+        name="lotId"
+        [options]="lots()"
+        optionLabel="name"
+        optionValue="id"
+        [(ngModel)]="createData.lotId"
+        placeholder="Seleccionar..."
+        required
+      />
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium">Placa *</label>
+      <input pInputText type="text" name="plateNumber" [(ngModel)]="createData.plateNumber" placeholder="ABC-123" required class="uppercase" />
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium">Espacio (opcional)</label>
+      <p-select
+        name="spotId"
+        [options]="availableSpots()"
+        optionLabel="label"
+        optionValue="id"
+        [(ngModel)]="createData.spotId"
+        placeholder="Seleccionar..."
+      />
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium">Notas (opcional)</label>
+      <textarea pInputTextarea name="notes" [(ngModel)]="createData.notes" rows="2"></textarea>
+    </div>
+
+    <div class="flex justify-end gap-2 mt-2">
+      <p-button label="Cancelar" severity="secondary" (click)="showCreateDialog = false" />
+      <p-button label="Crear" type="submit" [loading]="submitting()" />
+    </div>
+  </form>
+</p-dialog>
+
+<p-dialog
+  header="Cerrar Ticket"
+  [(visible)]="showCloseDialog"
+  [modal]="true"
+  [style]="{ width: '500px' }"
+>
+  @if (selectedTicket()) {
+    <form #closeForm="ngForm" (ngSubmit)="closeTicket()" class="flex flex-col gap-3">
+      <div class="p-3 bg-surface-50 rounded-lg text-sm mb-2">
+        <div class="flex justify-between mb-1">
+          <span class="text-surface-500">Ticket:</span>
+          <span class="font-medium">{{ selectedTicket()!.ticketNumber }}</span>
+        </div>
+        <div class="flex justify-between mb-1">
+          <span class="text-surface-500">Placa:</span>
+          <span class="font-medium">{{ selectedTicket()!.plateNumber }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-surface-500">Ingreso:</span>
+          <span class="font-medium">{{ selectedTicket()!.entryTime | date:'dd/MM/yy HH:mm' }}</span>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium">Tarifa</label>
+        <p-select
+          name="rateId"
+          [options]="rates()"
+          optionLabel="name"
+          optionValue="id"
+          [(ngModel)]="closeData.rateId"
+          placeholder="Seleccionar..."
+        />
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium">Monto base</label>
+        <p-inputnumber
+          name="baseAmount"
+          [(ngModel)]="closeData.baseAmount"
+          [min]="0"
+          [max]="999999"
+          mode="currency"
+          currency="USD"
+          locale="en-US"
+        />
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium">Descuento</label>
+        <p-inputnumber
+          name="discountAmount"
+          [(ngModel)]="closeData.discountAmount"
+          [min]="0"
+          [max]="999999"
+          mode="currency"
+          currency="USD"
+          locale="en-US"
+        />
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium">Notas (opcional)</label>
+        <textarea pInputTextarea name="notes" [(ngModel)]="closeData.notes" rows="2"></textarea>
+      </div>
+
+      <div class="flex justify-end gap-2 mt-2">
+        <p-button label="Cancelar" severity="secondary" (click)="showCloseDialog = false" />
+        <p-button label="Cerrar Ticket" type="submit" [loading]="submitting()" />
+      </div>
+    </form>
+  }
+</p-dialog>
+
+<p-dialog
+  header="Detalle del Ticket"
+  [(visible)]="showDetailDialog"
+  [modal]="true"
+  [style]="{ width: '600px' }"
+>
+  @if (selectedTicket()) {
+    <div class="flex flex-col gap-3 text-sm">
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <span class="block text-surface-400 text-xs">Ticket</span>
+          <span class="font-medium">{{ selectedTicket()!.ticketNumber }}</span>
+        </div>
+        <div>
+          <span class="block text-surface-400 text-xs">Placa</span>
+          <span class="font-medium">{{ selectedTicket()!.plateNumber }}</span>
+        </div>
+        <div>
+          <span class="block text-surface-400 text-xs">Estado</span>
+          <span class="status-badge" [class]="selectedTicket()!.status.toLowerCase()">{{ statusLabel(selectedTicket()!.status) }}</span>
+        </div>
+        <div>
+          <span class="block text-surface-400 text-xs">Pago</span>
+          <span class="status-badge" [class]="selectedTicket()!.paymentStatus.toLowerCase()">{{ paymentLabel(selectedTicket()!.paymentStatus) }}</span>
+        </div>
+        <div>
+          <span class="block text-surface-400 text-xs">Ingreso</span>
+          <span>{{ selectedTicket()!.entryTime | date:'dd/MM/yy HH:mm' }}</span>
+        </div>
+        <div>
+          <span class="block text-surface-400 text-xs">Salida</span>
+          <span>{{ (selectedTicket()!.exitTime | date:'dd/MM/yy HH:mm') || '-' }}</span>
+        </div>
+        <div>
+          <span class="block text-surface-400 text-xs">Duración</span>
+          <span>{{ selectedTicket()!.durationMinutes ? (selectedTicket()!.durationMinutes + ' min') : '-' }}</span>
+        </div>
+        <div>
+          <span class="block text-surface-400 text-xs">Total</span>
+          <span class="font-medium">{{ selectedTicket()!.totalAmount ? ('$' + selectedTicket()!.totalAmount) : '-' }}</span>
+        </div>
+        @if (selectedTicket()!.lot) {
+          <div>
+            <span class="block text-surface-400 text-xs">Estacionamiento</span>
+            <span>{{ selectedTicket()!.lot!.name }}</span>
+          </div>
+        }
+        @if (selectedTicket()!.spot) {
+          <div>
+            <span class="block text-surface-400 text-xs">Espacio</span>
+            <span>{{ selectedTicket()!.spot!.spotNumber }}</span>
+          </div>
+        }
+        @if (selectedTicket()!.entryOperator) {
+          <div>
+            <span class="block text-surface-400 text-xs">Operador ingreso</span>
+            <span>{{ selectedTicket()!.entryOperator!.firstName }} {{ selectedTicket()!.entryOperator!.lastName }}</span>
+          </div>
+        }
+        @if (selectedTicket()!.exitOperator) {
+          <div>
+            <span class="block text-surface-400 text-xs">Operador salida</span>
+            <span>{{ selectedTicket()!.exitOperator!.firstName }} {{ selectedTicket()!.exitOperator!.lastName }}</span>
+          </div>
+        }
+      </div>
+      @if (selectedTicket()!.notes) {
+        <div>
+          <span class="block text-surface-400 text-xs">Notas</span>
+          <span>{{ selectedTicket()!.notes }}</span>
+        </div>
+      }
+    </div>
+  }
+</p-dialog>
+
+<p-toast />

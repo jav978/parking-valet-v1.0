@@ -182,7 +182,7 @@
   border-right: 1px solid var(--p-surface-200);
   overflow-y: auto;
   transition: transform 0.2s;
-  padding-top: var(--topbar-height);
+  padding-top: 0;
 }
 
 .layout-main-container {

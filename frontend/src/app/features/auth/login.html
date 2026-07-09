@@ -1,54 +1,102 @@
-<div class="flex align-items-center justify-content-center min-h-screen">
-  <div class="card w-full max-w-md">
-    <div class="text-center mb-5">
-      <i class="pi pi-car mb-3" style="font-size: 3rem; color: var(--p-primary-color);"></i>
-      <h1 class="text-2xl font-bold">Parking System</h1>
-      <p class="text-sm text-surface-500 mt-2">Inicia sesión para continuar</p>
-    </div>
-
-    @if (error()) {
-      <p-message severity="error" styleClass="mb-3 w-full">{{ error() }}</p-message>
-    }
-
-    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
-      <p-fluid>
-        <div class="flex flex-col gap-1">
-          <label for="email" class="text-sm font-medium">Correo electrónico</label>
-          <input
-            pInputText
-            id="email"
-            type="email"
-            formControlName="email"
-            placeholder="admin@parking.com"
-            [class.ng-invalid]="form.get('email')?.invalid && form.get('email')?.touched"
-          />
+<div class="grid grid-cols-1 md:grid-cols-12 min-h-screen w-full overflow-hidden">
+  <!-- Left Side: Interactive Parking Visual (Hidden on mobile) -->
+  <div 
+    class="hidden md:flex md:col-span-7 lg:col-span-8 relative items-center p-12 bg-cover bg-center"
+    style="background-image: url('images/smart_parking_lot.png');"
+  >
+    <!-- Background overlay for contrast and readability -->
+    <div class="absolute inset-0 bg-gradient-to-tr from-slate-900/90 via-slate-900/60 to-transparent"></div>
+    
+    <div class="relative z-10 max-w-2xl text-white">
+      <div class="flex items-center gap-3 mb-8">
+        <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/30">
+          <i class="pi pi-car text-2xl text-emerald-400"></i>
         </div>
-
-        <div class="flex flex-col gap-1">
-          <label for="password" class="text-sm font-medium">Contraseña</label>
-          <p-password
-            id="password"
-            formControlName="password"
-            [feedback]="false"
-            [toggleMask]="true"
-            placeholder="Ingresa tu contraseña"
-          />
-        </div>
-      </p-fluid>
-
-      <p-button
-        type="submit"
-        label="Iniciar sesión"
-        icon="pi pi-sign-in"
-        [loading]="loading()"
-        styleClass="w-full"
-      />
-    </form>
-
-    <div class="mt-4 pt-3 border-t border-surface-200">
-      <p class="text-xs text-surface-400 text-center">
-        Demo: admin@parking.com / Admin123!
+        <span class="text-xl font-bold tracking-wider uppercase text-emerald-400">Valet Parking System</span>
+      </div>
+      <h2 class="text-4xl lg:text-5xl font-extrabold mb-6 leading-tight">
+        Control Inteligente & Eficiencia en Tiempo Real.
+      </h2>
+      <p class="text-slate-300 text-lg leading-relaxed mb-4">
+        Optimiza la operación de tu estacionamiento con cobros automatizados, cálculo automático de tarifas por hora/fracción, emisión de tickets con código QR y control integral de caja.
       </p>
+      <div class="flex gap-6 mt-8">
+        <div class="flex items-center gap-2">
+          <i class="pi pi-check-circle text-emerald-400"></i>
+          <span class="text-sm font-semibold text-slate-200">Emisión de Tickets QR</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <i class="pi pi-check-circle text-emerald-400"></i>
+          <span class="text-sm font-semibold text-slate-200">Arqueo de Caja Directo</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <i class="pi pi-check-circle text-emerald-400"></i>
+          <span class="text-sm font-semibold text-slate-200">Estadísticas en Vivo</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Side: Login Form (Centered) -->
+  <div class="col-span-12 md:col-span-5 lg:col-span-4 flex items-center justify-center p-8 bg-surface-0 border-l border-surface-200">
+    <div class="w-full max-w-md flex flex-col gap-6">
+      <div class="text-center md:text-left mb-2">
+        <div class="flex md:hidden items-center justify-center gap-2 mb-4">
+          <i class="pi pi-car text-3xl text-emerald-500"></i>
+          <h1 class="text-xl font-bold">Valet Parking</h1>
+        </div>
+        <h2 class="text-2xl font-bold text-surface-800">Bienvenido de nuevo</h2>
+        <p class="text-sm text-surface-500 mt-2">Inicia sesión con tus credenciales de acceso</p>
+      </div>
+
+      @if (error()) {
+        <p-message severity="error" styleClass="w-full">{{ error() }}</p-message>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-5">
+        <p-fluid>
+          <div class="flex flex-col gap-1.5">
+            <label for="email" class="text-sm font-medium text-surface-700">Correo electrónico</label>
+            <input
+              pInputText
+              id="email"
+              type="email"
+              formControlName="email"
+              placeholder="admin@parking.com"
+              [class.ng-invalid]="form.get('email')?.invalid && form.get('email')?.touched"
+            />
+          </div>
+
+          <div class="flex flex-col gap-1.5 mt-3">
+            <label for="password" class="text-sm font-medium text-surface-700">Contraseña</label>
+            <p-password
+              id="password"
+              formControlName="password"
+              [feedback]="false"
+              [toggleMask]="true"
+              placeholder="Ingresa tu contraseña"
+              styleClass="w-full"
+            />
+          </div>
+        </p-fluid>
+
+        <p-button
+          type="submit"
+          label="Ingresar al Sistema"
+          icon="pi pi-sign-in"
+          [loading]="loading()"
+          styleClass="w-full mt-2"
+        />
+      </form>
+
+      <div class="mt-6 pt-4 border-t border-surface-200">
+        <div class="bg-surface-50 border border-surface-200 rounded-lg p-3 text-center">
+          <p class="text-xs text-surface-500 font-semibold mb-1">Credenciales de prueba:</p>
+          <code class="text-xs text-emerald-600 bg-white px-2 py-1 rounded border border-surface-200 font-mono">
+            admin@parking.com / Admin123!
+          </code>
+        </div>
+      </div>
     </div>
   </div>
 </div>
