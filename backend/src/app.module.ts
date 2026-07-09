@@ -8,6 +8,8 @@ import { UsersModule } from './modules/users/users.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { PermissionsModule } from './modules/permissions/permissions.module';
 import { TicketsModule } from './modules/tickets/tickets.module';
+import { ClientsModule } from './modules/clients/clients.module';
+import { VehiclesModule } from './modules/vehicles/vehicles.module';
 
 @Module({
   imports: [
@@ -26,6 +28,8 @@ import { TicketsModule } from './modules/tickets/tickets.module';
     RolesModule,
     PermissionsModule,
     TicketsModule,
+    ClientsModule,
+    VehiclesModule,
   ],
   controllers: [],
   providers: [

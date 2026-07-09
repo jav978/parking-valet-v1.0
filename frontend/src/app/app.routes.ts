@@ -38,6 +38,14 @@ export const routes: Routes = [
         path: 'tickets',
         loadComponent: () => import('./features/tickets/tickets').then((m) => m.Tickets),
       },
+      {
+        path: 'clientes',
+        loadComponent: () => import('./features/clients/clients').then((m) => m.Clients),
+      },
+      {
+        path: 'vehiculos',
+        loadComponent: () => import('./features/vehiculos/vehiculos').then((m) => m.Vehiculos),
+      },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
     ],
   },

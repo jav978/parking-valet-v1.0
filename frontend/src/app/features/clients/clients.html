@@ -1,0 +1,341 @@
+<p-toast />
+<p-confirmdialog />
+
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
+  <div>
+    <h1 class="text-2xl font-bold text-color">Clientes</h1>
+    <p class="text-sm text-muted-color">Gestiona la información, tipo de cliente y vehículos asociados.</p>
+  </div>
+  <p-button label="Nuevo Cliente" icon="pi pi-plus" (click)="openCreateDialog()" />
+</div>
+
+@if (error()) {
+  <p-message severity="error" styleClass="mb-3 w-full">{{ error() }}</p-message>
+}
+
+<div class="card">
+  <div class="flex flex-wrap items-center gap-3 mb-3">
+    <p-iconfield>
+      <p-inputicon styleClass="pi pi-search" />
+      <input pInputText type="text" placeholder="Buscar por nombre, documento o email..."
+        [ngModel]="search()" (ngModelChange)="search.set($event); loadClients()" class="w-full md:w-80" />
+    </p-iconfield>
+    <p-select [options]="clientTypeOptions" placeholder="Tipo de Cliente"
+      [ngModel]="clientTypeFilter()"
+      (ngModelChange)="clientTypeFilter.set($event); loadClients()" class="w-full sm:w-44" clearable />
+    <p-select [options]="statusFilterOptions" placeholder="Estado"
+      [ngModel]="statusFilter()"
+      (ngModelChange)="statusFilter.set($event); loadClients()" class="w-full sm:w-36" clearable />
+  </div>
+
+  <p-table [value]="clients()" [loading]="loading()" [paginator]="true"
+    [rows]="limit" [totalRecords]="total()" [rowsPerPageOptions]="[10, 25, 50]"
+    (onPage)="onPageChange($event)" [lazy]="true"
+    [sortField]="sortBy()" [sortOrder]="sortOrder() === 'asc' ? 1 : -1"
+    (onSort)="onSort($event)" dataKey="id" class="w-full">
+
+    <ng-template pTemplate="header">
+      <tr>
+        <th pSortableColumn="firstName">Nombre <p-sorticon field="firstName" /></th>
+        <th pSortableColumn="documentNumber">Documento <p-sorticon field="documentNumber" /></th>
+        <th>Contacto</th>
+        <th pSortableColumn="clientType">Tipo <p-sorticon field="clientType" /></th>
+        <th pSortableColumn="isActive">Estado <p-sorticon field="isActive" /></th>
+        <th style="width: 10rem"></th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-client>
+      <tr>
+        <td>
+          <span class="p-column-title font-bold md:hidden">Nombre: </span>
+          <div class="font-medium text-color">{{ client.firstName }} {{ client.lastName }}</div>
+        </td>
+        <td>
+          <span class="p-column-title font-bold md:hidden">Documento: </span>
+          <div>
+            <span class="text-xs text-muted-color block">{{ documentLabel(client.documentType) }}</span>
+            <span class="font-mono">{{ client.documentNumber }}</span>
+          </div>
+        </td>
+        <td>
+          <span class="p-column-title font-bold md:hidden">Contacto: </span>
+          <div class="flex flex-col text-xs text-muted-color">
+            @if (client.email) {
+              <span><i class="pi pi-envelope text-[10px] mr-1"></i>{{ client.email }}</span>
+            }
+            @if (client.phone) {
+              <span><i class="pi pi-phone text-[10px] mr-1"></i>{{ client.phone }}</span>
+            }
+            @if (!client.email && !client.phone) {
+              <span>-</span>
+            }
+          </div>
+        </td>
+        <td>
+          <span class="p-column-title font-bold md:hidden">Tipo: </span>
+          <span class="text-xs font-semibold px-2 py-1 rounded bg-surface-100 text-color">
+            {{ clientTypeLabel(client.clientType) }}
+          </span>
+        </td>
+        <td>
+          <span class="p-column-title font-bold md:hidden">Estado: </span>
+          <span class="text-xs font-semibold px-2 py-1 rounded"
+            [ngClass]="client.isActive ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'">
+            {{ client.isActive ? 'Activo' : 'Inactivo' }}
+          </span>
+        </td>
+        <td>
+          <span class="p-column-title font-bold md:hidden">Acciones: </span>
+          <div class="flex gap-1 justify-end md:justify-start">
+            <p-button icon="pi pi-car" severity="info" size="small"
+              (click)="openDetailDialog(client)" />
+            <p-button icon="pi pi-pencil" severity="secondary" size="small"
+              (click)="openEditDialog(client)" />
+            <p-button icon="pi pi-trash" severity="danger" size="small"
+              (click)="confirmDelete(client)" />
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="6" class="text-center p-4 text-muted-color">No se encontraron clientes.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- ─── FORM DIALOG ─────────────────────────────────────── -->
+<p-dialog [header]="isEditMode ? 'Editar Cliente' : 'Nuevo Cliente'"
+  [(visible)]="showFormDialog" [modal]="true"
+  [style]="{ width: '90%', maxWidth: '600px' }" [draggable]="false" [resizable]="false">
+  <form #form="ngForm" (ngSubmit)="saveClient()" class="flex flex-col gap-4 mt-2">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-color">Nombre *</label>
+        <input pInputText type="text" name="firstName" [(ngModel)]="clientForm.firstName"
+          placeholder="Nombre" required #fnModel="ngModel"
+          [class.ng-invalid]="fnModel.invalid && fnModel.touched" />
+        @if (fnModel.invalid && fnModel.touched) {
+          <small class="text-red-500 text-xs">El nombre es obligatorio.</small>
+        }
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-color">Apellido *</label>
+        <input pInputText type="text" name="lastName" [(ngModel)]="clientForm.lastName"
+          placeholder="Apellido" required #lnModel="ngModel"
+          [class.ng-invalid]="lnModel.invalid && lnModel.touched" />
+        @if (lnModel.invalid && lnModel.touched) {
+          <small class="text-red-500 text-xs">El apellido es obligatorio.</small>
+        }
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-color">Tipo Documento *</label>
+        <p-select name="documentType" [options]="documentTypeOptions"
+          [(ngModel)]="clientForm.documentType" class="w-full" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-color">N° Documento *</label>
+        <input pInputText type="text" name="documentNumber" [(ngModel)]="clientForm.documentNumber"
+          placeholder="Ej: 123456789" required #dnModel="ngModel"
+          [class.ng-invalid]="dnModel.invalid && dnModel.touched" />
+        @if (dnModel.invalid && dnModel.touched) {
+          <small class="text-red-500 text-xs">El documento es obligatorio.</small>
+        }
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-color">Email</label>
+        <input pInputText type="email" name="email" [(ngModel)]="clientForm.email"
+          placeholder="correo@ejemplo.com" email #emailModel="ngModel"
+          [class.ng-invalid]="emailModel.invalid && emailModel.touched" />
+        @if (emailModel.invalid && emailModel.touched) {
+          <small class="text-red-500 text-xs">Email inválido.</small>
+        }
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-color">Teléfono</label>
+        <input pInputText type="text" name="phone" [(ngModel)]="clientForm.phone"
+          placeholder="Ej: +582121234567" />
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium text-color">Dirección</label>
+      <input pInputText type="text" name="address" [(ngModel)]="clientForm.address"
+        placeholder="Calle, Ciudad, País" />
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-color">Tipo de Cliente</label>
+        <p-select name="clientType" [options]="clientTypeOptions"
+          [(ngModel)]="clientForm.clientType" class="w-full" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-color">Estado</label>
+        <p-select name="isActive" [options]="statusFilterOptions"
+          [(ngModel)]="clientForm.isActive" class="w-full" />
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium text-color">Notas</label>
+      <input pInputText type="text" name="notes" [(ngModel)]="clientForm.notes"
+        placeholder="Observaciones adicionales" />
+    </div>
+
+    <div class="flex justify-end gap-2 mt-3">
+      <p-button label="Cancelar" severity="secondary" [disabled]="submitting()"
+        (click)="showFormDialog = false" />
+      <p-button label="Guardar" type="submit" [loading]="submitting()"
+        [disabled]="form.invalid || submitting()" />
+    </div>
+  </form>
+</p-dialog>
+
+<!-- ─── DETAIL DIALOG: Client Info + Vehicles ───────────── -->
+<p-dialog [header]="selectedClient() ? selectedClient()!.firstName + ' ' + selectedClient()!.lastName : 'Detalle del Cliente'"
+  [(visible)]="showDetailDialog" [modal]="true"
+  [style]="{ width: '90%', maxWidth: '750px' }" [draggable]="false" [resizable]="false">
+
+  @if (selectedClient(); as c) {
+    <div class="flex flex-col gap-4 mt-2">
+      <!-- Client info summary -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3 bg-surface-50 dark:bg-surface-800 rounded-lg">
+        <div>
+          <span class="text-xs text-muted-color block">Documento</span>
+          <span class="text-sm font-medium text-color">{{ documentLabel(c.documentType) }}: {{ c.documentNumber }}</span>
+        </div>
+        <div>
+          <span class="text-xs text-muted-color block">Tipo</span>
+          <span class="text-sm font-medium text-color">{{ clientTypeLabel(c.clientType) }}</span>
+        </div>
+        <div>
+          <span class="text-xs text-muted-color block">Estado</span>
+          <span class="text-sm font-semibold" [class.text-green-600]="c.isActive" [class.text-red-600]="!c.isActive">
+            {{ c.isActive ? 'Activo' : 'Inactivo' }}
+          </span>
+        </div>
+        <div>
+          <span class="text-xs text-muted-color block">Contacto</span>
+          <span class="text-sm text-color">{{ c.phone || '-' }}</span>
+        </div>
+      </div>
+
+      @if (c.email) {
+        <div class="text-sm text-muted-color">
+          <i class="pi pi-envelope mr-1"></i>{{ c.email }}
+          @if (c.address) { <span class="ml-3"><i class="pi pi-map-marker mr-1"></i>{{ c.address }}</span> }
+        </div>
+      }
+
+      <p-divider />
+
+      <!-- Vehicles section -->
+      <div class="flex items-center justify-between">
+        <h3 class="text-lg font-bold text-color">Vehículos Asociados</h3>
+        <p-button label="Agregar Vehículo" icon="pi pi-plus" size="small"
+          (click)="openAddVehicleDialog()" />
+      </div>
+
+      @if (vehiclesLoading()) {
+        <div class="text-center py-4 text-muted-color">Cargando vehículos...</div>
+      } @else if (clientVehicles().length === 0) {
+        <div class="text-center py-6 text-muted-color bg-surface-50 dark:bg-surface-800 rounded-lg">
+          <i class="pi pi-car text-3xl block mb-2 opacity-50"></i>
+          <span>Este cliente no tiene vehículos registrados.</span>
+        </div>
+      } @else {
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-surface-200 dark:border-surface-700">
+                <th class="text-left py-2 px-2 font-semibold text-muted-color">Placa</th>
+                <th class="text-left py-2 px-2 font-semibold text-muted-color">Marca / Modelo</th>
+                <th class="text-left py-2 px-2 font-semibold text-muted-color">Año / Color</th>
+                <th class="text-left py-2 px-2 font-semibold text-muted-color">Tipo</th>
+                <th class="text-right py-2 px-2 font-semibold text-muted-color"></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (v of clientVehicles(); track v.id) {
+                <tr class="border-b border-surface-100 dark:border-surface-800 hover:bg-surface-50 dark:hover:bg-surface-800">
+                  <td class="py-2 px-2 font-mono font-bold text-color">{{ v.plateNumber }}</td>
+                  <td class="py-2 px-2 text-color">{{ v.brand || '-' }} {{ v.model || '' }}</td>
+                  <td class="py-2 px-2 text-color">{{ v.year || '-' }} / {{ v.color || '-' }}</td>
+                  <td class="py-2 px-2">
+                    <span class="text-xs font-semibold px-2 py-1 rounded bg-surface-100 text-color">
+                      {{ vehicleTypeLabel(v.vehicleType) }}
+                    </span>
+                  </td>
+                  <td class="py-2 px-2 text-right">
+                    <p-button icon="pi pi-trash" severity="danger" size="small"
+                      (click)="removeVehicle(v)" />
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+</p-dialog>
+
+<!-- ─── ADD VEHICLE DIALOG ──────────────────────────────── -->
+<p-dialog header="Agregar Vehículo" [(visible)]="showAddVehicleDialog" [modal]="true"
+  [style]="{ width: '90%', maxWidth: '500px' }" [draggable]="false" [resizable]="false">
+  <form #vf="ngForm" (ngSubmit)="saveVehicle()" class="flex flex-col gap-4 mt-2">
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium text-color">Placa *</label>
+      <input pInputText type="text" name="plate" [(ngModel)]="vehicleForm.plateNumber"
+        placeholder="Ej: ABC123" required #plateModel="ngModel"
+        [class.ng-invalid]="plateModel.invalid && plateModel.touched"
+        style="text-transform: uppercase" />
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-color">Marca</label>
+        <input pInputText type="text" name="brand" [(ngModel)]="vehicleForm.brand" placeholder="Ej: Toyota" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-color">Modelo</label>
+        <input pInputText type="text" name="model" [(ngModel)]="vehicleForm.model" placeholder="Ej: Corolla" />
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-color">Año</label>
+        <p-inputnumber name="year" [(ngModel)]="vehicleForm.year" [useGrouping]="false"
+          [min]="1980" [max]="2030" placeholder="2020" class="w-full" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-color">Color</label>
+        <input pInputText type="text" name="color" [(ngModel)]="vehicleForm.color" placeholder="Ej: Rojo" />
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium text-color">Tipo de Vehículo</label>
+      <p-select name="vtype" [options]="vehicleTypeOptions"
+        [(ngModel)]="vehicleForm.vehicleType" class="w-full" />
+    </div>
+
+    <div class="flex justify-end gap-2 mt-3">
+      <p-button label="Cancelar" severity="secondary" [disabled]="submitting()"
+        (click)="showAddVehicleDialog = false" />
+      <p-button label="Guardar Vehículo" type="submit" [loading]="submitting()"
+        [disabled]="vf.invalid || submitting()" />
+    </div>
+  </form>
+</p-dialog>
