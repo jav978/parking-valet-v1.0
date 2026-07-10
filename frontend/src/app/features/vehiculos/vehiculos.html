@@ -13,6 +13,13 @@
   <p-message severity="error" styleClass="mb-3 w-full">{{ error() }}</p-message>
 }
 
+<div class="flex gap-3 mb-2 text-sm">
+  <span [class.text-green-500]="!loading()" [class.text-yellow-500]="loading()">
+    ● {{ loading() ? 'Cargando...' : 'Listo' }}
+  </span>
+  <span>Total: {{ total() }} vehículos</span>
+</div>
+
 <div class="card">
   <div class="flex flex-wrap items-center gap-3 mb-3">
     <p-iconfield>
@@ -32,7 +39,7 @@
     [sortField]="sortBy()" [sortOrder]="sortOrder() === 'asc' ? 1 : -1"
     (onSort)="onSort($event)" dataKey="id" class="w-full">
 
-    <ng-template pTemplate="header">
+    <ng-template #header>
       <tr>
         <th pSortableColumn="plateNumber">Placa <p-sorticon field="plateNumber" /></th>
         <th>Marca / Modelo</th>
@@ -45,7 +52,7 @@
       </tr>
     </ng-template>
 
-    <ng-template pTemplate="body" let-vehicle>
+    <ng-template #body let-vehicle>
       <tr>
         <td>
           <span class="p-column-title font-bold md:hidden">Placa: </span>
@@ -92,7 +99,7 @@
       </tr>
     </ng-template>
 
-    <ng-template pTemplate="emptymessage">
+    <ng-template #emptymessage>
       <tr>
         <td colspan="8" class="text-center p-4 text-muted-color">No se encontraron vehículos.</td>
       </tr>

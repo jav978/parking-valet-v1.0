@@ -109,10 +109,11 @@ export class UsersService {
         role: { select: { id: true, name: true, description: true } },
         createdAt: true,
         updatedAt: true,
+        deletedAt: true,
       },
     });
 
-    if (!user || user.isActive === false) {
+    if (!user || user.deletedAt !== null) {
       throw new NotFoundException('User', id);
     }
 
@@ -121,6 +122,20 @@ export class UsersService {
 
   async update(id: string, dto: UpdateUserDto, updatedById: string) {
     await this.findOne(id);
+
+    if (dto.email) {
+      const existingUser = await this.prisma.user.findFirst({
+        where: {
+          email: dto.email,
+          id: { not: id },
+          deletedAt: null,
+        },
+      });
+
+      if (existingUser) {
+        throw new BusinessException('Email already registered');
+      }
+    }
 
     return this.prisma.user.update({
       where: { id },

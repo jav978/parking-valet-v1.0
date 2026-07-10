@@ -18,7 +18,7 @@ import { AuthService } from '../core/services/auth.service';
 
       <div class="layout-topbar-actions">
         <button type="button" class="layout-topbar-action" (click)="toggleDarkMode()">
-          <i [ngClass]="{ 'pi': true, 'pi-moon': layoutService.isDarkTheme(), 'pi-sun': !layoutService.isDarkTheme() }"></i>
+          <i [ngClass]="{ 'pi': true, 'pi-sun': layoutService.isDarkTheme(), 'pi-moon': !layoutService.isDarkTheme() }"></i>
         </button>
 
         <div class="layout-topbar-menu hidden lg:block">
@@ -58,10 +58,7 @@ export class AppTopbar {
   }
 
   toggleDarkMode(): void {
-    this.layoutService.layoutConfig.update(state => ({
-      ...state,
-      darkTheme: !state.darkTheme
-    }));
+    this.layoutService.toggleDarkMode();
   }
 
   logout(): void {

@@ -6,8 +6,8 @@ import { Component } from '@angular/core';
   template: `
     <div class="flex flex-col gap-4">
       <div class="flex items-center justify-between">
-        <h1 class="text-2xl font-bold text-surface-800">Dashboard</h1>
-        <span class="text-sm text-surface-400">Resumen del día</span>
+        <h1 class="text-2xl font-bold text-color">Dashboard</h1>
+        <span class="text-sm text-muted-color">Resumen del día</span>
       </div>
 
       <div class="grid grid-cols-12 gap-4">
@@ -22,8 +22,8 @@ import { Component } from '@angular/core';
                   <i [class]="item.icon" style="font-size: 1.25rem; color: white;"></i>
                 </div>
                 <div>
-                  <span class="text-surface-500 text-sm font-medium">{{ item.label }}</span>
-                  <div class="text-2xl font-bold text-surface-800">{{ item.value }}</div>
+                  <span class="text-muted-color text-sm font-medium">{{ item.label }}</span>
+                  <div class="text-2xl font-bold text-color">{{ item.value }}</div>
                 </div>
               </div>
             </div>
@@ -32,8 +32,8 @@ import { Component } from '@angular/core';
       </div>
 
       <div class="card">
-        <h2 class="text-lg font-bold mb-3">Actividad Reciente</h2>
-        <p class="text-sm text-surface-400">
+        <h2 class="text-lg font-bold mb-3 text-color">Actividad Reciente</h2>
+        <p class="text-sm text-muted-color">
           Los tickets y movimientos del día se mostrarán aquí cuando el módulo de tickets esté operativo.
         </p>
       </div>

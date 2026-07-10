@@ -23,7 +23,7 @@ function createWindow(): void {
   });
 
   if (isDev) {
-    mainWindow.loadURL('http://localhost:4201');
+    mainWindow.loadURL('http://localhost:4200');
     mainWindow.webContents.openDevTools();
   } else {
     mainWindow.loadFile(path.join(__dirname, '../dist/frontend/browser/index.html'));

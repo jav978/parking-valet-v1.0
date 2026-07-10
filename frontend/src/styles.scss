@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@custom-variant dark (&:where(.dark, .dark *));
+@custom-variant dark (&:where(.p-dark, .p-dark *));
 @import "primeicons/primeicons.css";
 
 @plugin "tailwindcss-primeui";
@@ -71,4 +71,8 @@
 
 #p-license-host {
   display: none !important;
+}
+
+body, .card, .layout-topbar, .layout-sidebar, .layout-main-container {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.15s ease;
 }

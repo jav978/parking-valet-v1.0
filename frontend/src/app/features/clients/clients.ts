@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { TableModule } from 'primeng/table';
@@ -24,6 +24,7 @@ import { catchError, of } from 'rxjs';
 @Component({
   selector: 'app-clients',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule, FormsModule, TableModule, DialogModule, ButtonModule,
     InputTextModule, InputNumberModule, SelectModule, IconFieldModule,
@@ -39,6 +40,8 @@ export class Clients {
   private vehicleService = inject(VehicleService);
   private toast = inject(MessageService);
   private confirmationService = inject(ConfirmationService);
+  private cdr = inject(ChangeDetectorRef);
+
 
   clients = signal<Client[]>([]);
   loading = signal(false);
@@ -129,6 +132,7 @@ export class Clients {
         this.clients.set(res.data);
         this.total.set(res.meta?.total ?? 0);
         this.loading.set(false);
+        this.cdr.markForCheck();
       });
   }
 

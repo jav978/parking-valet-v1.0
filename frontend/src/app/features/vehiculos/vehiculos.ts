@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { TableModule } from 'primeng/table';
@@ -21,6 +21,7 @@ import { catchError, of } from 'rxjs';
 @Component({
   selector: 'app-vehiculos',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule, FormsModule, TableModule, DialogModule, ButtonModule,
     InputTextModule, InputNumberModule, SelectModule, IconFieldModule,
@@ -34,6 +35,7 @@ export class Vehiculos {
   private vehicleService = inject(VehicleService);
   private toast = inject(MessageService);
   private confirmationService = inject(ConfirmationService);
+  private cdr = inject(ChangeDetectorRef);
 
   vehicles = signal<Vehicle[]>([]);
   loading = signal(false);
@@ -63,7 +65,7 @@ export class Vehiculos {
     { value: 'OTHER', label: 'Otro' },
   ];
 
-  constructor() { this.loadVehicles(); }
+  constructor() { console.log('🟢 Vehiculos constructor'); this.loadVehicles(); }
 
   emptyForm(): CreateVehicleRequest {
     return { plateNumber: '', brand: '', model: '', color: '', vehicleType: 'CAR', year: undefined };
@@ -88,9 +90,11 @@ export class Vehiculos {
         return of({ data: [], meta: { total: 0 } });
       }))
       .subscribe(res => {
+        console.log('🟢 Vehiculos subscribe:', res.data.length, 'items');
         this.vehicles.set(res.data);
         this.total.set(res.meta?.total ?? 0);
         this.loading.set(false);
+        this.cdr.markForCheck();
       });
   }
 

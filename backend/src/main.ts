@@ -10,8 +10,8 @@ async function bootstrap(): Promise<void> {
 
   const configService = app.get(ConfigService);
   const appPrefix = configService.get<string>('APP_PREFIX', 'api');
-  const appPort = configService.get<number>('APP_PORT', 3001);
-  const corsOrigins = configService.get<string>('CORS_ORIGINS', 'http://localhost:4201');
+  const appPort = configService.get<number>('APP_PORT', 3000);
+  const corsOrigins = configService.get<string>('CORS_ORIGINS', 'http://localhost:4200');
 
   app.setGlobalPrefix(appPrefix);
 

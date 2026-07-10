@@ -1,0 +1,286 @@
+{
+  "type": "excalidraw",
+  "version": 2,
+  "source": "mcp-excalidraw-server",
+  "elements": [
+    {
+      "id": "title",
+      "type": "text",
+      "x": 50,
+      "y": 40,
+      "text": "Backend Architecture - Parking Valet",
+      "fontSize": 24,
+      "fontFamily": 2,
+      "createdAt": "2026-07-09T14:09:14.101Z",
+      "updatedAt": "2026-07-09T14:09:14.101Z",
+      "version": 1
+    },
+    {
+      "id": "client-zone",
+      "type": "rectangle",
+      "x": 50,
+      "y": 120,
+      "width": 220,
+      "height": 320,
+      "backgroundColor": "#fff3e0",
+      "strokeStyle": "dashed",
+      "createdAt": "2026-07-09T14:09:14.103Z",
+      "updatedAt": "2026-07-09T14:09:14.103Z",
+      "version": 1
+    },
+    {
+      "id": "client-zone-label",
+      "type": "text",
+      "x": 70,
+      "y": 140,
+      "text": "Client Layer",
+      "fontSize": 18,
+      "fontFamily": 2,
+      "createdAt": "2026-07-09T14:09:14.104Z",
+      "updatedAt": "2026-07-09T14:09:14.104Z",
+      "version": 1
+    },
+    {
+      "id": "angular-app",
+      "type": "rectangle",
+      "x": 80,
+      "y": 240,
+      "width": 160,
+      "height": 80,
+      "backgroundColor": "#ffe0b2",
+      "label": {
+        "text": "Angular SPA\n(Client)"
+      },
+      "fillStyle": "solid",
+      "createdAt": "2026-07-09T14:09:14.104Z",
+      "updatedAt": "2026-07-09T14:09:14.104Z",
+      "version": 1
+    },
+    {
+      "id": "backend-zone",
+      "type": "rectangle",
+      "x": 320,
+      "y": 120,
+      "width": 520,
+      "height": 320,
+      "backgroundColor": "#e3f2fd",
+      "strokeStyle": "dashed",
+      "createdAt": "2026-07-09T14:09:14.104Z",
+      "updatedAt": "2026-07-09T14:09:14.104Z",
+      "version": 1
+    },
+    {
+      "id": "backend-zone-label",
+      "type": "text",
+      "x": 340,
+      "y": 140,
+      "text": "NestJS Backend (App)",
+      "fontSize": 18,
+      "fontFamily": 2,
+      "createdAt": "2026-07-09T14:09:14.105Z",
+      "updatedAt": "2026-07-09T14:09:14.105Z",
+      "version": 1
+    },
+    {
+      "id": "nestjs-controllers",
+      "type": "rectangle",
+      "x": 350,
+      "y": 240,
+      "width": 130,
+      "height": 80,
+      "backgroundColor": "#bbdefb",
+      "label": {
+        "text": "Controllers\n(Endpoints)"
+      },
+      "fillStyle": "solid",
+      "createdAt": "2026-07-09T14:09:14.105Z",
+      "updatedAt": "2026-07-09T14:09:14.105Z",
+      "version": 1
+    },
+    {
+      "id": "nestjs-services",
+      "type": "rectangle",
+      "x": 510,
+      "y": 240,
+      "width": 140,
+      "height": 80,
+      "backgroundColor": "#bbdefb",
+      "label": {
+        "text": "Services\n(Business Logic)"
+      },
+      "fillStyle": "solid",
+      "createdAt": "2026-07-09T14:09:14.105Z",
+      "updatedAt": "2026-07-09T14:09:14.105Z",
+      "version": 1
+    },
+    {
+      "id": "nestjs-prisma",
+      "type": "rectangle",
+      "x": 680,
+      "y": 240,
+      "width": 130,
+      "height": 80,
+      "backgroundColor": "#bbdefb",
+      "label": {
+        "text": "Prisma ORM\n(Data Access)"
+      },
+      "fillStyle": "solid",
+      "createdAt": "2026-07-09T14:09:14.106Z",
+      "updatedAt": "2026-07-09T14:09:14.106Z",
+      "version": 1
+    },
+    {
+      "id": "db-zone",
+      "type": "rectangle",
+      "x": 890,
+      "y": 120,
+      "width": 220,
+      "height": 320,
+      "backgroundColor": "#e8f5e9",
+      "strokeStyle": "dashed",
+      "createdAt": "2026-07-09T14:09:14.106Z",
+      "updatedAt": "2026-07-09T14:09:14.106Z",
+      "version": 1
+    },
+    {
+      "id": "db-zone-label",
+      "type": "text",
+      "x": 910,
+      "y": 140,
+      "text": "Database Layer",
+      "fontSize": 18,
+      "fontFamily": 2,
+      "createdAt": "2026-07-09T14:09:14.107Z",
+      "updatedAt": "2026-07-09T14:09:14.107Z",
+      "version": 1
+    },
+    {
+      "id": "postgres-db",
+      "type": "rectangle",
+      "x": 920,
+      "y": 240,
+      "width": 160,
+      "height": 80,
+      "backgroundColor": "#c8e6c9",
+      "label": {
+        "text": "PostgreSQL 16\n(Database)"
+      },
+      "fillStyle": "solid",
+      "createdAt": "2026-07-09T14:09:14.107Z",
+      "updatedAt": "2026-07-09T14:09:14.107Z",
+      "version": 1
+    },
+    {
+      "id": "mrdl1wcdyua1baskjun",
+      "type": "arrow",
+      "x": 248,
+      "y": 280,
+      "label": {
+        "text": "HTTP/REST"
+      },
+      "fontSize": 14,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          94,
+          0
+        ]
+      ],
+      "start": {
+        "id": "angular-app"
+      },
+      "end": {
+        "id": "nestjs-controllers"
+      },
+      "createdAt": "2026-07-09T14:09:14.108Z",
+      "updatedAt": "2026-07-09T14:09:14.108Z",
+      "version": 1
+    },
+    {
+      "id": "mrdl1wcdmfusy43is7f",
+      "type": "arrow",
+      "x": 488,
+      "y": 280,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          14,
+          0
+        ]
+      ],
+      "start": {
+        "id": "nestjs-controllers"
+      },
+      "end": {
+        "id": "nestjs-services"
+      },
+      "createdAt": "2026-07-09T14:09:14.110Z",
+      "updatedAt": "2026-07-09T14:09:14.110Z",
+      "version": 1
+    },
+    {
+      "id": "mrdl1wcd6uuui8xt5y6",
+      "type": "arrow",
+      "x": 658,
+      "y": 280,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          14,
+          0
+        ]
+      ],
+      "start": {
+        "id": "nestjs-services"
+      },
+      "end": {
+        "id": "nestjs-prisma"
+      },
+      "createdAt": "2026-07-09T14:09:14.110Z",
+      "updatedAt": "2026-07-09T14:09:14.110Z",
+      "version": 1
+    },
+    {
+      "id": "mrdl1wcdnikcgdkgu4h",
+      "type": "arrow",
+      "x": 818,
+      "y": 280,
+      "label": {
+        "text": "SQL/Prisma"
+      },
+      "fontSize": 14,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          94,
+          0
+        ]
+      ],
+      "start": {
+        "id": "nestjs-prisma"
+      },
+      "end": {
+        "id": "postgres-db"
+      },
+      "createdAt": "2026-07-09T14:09:14.110Z",
+      "updatedAt": "2026-07-09T14:09:14.110Z",
+      "version": 1
+    }
+  ],
+  "appState": {
+    "viewBackgroundColor": "#ffffff",
+    "gridSize": null
+  }
+}

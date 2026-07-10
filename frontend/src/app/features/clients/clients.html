@@ -34,7 +34,7 @@
     [sortField]="sortBy()" [sortOrder]="sortOrder() === 'asc' ? 1 : -1"
     (onSort)="onSort($event)" dataKey="id" class="w-full">
 
-    <ng-template pTemplate="header">
+    <ng-template #header>
       <tr>
         <th pSortableColumn="firstName">Nombre <p-sorticon field="firstName" /></th>
         <th pSortableColumn="documentNumber">Documento <p-sorticon field="documentNumber" /></th>
@@ -45,7 +45,7 @@
       </tr>
     </ng-template>
 
-    <ng-template pTemplate="body" let-client>
+    <ng-template #body let-client>
       <tr>
         <td>
           <span class="p-column-title font-bold md:hidden">Nombre: </span>
@@ -99,7 +99,7 @@
       </tr>
     </ng-template>
 
-    <ng-template pTemplate="emptymessage">
+    <ng-template #emptymessage>
       <tr>
         <td colspan="6" class="text-center p-4 text-muted-color">No se encontraron clientes.</td>
       </tr>

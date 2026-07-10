@@ -3,6 +3,7 @@ export interface User {
   email: string;
   firstName: string;
   lastName: string;
+  phone?: string;
   roleId: string;
   role: Role;
   isActive: boolean;
@@ -19,6 +20,7 @@ export interface Role {
 
 export interface Permission {
   id: string;
+  code: string;
   name: string;
   description?: string;
   module: string;

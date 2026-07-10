@@ -1,0 +1,8 @@
+// Estilos para el módulo de usuarios
+.card {
+  background: var(--card-background, #fff);
+  border: 1px solid var(--card-border, #e5e7eb);
+  border-radius: 6px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
