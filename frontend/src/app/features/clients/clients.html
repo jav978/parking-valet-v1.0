@@ -74,7 +74,7 @@
         </td>
         <td>
           <span class="p-column-title font-bold md:hidden">Tipo: </span>
-          <span class="text-xs font-semibold px-2 py-1 rounded bg-surface-100 text-color">
+          <span class="text-xs font-semibold px-2 py-1 rounded" [ngClass]="clientTypeClass(client.clientType)">
             {{ clientTypeLabel(client.clientType) }}
           </span>
         </td>
@@ -215,8 +215,10 @@
           <span class="text-sm font-medium text-color">{{ documentLabel(c.documentType) }}: {{ c.documentNumber }}</span>
         </div>
         <div>
-          <span class="text-xs text-muted-color block">Tipo</span>
-          <span class="text-sm font-medium text-color">{{ clientTypeLabel(c.clientType) }}</span>
+          <span class="text-xs text-muted-color block mb-1">Tipo</span>
+          <span class="text-xs font-semibold px-2 py-1 rounded inline-block" [ngClass]="clientTypeClass(c.clientType)">
+            {{ clientTypeLabel(c.clientType) }}
+          </span>
         </div>
         <div>
           <span class="text-xs text-muted-color block">Estado</span>

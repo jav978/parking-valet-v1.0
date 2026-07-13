@@ -2,7 +2,7 @@ import { ApplicationConfig, provideZonelessChangeDetection } from '@angular/core
 import { provideRouter, withInMemoryScrolling } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { providePrimeNG } from 'primeng/config';
-import Aura from '@primeuix/themes/aura';
+import { CustomPreset } from './theme.preset';
 
 import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
@@ -14,7 +14,7 @@ export const appConfig: ApplicationConfig = {
     provideZonelessChangeDetection(),
     providePrimeNG({
       theme: {
-        preset: Aura,
+        preset: CustomPreset,
         options: {
           darkModeSelector: '.p-dark'
         }

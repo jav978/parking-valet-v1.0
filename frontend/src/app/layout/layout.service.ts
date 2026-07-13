@@ -61,6 +61,7 @@ export class LayoutService {
   private applyTheme(dark: boolean): void {
     if (typeof document !== 'undefined') {
       document.documentElement.classList.toggle('p-dark', dark);
+      document.documentElement.classList.toggle('dark', dark);
     }
   }
 

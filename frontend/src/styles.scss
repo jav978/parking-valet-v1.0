@@ -55,6 +55,69 @@
   padding: 1.5rem;
   border-radius: var(--p-border-radius-xl);
   margin-bottom: 1.5rem;
+  transition: background-color 0.25s ease, border-color 0.25s ease;
+}
+
+/* Forzar modo oscuro en componentes específicos ante discrepancias del runtime */
+:where(.p-dark, .dark) {
+  body {
+    background-color: var(--p-surface-950) !important;
+    color: var(--p-surface-100) !important;
+  }
+
+  .card, .layout-topbar, .layout-sidebar {
+    background: var(--p-surface-900) !important;
+    border-color: var(--p-surface-800) !important;
+  }
+
+  // Inputs y Selectores
+  .p-inputtext, input, select, textarea, .p-select, .p-paginator, .p-select-label {
+    background-color: var(--p-surface-950) !important;
+    color: var(--p-surface-100) !important;
+    border-color: var(--p-surface-800) !important;
+  }
+
+  // Hover y Foco de Inputs
+  .p-inputtext:focus, input:focus, .p-select:focus {
+    border-color: var(--p-primary-500) !important;
+  }
+
+  // Tablas
+  .p-datatable-header {
+    background: var(--p-surface-900) !important;
+    color: var(--p-surface-100) !important;
+    border-color: var(--p-surface-800) !important;
+  }
+
+  .p-datatable-thead > tr > th {
+    background: var(--p-surface-950) !important;
+    color: var(--p-surface-100) !important;
+    border-color: var(--p-surface-800) !important;
+  }
+
+  .p-datatable-tbody > tr {
+    background: var(--p-surface-900) !important;
+    color: var(--p-surface-100) !important;
+    border-color: var(--p-surface-800) !important;
+
+    &:hover {
+      background: var(--p-surface-800) !important;
+    }
+  }
+
+  // Paginador
+  .p-paginator-page, .p-paginator-next, .p-paginator-last, .p-paginator-first, .p-paginator-prev {
+    color: var(--p-surface-100) !important;
+    
+    &:hover {
+      background-color: var(--p-surface-800) !important;
+    }
+
+    &.p-paginator-page-selected {
+      background-color: var(--p-primary-500) !important;
+      color: var(--p-primary-contrast-color) !important;
+    }
+  }
 }
 
 .sr-only {
@@ -73,6 +136,6 @@
   display: none !important;
 }
 
-body, .card, .layout-topbar, .layout-sidebar, .layout-main-container {
-  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.15s ease;
+body, .card, .layout-topbar, .layout-sidebar, .layout-main-container, .menu-item {
+  transition: none !important;
 }

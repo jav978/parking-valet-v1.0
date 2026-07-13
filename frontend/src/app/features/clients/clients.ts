@@ -306,6 +306,21 @@ export class Clients {
     return this.clientTypeOptions.find(o => o.value === type)?.label || type;
   }
 
+  clientTypeClass(type: string): string {
+    switch (type) {
+      case 'REGULAR':
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400';
+      case 'FREQUENT':
+        return 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-400';
+      case 'VIP':
+        return 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400';
+      case 'CORPORATE':
+        return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400';
+      default:
+        return 'bg-surface-100 text-color';
+    }
+  }
+
   vehicleTypeLabel(type: string): string {
     return this.vehicleTypeOptions.find(o => o.value === type)?.label || type;
   }
