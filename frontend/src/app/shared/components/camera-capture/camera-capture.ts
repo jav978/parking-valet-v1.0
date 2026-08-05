@@ -10,13 +10,14 @@ import {
   signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
 
 @Component({
   selector: 'app-camera-capture',
   standalone: true,
-  imports: [CommonModule, ButtonModule, TooltipModule],
+  imports: [CommonModule, FormsModule, ButtonModule, TooltipModule],
   templateUrl: './camera-capture.html',
   styleUrl: './camera-capture.scss',
 })
@@ -54,12 +55,16 @@ export class CameraCapture implements OnInit, OnDestroy {
       const videoDevices = devices.filter((d) => d.kind === 'videoinput');
       this.availableDevices.set(videoDevices);
       if (videoDevices.length > 0 && !this.selectedDeviceId()) {
-        // Priorizar cámara trasera 'environment' si existe en la lista
-        const envDevice = videoDevices.find((d) => d.label.toLowerCase().includes('back') || d.label.toLowerCase().includes('trasera'));
+        const envDevice = videoDevices.find(
+          (d) =>
+            d.label.toLowerCase().includes('back') ||
+            d.label.toLowerCase().includes('trasera') ||
+            d.label.toLowerCase().includes('environment')
+        );
         this.selectedDeviceId.set(envDevice ? envDevice.deviceId : videoDevices[0].deviceId);
       }
     } catch {
-      // Ignorar si el navegador bloquea enumerateDevices antes de permiso
+      // Ignorar si el navegador bloquea la enumeración previa
     }
   }
 
@@ -67,18 +72,44 @@ export class CameraCapture implements OnInit, OnDestroy {
     this.cameraError.set(null);
     this.cameraLoading.set(true);
 
-    try {
-      this.stopCamera();
+    this.stopCamera();
 
-      const constraints: MediaStreamConstraints = {
-        video: this.selectedDeviceId()
-          ? { deviceId: { exact: this.selectedDeviceId()! }, width: { ideal: 1280 }, height: { ideal: 720 } }
-          : { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
+    const attempts: MediaStreamConstraints[] = [];
+
+    // Intento 1: Con ID de cámara seleccionada
+    if (this.selectedDeviceId()) {
+      attempts.push({
+        video: { deviceId: { ideal: this.selectedDeviceId()! } },
         audio: false,
-      };
+      });
+    }
 
-      this.stream = await navigator.mediaDevices.getUserMedia(constraints);
-      this.cameraLoading.set(false);
+    // Intento 2: Cámara trasera preferida (Móvil / Tablet)
+    attempts.push({
+      video: { facingMode: { ideal: 'environment' } },
+      audio: false,
+    });
+
+    // Intento 3: Cualquier entrada de video estándar / Webcam
+    attempts.push({
+      video: true,
+      audio: false,
+    });
+
+    let lastError: any = null;
+
+    for (const constraints of attempts) {
+      try {
+        this.stream = await navigator.mediaDevices.getUserMedia(constraints);
+        if (this.stream) break;
+      } catch (err: any) {
+        lastError = err;
+      }
+    }
+
+    this.cameraLoading.set(false);
+
+    if (this.stream) {
       this.cameraActive.set(true);
 
       setTimeout(() => {
@@ -89,12 +120,38 @@ export class CameraCapture implements OnInit, OnDestroy {
       }, 100);
 
       await this.enumerateDevices();
-    } catch (err: any) {
-      this.cameraLoading.set(false);
+    } else {
       this.cameraActive.set(false);
-      this.cameraError.set(
-        'No se pudo acceder a la cámara. Verifica los permisos o intenta subir los archivos manualmente.'
-      );
+
+      let msg = 'No se pudo acceder a la cámara en el navegador.';
+
+      const isUnsecureContext =
+        location.protocol !== 'https:' &&
+        location.hostname !== 'localhost' &&
+        location.hostname !== '127.0.0.1';
+
+      if (isUnsecureContext) {
+        msg =
+          'Los navegadores bloquean la cámara web en directo por HTTP en red local. Haz clic en "Tomar Foto Móvil / Archivo" para abrir la cámara nativa del teléfono directamente.';
+      } else if (lastError?.name === 'NotAllowedError' || lastError?.name === 'PermissionDeniedError') {
+        msg =
+          'Permiso de cámara denegado. Haz clic en el icono de candado/cámara en la barra de direcciones del navegador para permitir el acceso.';
+      } else if (lastError?.name === 'NotFoundError' || lastError?.name === 'DevicesNotFoundError') {
+        msg =
+          'No se detectó ninguna cámara conectada a este equipo. Puedes usar una webcam USB, DroidCam o el botón "Tomar Foto / Archivo".';
+      } else if (lastError?.name === 'NotReadableError' || lastError?.name === 'TrackStartError') {
+        msg =
+          'La cámara está en uso por otra aplicación o pestaña del navegador. Cierra la otra app e intenta nuevamente.';
+      }
+
+      this.cameraError.set(msg);
+    }
+  }
+
+  onDeviceSelect(deviceId: string): void {
+    this.selectedDeviceId.set(deviceId);
+    if (this.cameraActive()) {
+      this.startCamera();
     }
   }
 
@@ -111,10 +168,7 @@ export class CameraCapture implements OnInit, OnDestroy {
     if (devices.length <= 1) return;
     const currentIndex = devices.findIndex((d) => d.deviceId === this.selectedDeviceId());
     const nextIndex = (currentIndex + 1) % devices.length;
-    this.selectedDeviceId.set(devices[nextIndex].deviceId);
-    if (this.cameraActive()) {
-      this.startCamera();
-    }
+    this.onDeviceSelect(devices[nextIndex].deviceId);
   }
 
   capturePhoto(): void {
@@ -133,7 +187,6 @@ export class CameraCapture implements OnInit, OnDestroy {
 
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    // Convertir foto a JPEG DataURL comprimido
     const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
 
     const updated = [...this.photos, dataUrl];

@@ -1,36 +1,40 @@
 <div class="camera-capture-container space-y-3">
   <!-- ENCABEZADO Y CONTADOR -->
-  <div class="flex items-center justify-between">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
     <label class="text-xs font-bold text-surface-700 dark:text-surface-300 flex items-center gap-1.5">
       <i class="pi pi-camera text-primary-500"></i>
       <span>Registro Fotográfico de {{ stageLabel }} ({{ photos.length }}/{{ maxPhotos }})</span>
     </label>
 
-    <div class="flex items-center gap-2">
-      @if (availableDevices().length > 1 && cameraActive()) {
-        <button type="button" class="p-button-text p-button-sm text-xs p-1" pTooltip="Cambiar Cámara (Trasera / Frontal)" (click)="switchCamera()">
-          <i class="pi pi-sync"></i>
-        </button>
+    <div class="flex flex-wrap items-center gap-2">
+      <!-- Selector de Dispositivos de Cámara -->
+      @if (availableDevices().length > 1) {
+        <select [ngModel]="selectedDeviceId()" (ngModelChange)="onDeviceSelect($event)" class="text-xs p-1.5 rounded-lg border border-surface-300 dark:border-surface-700 bg-surface-0 dark:bg-surface-800 text-surface-800 dark:text-surface-200">
+          @for (dev of availableDevices(); track dev.deviceId) {
+            <option [value]="dev.deviceId">{{ dev.label || ('Cámara ' + ($index + 1)) }}</option>
+          }
+        </select>
       }
 
       @if (!cameraActive()) {
-        <button type="button" class="p-button-sm p-button-outlined p-button-primary text-xs py-1 px-2.5 flex items-center gap-1" (click)="startCamera()" [disabled]="photos.length >= maxPhotos">
+        <button type="button" class="p-button-sm p-button-outlined p-button-primary text-xs py-1.5 px-3 flex items-center gap-1.5" (click)="startCamera()" [disabled]="photos.length >= maxPhotos">
           <i class="pi pi-video"></i>
-          <span>Activar Cámara</span>
+          <span>Activar Cámara Web</span>
         </button>
       } @else {
-        <button type="button" class="p-button-sm p-button-outlined p-button-secondary text-xs py-1 px-2.5 flex items-center gap-1" (click)="stopCamera()">
+        <button type="button" class="p-button-sm p-button-outlined p-button-secondary text-xs py-1.5 px-3 flex items-center gap-1.5" (click)="stopCamera()">
           <i class="pi pi-power-off"></i>
           <span>Apagar Cámara</span>
         </button>
       }
 
-      <button type="button" class="p-button-sm p-button-outlined p-button-secondary text-xs py-1 px-2.5 flex items-center gap-1" (click)="triggerFileInput()" [disabled]="photos.length >= maxPhotos">
-        <i class="pi pi-upload"></i>
-        <span>Subir Archivo</span>
+      <!-- Botón de Cámara Nativa Móvil / Subir Archivo -->
+      <button type="button" class="p-button-sm p-button-outlined p-button-secondary text-xs py-1.5 px-3 flex items-center gap-1.5" (click)="triggerFileInput()" [disabled]="photos.length >= maxPhotos" pTooltip="Toma una foto directamente con la cámara de tu teléfono o sube un archivo">
+        <i class="pi pi-camera"></i>
+        <span>Foto Móvil / Archivo</span>
       </button>
 
-      <!-- Elemento Input oculto -->
+      <!-- Elemento Input de Cámara Nativa -->
       <input #fileInput type="file" accept="image/*" capture="environment" multiple class="hidden" (change)="onFilesSelected($event)" />
     </div>
   </div>
@@ -55,11 +59,23 @@
     </div>
   }
 
-  <!-- Mensaje de Error de Cámara -->
+  <!-- Mensaje de Diagnóstico de Cámara con Botón Directo -->
   @if (cameraError()) {
-    <div class="p-3 bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 rounded-xl text-xs flex items-center gap-2">
-      <i class="pi pi-exclamation-triangle text-base"></i>
-      <span>{{ cameraError() }}</span>
+    <div class="p-3.5 bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 rounded-xl text-xs space-y-2">
+      <div class="flex items-start gap-2">
+        <i class="pi pi-exclamation-triangle text-base mt-0.5 text-amber-500"></i>
+        <div class="space-y-1">
+          <strong class="block font-bold">Aviso de Dispositivo / Cámara Web</strong>
+          <p class="m-0 leading-relaxed">{{ cameraError() }}</p>
+        </div>
+      </div>
+      
+      <div class="pt-1 flex items-center justify-end">
+        <button type="button" class="p-button-sm p-button-amber p-button-outlined text-xs py-1 px-3 flex items-center gap-1 font-bold" (click)="triggerFileInput()">
+          <i class="pi pi-camera"></i>
+          <span>Usar Cámara Nativa del Teléfono / Archivo</span>
+        </button>
+      </div>
     </div>
   }
 
@@ -88,7 +104,7 @@
     <div class="border border-dashed border-surface-300 dark:border-surface-700 p-4 rounded-xl text-center text-xs text-surface-400 bg-surface-50 dark:bg-surface-800/40">
       <i class="pi pi-images text-2xl mb-1 block opacity-50"></i>
       <span>No hay fotografías registradas todavía (0/{{ maxPhotos }}).</span>
-      <span class="block text-[11px] text-surface-400 mt-0.5">Haz clic en "Activar Cámara" o "Subir Archivo" para inspeccionar el vehículo.</span>
+      <span class="block text-[11px] text-surface-400 mt-0.5">Haz clic en "Activar Cámara Web" o "Foto Móvil / Archivo" para inspeccionar el vehículo.</span>
     </div>
   }
 </div>
