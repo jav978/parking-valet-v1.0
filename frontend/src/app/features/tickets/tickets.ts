@@ -1,5 +1,5 @@
 import { Component, inject, signal, computed } from '@angular/core';
-import { DatePipe, CurrencyPipe, DecimalPipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { TableModule } from 'primeng/table';
@@ -33,7 +33,7 @@ interface Rate { id: string; name: string; baseAmount?: number; }
   selector: 'app-tickets',
   standalone: true,
   imports: [
-    FormsModule, DatePipe, CurrencyPipe, DecimalPipe, TableModule, DialogModule, ButtonModule,
+    FormsModule, DatePipe, DecimalPipe, TableModule, DialogModule, ButtonModule,
     InputTextModule, InputNumberModule, TextareaModule, SelectModule,
     IconFieldModule, InputIconModule, MessageModule, ToastModule, TooltipModule, CheckboxModule,
     SharedModule, CameraCapture
