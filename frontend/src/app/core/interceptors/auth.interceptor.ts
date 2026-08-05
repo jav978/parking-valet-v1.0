@@ -11,7 +11,8 @@ export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, ne
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  if (isPublicUrl(req.url)) return next(req);
+  const isPublic = isPublicUrl(req.url);
+  if (isPublic) return next(req);
 
   const token = authService.getAccessToken();
   if (token) {
@@ -31,7 +32,9 @@ export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, ne
           catchError((refreshError) => {
             isRefreshing = false;
             authService['clearSession']();
-            router.navigate(['/auth/login']);
+            if (router.url !== '/auth/login') {
+              router.navigate(['/auth/login']);
+            }
             return throwError(() => refreshError);
           })
         );

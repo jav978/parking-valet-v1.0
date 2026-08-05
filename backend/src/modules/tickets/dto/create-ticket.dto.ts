@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsUUID, IsDateString } from 'class-validator';
+import { IsString, IsOptional, IsUUID, IsDateString, IsArray } from 'class-validator';
 
 export class CreateTicketDto {
   @IsUUID()
@@ -26,4 +26,9 @@ export class CreateTicketDto {
   @IsOptional()
   @IsString()
   notes?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  photos?: string[];
 }

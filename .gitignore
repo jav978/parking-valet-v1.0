@@ -37,3 +37,8 @@ pnpm-debug.log*
 /frontend/dist-electron/
 /backend/dist/
 tsconfig.build.tsbuildinfo
+
+# Uploaded Files & Scratch
+uploads/
+/backend/uploads/
+login.json

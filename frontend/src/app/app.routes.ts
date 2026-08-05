@@ -46,6 +46,18 @@ export const routes: Routes = [
         path: 'vehiculos',
         loadComponent: () => import('./features/vehiculos/vehiculos').then((m) => m.Vehiculos),
       },
+      {
+        path: 'estacionamiento',
+        loadComponent: () => import('./features/parking-lots/parking-lots').then((m) => m.ParkingLots),
+      },
+      {
+        path: 'tarifas',
+        loadComponent: () => import('./features/rates/rates').then((m) => m.Rates),
+      },
+      {
+        path: 'caja',
+        loadComponent: () => import('./features/caja/caja').then((m) => m.Caja),
+      },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
     ],
   },

@@ -11,7 +11,7 @@ import { InputIconModule } from 'primeng/inputicon';
 import { MessageModule } from 'primeng/message';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { MessageService, ConfirmationService } from 'primeng/api';
+import { MessageService, ConfirmationService, SharedModule } from 'primeng/api';
 import { UserService, CreateUserRequest, UpdateUserRequest } from '../../core/services/user.service';
 import { RoleService } from '../../core/services/role.service';
 import { User, Role } from '../../core/interfaces/user';
@@ -32,7 +32,8 @@ import { catchError, of } from 'rxjs';
     InputIconModule,
     MessageModule,
     ToastModule,
-    ConfirmDialogModule
+    ConfirmDialogModule,
+    SharedModule
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './usuarios.html',

@@ -77,7 +77,12 @@ export class AppMenu {
 
   private buildMenu(): void {
     const user = this.authService.user();
-    const hasPerm = (perm: string) => user?.permissions?.includes(perm) ?? false;
+    const hasPerm = (perm: string) => {
+      if (!user) return true;
+      const role = (user.role as any)?.name ? (user.role as any).name.toUpperCase() : (typeof user.role === 'string' ? user.role.toUpperCase() : '');
+      if (role === 'ADMIN' || role === 'SUPERVISOR' || role === 'CAJERO' || role.includes('ADMIN')) return true;
+      return user.permissions ? user.permissions.includes(perm) : true;
+    };
 
     this.model = [
       {

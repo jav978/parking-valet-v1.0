@@ -68,18 +68,19 @@
   }
 }
 
+/* ─── Topbar ──────────────────────────────────────────────── */
 .layout-topbar {
   position: fixed;
   top: 0;
   right: 0;
   z-index: 998;
   height: var(--topbar-height);
-  background: var(--p-surface-0);
-  border-bottom: 1px solid var(--p-surface-200);
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
   padding: 0 2rem;
-  transition: width 0.2s, margin-left 0.2s;
+  transition: width 0.2s, margin-left 0.2s, background-color 0.2s, border-color 0.2s;
 
   .layout-topbar-logo-container {
     display: flex;
@@ -97,10 +98,11 @@
       transition: background 0.15s;
       background: none;
       border: none;
-      color: var(--p-surface-600);
+      color: #64748b;
 
       &:hover {
-        background: var(--p-surface-100);
+        background: #f1f5f9;
+        color: #0f172a;
       }
     }
 
@@ -110,7 +112,7 @@
       gap: 0.5rem;
       font-size: 1.25rem;
       font-weight: 700;
-      color: var(--p-surface-800);
+      color: #0f172a;
       text-decoration: none;
     }
   }
@@ -128,14 +130,15 @@
       padding: 0.5rem 0.75rem;
       border-radius: var(--p-border-radius-md);
       cursor: pointer;
-      transition: background 0.15s;
+      transition: background 0.15s, color 0.15s;
       background: none;
       border: none;
-      color: var(--p-surface-600);
+      color: #64748b;
       font-size: 0.875rem;
 
       &:hover {
-        background: var(--p-surface-100);
+        background: #f1f5f9;
+        color: #0f172a;
       }
 
       i {
@@ -154,23 +157,70 @@
         gap: 0.5rem;
 
         .user-name {
-          font-weight: 500;
-          color: var(--p-surface-800);
+          font-weight: 600;
+          color: #0f172a;
+          font-size: 0.875rem;
         }
 
         .user-role-badge {
           font-size: 0.6875rem;
           font-weight: 600;
-          color: var(--p-primary-700);
-          background: var(--p-primary-100);
-          padding: 0.125rem 0.5rem;
+          color: #0d9488;
+          background: #f0fdfa;
+          padding: 0.1875rem 0.625rem;
           border-radius: var(--p-border-radius-sm);
+          letter-spacing: 0.01em;
         }
       }
     }
   }
 }
 
+:where(.p-dark) .layout-topbar {
+  background: #0f172a !important;
+  border-bottom-color: #1e293b !important;
+
+  .layout-topbar-logo-container {
+    .layout-menu-button {
+      color: #94a3b8 !important;
+
+      &:hover {
+        background: #1e293b !important;
+        color: #ffffff !important;
+      }
+    }
+
+    .layout-topbar-logo {
+      color: #f8fafc !important;
+    }
+  }
+
+  .layout-topbar-actions {
+    .layout-topbar-action {
+      color: #94a3b8 !important;
+
+      &:hover {
+        background: #1e293b !important;
+        color: #ffffff !important;
+      }
+    }
+
+    .layout-topbar-menu-content {
+      .user-info {
+        .user-name {
+          color: #f8fafc !important;
+        }
+
+        .user-role-badge {
+          color: #2dd4bf !important;
+          background: rgba(20, 184, 166, 0.15) !important;
+        }
+      }
+    }
+  }
+}
+
+/* ─── Sidebar ─────────────────────────────────────────────── */
 .layout-sidebar {
   position: fixed;
   top: 0;
@@ -178,19 +228,43 @@
   z-index: 999;
   width: var(--sidebar-width);
   height: 100vh;
-  background: var(--p-surface-0);
-  border-right: 1px solid var(--p-surface-200);
+  background: #ffffff;
+  border-right: 1px solid #e2e8f0;
   overflow-y: auto;
-  transition: transform 0.2s;
+  transition: transform 0.2s, background-color 0.2s, border-color 0.2s;
   padding-top: 0;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 99px;
+  }
 }
 
+:where(.p-dark) .layout-sidebar {
+  background: #0f172a !important;
+  border-right-color: #1e293b !important;
+
+  &::-webkit-scrollbar-thumb {
+    background: #334155 !important;
+  }
+}
+
+/* ─── Main container ──────────────────────────────────────── */
 .layout-main-container {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
   padding-top: var(--topbar-height);
-  transition: margin-left 0.2s;
+  transition: margin-left 0.2s, background-color 0.2s;
+  background: #f8fafc;
+}
+
+:where(.p-dark) .layout-main-container {
+  background: #090d16 !important;
 }
 
 .layout-main {
@@ -198,6 +272,7 @@
   padding: 2rem;
 }
 
+/* ─── Overlay mask ────────────────────────────────────────── */
 .layout-mask {
   display: none;
   position: fixed;
@@ -207,8 +282,10 @@
   width: 100%;
   height: 100%;
   background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
 }
 
+/* ─── Variables ───────────────────────────────────────────── */
 :root {
   --sidebar-width: 18rem;
   --topbar-height: 4rem;

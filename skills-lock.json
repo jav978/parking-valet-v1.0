@@ -13,6 +13,18 @@
       "skillPath": "angular-new-app/SKILL.md",
       "computedHash": "49bd84ab08bd3498c52f476bed48fbb942dc6dbc0925607e84549adbed34bccf"
     },
+    "backend-development": {
+      "source": "mrgoonie/claudekit-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/backend-development/SKILL.md",
+      "computedHash": "19a6a72ddb96062c3edef801451bd721726dd571f7db221f0b4d83ad70aad114"
+    },
+    "frontend-design": {
+      "source": "vercel-labs/agent-eval",
+      "sourceType": "github",
+      "skillPath": "packages/playground/.agents/skills/frontend-design/SKILL.md",
+      "computedHash": "537c1df9d0c694ecf9139a911f9ad0bd111a7ebc173a55457568459e543fe75b"
+    },
     "nestjs-best-practices": {
       "source": "Kadajett/agent-nestjs-skills",
       "sourceType": "github",

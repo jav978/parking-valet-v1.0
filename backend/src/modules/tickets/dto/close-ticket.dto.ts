@@ -1,4 +1,4 @@
-import { IsOptional, IsUUID, IsDateString, IsString, IsNumber, Min } from 'class-validator';
+import { IsOptional, IsUUID, IsDateString, IsString, IsNumber, Min, IsBoolean, IsArray } from 'class-validator';
 
 export class CloseTicketDto {
   @IsOptional()
@@ -20,10 +20,24 @@ export class CloseTicketDto {
   discountAmount?: number;
 
   @IsOptional()
+  @IsBoolean()
+  isLostTicket?: boolean;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  penaltyAmount?: number;
+
+  @IsOptional()
   @IsUUID()
   exitCashRegisterId?: string;
 
   @IsOptional()
   @IsString()
   notes?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  photos?: string[];
 }

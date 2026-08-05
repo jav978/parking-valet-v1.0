@@ -1,7 +1,9 @@
+import { randomUUID } from 'crypto';
 import {
   Injectable,
   UnauthorizedException,
   ConflictException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -68,7 +70,7 @@ export class AuthService {
     }
 
     const passwordHash = await bcrypt.hash(dto.password, 10);
-    const roleId = dto.roleId || (await this.getDefaultRoleId());
+    const roleId = await this.getDefaultRoleId();
 
     const user = await this.prisma.user.create({
       data: {
@@ -98,7 +100,18 @@ export class AuthService {
     });
   }
 
-  async refreshTokens(userId: string, _refreshToken: string): Promise<AuthResponse> {
+  async refreshTokens(userId: string, refreshToken: string): Promise<AuthResponse> {
+    if (!refreshToken) {
+      throw new UnauthorizedException('Refresh token required');
+    }
+
+    try {
+      const refreshSecret = this.configService.getOrThrow<string>('JWT_REFRESH_SECRET');
+      await this.jwtService.verifyAsync(refreshToken, { secret: refreshSecret });
+    } catch {
+      throw new UnauthorizedException('Invalid or expired refresh token');
+    }
+
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       include: {
@@ -125,10 +138,15 @@ export class AuthService {
   }
 
   async logout(tokenJti: string): Promise<void> {
+    if (!tokenJti) return;
+
+    const refreshExpiration = this.configService.get<string>('JWT_REFRESH_EXPIRATION', '7d');
+    const expiresInSeconds = this.parseExpirationToSeconds(refreshExpiration);
+
     await this.prisma.blacklistedToken.create({
       data: {
         tokenJti,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        expiresAt: new Date(Date.now() + expiresInSeconds * 1000),
       },
     });
   }
@@ -200,10 +218,20 @@ export class AuthService {
 
     const jwtSecret = this.configService.getOrThrow<string>('JWT_SECRET');
     const refreshSecret = this.configService.getOrThrow<string>('JWT_REFRESH_SECRET');
+    const accessExpiration = this.configService.get<string>('JWT_EXPIRATION', '15m') as `${number}${'s' | 'm' | 'h' | 'd'}`;
+    const refreshExpiration = this.configService.get<string>('JWT_REFRESH_EXPIRATION', '7d') as `${number}${'s' | 'm' | 'h' | 'd'}`;
 
     const [accessToken, refreshToken] = await Promise.all([
-      this.jwtService.signAsync(payload, { secret: jwtSecret, expiresIn: '15m' as const }),
-      this.jwtService.signAsync(payload, { secret: refreshSecret, expiresIn: '7d' as const }),
+      this.jwtService.signAsync(payload, {
+        secret: jwtSecret,
+        expiresIn: accessExpiration,
+        jwtid: randomUUID(),
+      }),
+      this.jwtService.signAsync(payload, {
+        secret: refreshSecret,
+        expiresIn: refreshExpiration,
+        jwtid: randomUUID(),
+      }),
     ]);
 
     return {
@@ -224,6 +252,21 @@ export class AuthService {
     const operatorRole = await this.prisma.role.findUnique({
       where: { name: 'OPERATOR' },
     });
-    return operatorRole!.id;
+
+    if (!operatorRole) {
+      throw new InternalServerErrorException('Default OPERATOR role is not configured');
+    }
+
+    return operatorRole.id;
+  }
+
+  private parseExpirationToSeconds(expiration: string): number {
+    const match = /^(\d+)([smhd])$/.exec(expiration);
+    if (!match) return 7 * 24 * 60 * 60;
+
+    const value = Number(match[1]);
+    const unit = match[2];
+    const multipliers: Record<string, number> = { s: 1, m: 60, h: 3600, d: 86400 };
+    return value * multipliers[unit];
   }
 }

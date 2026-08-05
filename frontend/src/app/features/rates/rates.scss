@@ -1,0 +1,61 @@
+.rates-container {
+  min-height: calc(100vh - 6rem);
+}
+
+:host ::ng-deep {
+  .p-datatable {
+    .p-datatable-header {
+      background: transparent;
+      border: none;
+      padding: 1rem 1.5rem;
+    }
+
+    .p-datatable-thead > tr > th {
+      background: var(--p-surface-50);
+      color: var(--p-surface-700);
+      font-weight: 600;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--p-surface-200);
+
+      .dark & {
+        background: var(--p-surface-800);
+        color: var(--p-surface-300);
+        border-color: var(--p-surface-700);
+      }
+    }
+
+    .p-datatable-tbody > tr {
+      transition: background-color 0.15s ease;
+
+      > td {
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid var(--p-surface-100);
+
+        .dark & {
+          border-color: var(--p-surface-800);
+        }
+      }
+
+      &:hover {
+        background: var(--p-surface-50) !important;
+
+        .dark & {
+          background: var(--p-surface-800) !important;
+        }
+      }
+    }
+
+    .p-paginator {
+      background: transparent;
+      border-top: 1px solid var(--p-surface-200);
+      padding: 0.75rem 1rem;
+
+      .dark & {
+        border-color: var(--p-surface-800);
+      }
+    }
+  }
+}

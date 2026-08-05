@@ -10,6 +10,10 @@ import { PermissionsModule } from './modules/permissions/permissions.module';
 import { TicketsModule } from './modules/tickets/tickets.module';
 import { ClientsModule } from './modules/clients/clients.module';
 import { VehiclesModule } from './modules/vehicles/vehicles.module';
+import { ParkingLotsModule } from './modules/parking-lots/parking-lots.module';
+import { ParkingSpotsModule } from './modules/parking-spots/parking-spots.module';
+import { RatesModule } from './modules/rates/rates.module';
+import { CashRegistersModule } from './modules/cash-registers/cash-registers.module';
 
 @Module({
   imports: [
@@ -30,6 +34,10 @@ import { VehiclesModule } from './modules/vehicles/vehicles.module';
     TicketsModule,
     ClientsModule,
     VehiclesModule,
+    ParkingLotsModule,
+    ParkingSpotsModule,
+    RatesModule,
+    CashRegistersModule,
   ],
   controllers: [],
   providers: [

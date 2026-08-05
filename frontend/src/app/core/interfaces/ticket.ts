@@ -16,6 +16,8 @@ export interface Ticket {
   totalAmount?: number;
   status: 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
   paymentStatus: 'PENDING' | 'PAID' | 'REFUNDED';
+  isLostTicket?: boolean;
+  penaltyAmount?: number;
   entryOperatorId: string;
   exitOperatorId?: string;
   notes?: string;
@@ -26,13 +28,23 @@ export interface Ticket {
 
   lot?: { id: string; name: string; code: string };
   spot?: { id: string; spotNumber: string; floor?: string; section?: string };
-  client?: { id: string; firstName: string; lastName: string };
+  client?: { id: string; firstName: string; lastName: string; documentType?: string; documentNumber?: string };
   vehicle?: { id: string; plateNumber: string; brand?: string; model?: string };
   rate?: { id: string; name: string };
   entryOperator?: { id: string; firstName: string; lastName: string };
   exitOperator?: { id: string; firstName: string; lastName: string };
+  photos?: TicketPhoto[];
   payments?: Payment[];
   accessLogs?: AccessLog[];
+}
+
+export interface TicketPhoto {
+  id: string;
+  ticketId: string;
+  photoUrl: string;
+  stage: 'ENTRY' | 'EXIT';
+  caption?: string;
+  createdAt: string;
 }
 
 export interface Payment {
@@ -58,14 +70,18 @@ export interface CreateTicketRequest {
   clientId?: string;
   vehicleId?: string;
   notes?: string;
+  photos?: string[];
 }
 
 export interface CloseTicketRequest {
   rateId?: string;
   baseAmount?: number;
   discountAmount?: number;
+  isLostTicket?: boolean;
+  penaltyAmount?: number;
   exitCashRegisterId?: string;
   notes?: string;
+  photos?: string[];
 }
 
 export interface TicketFilterParams {

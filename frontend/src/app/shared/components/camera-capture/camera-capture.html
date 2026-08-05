@@ -1,0 +1,112 @@
+<div class="camera-capture-container space-y-3">
+  <!-- ENCABEZADO Y CONTADOR -->
+  <div class="flex items-center justify-between">
+    <label class="text-xs font-bold text-surface-700 dark:text-surface-300 flex items-center gap-1.5">
+      <i class="pi pi-camera text-primary-500"></i>
+      <span>Registro Fotográfico de {{ stageLabel }} ({{ photos.length }}/{{ maxPhotos }})</span>
+    </label>
+
+    <div class="flex items-center gap-2">
+      @if (availableDevices().length > 1 && cameraActive()) {
+        <button type="button" class="p-button-text p-button-sm text-xs p-1" pTooltip="Cambiar Cámara (Trasera / Frontal)" (click)="switchCamera()">
+          <i class="pi pi-sync"></i>
+        </button>
+      }
+
+      @if (!cameraActive()) {
+        <button type="button" class="p-button-sm p-button-outlined p-button-primary text-xs py-1 px-2.5 flex items-center gap-1" (click)="startCamera()" [disabled]="photos.length >= maxPhotos">
+          <i class="pi pi-video"></i>
+          <span>Activar Cámara</span>
+        </button>
+      } @else {
+        <button type="button" class="p-button-sm p-button-outlined p-button-secondary text-xs py-1 px-2.5 flex items-center gap-1" (click)="stopCamera()">
+          <i class="pi pi-power-off"></i>
+          <span>Apagar Cámara</span>
+        </button>
+      }
+
+      <button type="button" class="p-button-sm p-button-outlined p-button-secondary text-xs py-1 px-2.5 flex items-center gap-1" (click)="triggerFileInput()" [disabled]="photos.length >= maxPhotos">
+        <i class="pi pi-upload"></i>
+        <span>Subir Archivo</span>
+      </button>
+
+      <!-- Elemento Input oculto -->
+      <input #fileInput type="file" accept="image/*" capture="environment" multiple class="hidden" (change)="onFilesSelected($event)" />
+    </div>
+  </div>
+
+  <!-- VISOR DE CÁMARA EN VIVO / CANVAS OCULTO -->
+  @if (cameraActive()) {
+    <div class="relative bg-black rounded-xl overflow-hidden border border-surface-700 aspect-video flex items-center justify-center shadow-inner">
+      <video #videoElement autoplay playsinline muted class="w-full h-full object-cover"></video>
+
+      <!-- Botón Flotante para Tomar Foto -->
+      <div class="absolute bottom-3 inset-x-0 flex items-center justify-center gap-3">
+        <button type="button" pButton class="p-button-rounded p-button-success p-button-lg px-5 py-2.5 shadow-lg flex items-center gap-2 font-bold" (click)="capturePhoto()" [disabled]="photos.length >= maxPhotos">
+          <i class="pi pi-camera text-lg"></i>
+          <span>CAPTURAR FOTO ({{ photos.length + 1 }}/{{ maxPhotos }})</span>
+        </button>
+      </div>
+
+      <!-- Guías Visuales de Enfoque -->
+      <div class="absolute inset-4 border-2 border-dashed border-white/40 pointer-events-none rounded-lg flex items-center justify-center">
+        <span class="text-white/60 text-xs bg-black/50 px-2 py-1 rounded font-mono">Centrar Vehículo o Placa</span>
+      </div>
+    </div>
+  }
+
+  <!-- Mensaje de Error de Cámara -->
+  @if (cameraError()) {
+    <div class="p-3 bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 rounded-xl text-xs flex items-center gap-2">
+      <i class="pi pi-exclamation-triangle text-base"></i>
+      <span>{{ cameraError() }}</span>
+    </div>
+  }
+
+  <!-- Canvas oculto para procesar el frame -->
+  <canvas #canvasElement class="hidden"></canvas>
+
+  <!-- GALERÍA DE MINIATURAS CAPTURADAS (1 a 4 FOTOS) -->
+  @if (photos.length > 0) {
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+      @for (photo of photos; track $index) {
+        <div class="relative group aspect-video rounded-lg overflow-hidden border border-surface-300 dark:border-surface-700 bg-surface-100 dark:bg-surface-800 shadow-sm cursor-pointer" (click)="previewPhotoIndex.set($index)">
+          <img [src]="photo" alt="Foto {{ $index + 1 }}" class="w-full h-full object-cover" />
+          
+          <div class="absolute top-1 left-1 bg-black/70 text-white text-[10px] px-1.5 py-0.5 rounded font-mono">
+            #{{ $index + 1 }}
+          </div>
+
+          <!-- Botón Eliminar Foto -->
+          <button type="button" class="absolute top-1 right-1 w-6 h-6 rounded-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center shadow transition-all" (click)="removePhoto($index, $event)" pTooltip="Eliminar foto">
+            <i class="pi pi-trash text-[10px]"></i>
+          </button>
+        </div>
+      }
+    </div>
+  } @else if (!cameraActive()) {
+    <div class="border border-dashed border-surface-300 dark:border-surface-700 p-4 rounded-xl text-center text-xs text-surface-400 bg-surface-50 dark:bg-surface-800/40">
+      <i class="pi pi-images text-2xl mb-1 block opacity-50"></i>
+      <span>No hay fotografías registradas todavía (0/{{ maxPhotos }}).</span>
+      <span class="block text-[11px] text-surface-400 mt-0.5">Haz clic en "Activar Cámara" o "Subir Archivo" para inspeccionar el vehículo.</span>
+    </div>
+  }
+</div>
+
+<!-- PREVIEW MODAL EXPANDIDO -->
+@if (previewPhotoIndex() !== null) {
+  <div class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" (click)="previewPhotoIndex.set(null)">
+    <div class="relative max-w-3xl max-h-[90vh] bg-surface-900 rounded-2xl border border-surface-700 overflow-hidden shadow-2xl p-2" (click)="$event.stopPropagation()">
+      <div class="flex items-center justify-between p-2 border-b border-surface-800 text-surface-0 text-xs font-bold">
+        <span>Inspección Fotográfica #{{ previewPhotoIndex()! + 1 }} - {{ stageLabel }}</span>
+        <button type="button" class="p-button-text p-button-secondary p-1" (click)="previewPhotoIndex.set(null)">
+          <i class="pi pi-times"></i>
+        </button>
+      </div>
+
+      <div class="p-2 flex justify-center items-center">
+        <img [src]="photos[previewPhotoIndex()!]" alt="Vista Previa" class="max-h-[75vh] w-auto object-contain rounded-lg border border-surface-800" />
+      </div>
+    </div>
+  </div>
+}

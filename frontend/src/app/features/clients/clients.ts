@@ -14,7 +14,7 @@ import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { TagModule } from 'primeng/tag';
 import { DividerModule } from 'primeng/divider';
-import { MessageService, ConfirmationService } from 'primeng/api';
+import { MessageService, ConfirmationService, SharedModule } from 'primeng/api';
 import { ClientService } from '../../core/services/client.service';
 import { Client, CreateClientRequest, UpdateClientRequest, ClientFilterParams } from '../../core/interfaces/client';
 import { VehicleService } from '../../core/services/vehicle.service';
@@ -29,7 +29,7 @@ import { catchError, of } from 'rxjs';
     CommonModule, FormsModule, TableModule, DialogModule, ButtonModule,
     InputTextModule, InputNumberModule, SelectModule, IconFieldModule,
     InputIconModule, MessageModule, ToastModule, ConfirmDialogModule,
-    TagModule, DividerModule,
+    TagModule, DividerModule, SharedModule
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './clients.html',

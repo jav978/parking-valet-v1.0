@@ -1,6 +1,6 @@
 import { Component, inject, signal, computed } from '@angular/core';
+import { DatePipe, CurrencyPipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DatePipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { TableModule } from 'primeng/table';
 import { DialogModule } from 'primeng/dialog';
@@ -13,31 +13,46 @@ import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { MessageModule } from 'primeng/message';
 import { ToastModule } from 'primeng/toast';
-import { MessageService } from 'primeng/api';
+import { TooltipModule } from 'primeng/tooltip';
+import { CheckboxModule } from 'primeng/checkbox';
+import { MessageService, SharedModule } from 'primeng/api';
+import { catchError, of } from 'rxjs';
+import * as QRCode from 'qrcode';
+
 import { Ticket, CreateTicketRequest, CloseTicketRequest, TicketFilterParams } from '../../core/interfaces/ticket';
 import { ApiResponse } from '../../core/interfaces/api-response';
-import { catchError, of } from 'rxjs';
+import { AuthService } from '../../core/services/auth.service';
+import { ExchangeRateService } from '../../core/services/exchange-rate.service';
+import { CameraCapture } from '../../shared/components/camera-capture/camera-capture';
 
-interface ParkingLot { id: string; name: string; code: string; }
+interface ParkingLot { id: string; name: string; code: string; taxPercentage?: number; }
 interface ParkingSpot { id: string; spotNumber: string; floor: string; label: string; }
-interface Rate { id: string; name: string; baseAmount: number; }
+interface Rate { id: string; name: string; baseAmount?: number; }
 
 @Component({
   selector: 'app-tickets',
   standalone: true,
   imports: [
-    FormsModule, DatePipe, TableModule, DialogModule, ButtonModule,
+    FormsModule, DatePipe, CurrencyPipe, DecimalPipe, TableModule, DialogModule, ButtonModule,
     InputTextModule, InputNumberModule, TextareaModule, SelectModule,
-    IconFieldModule, InputIconModule, MessageModule, ToastModule,
+    IconFieldModule, InputIconModule, MessageModule, ToastModule, TooltipModule, CheckboxModule,
+    SharedModule, CameraCapture
   ],
   providers: [MessageService],
   templateUrl: './tickets.html',
   styleUrl: './tickets.scss',
 })
 export class Tickets {
+  protected Number = Number;
   private http = inject(HttpClient);
   private toast = inject(MessageService);
+  private authService = inject(AuthService);
+  public exchangeRateService = inject(ExchangeRateService);
   private api = '/api/tickets';
+
+  canCreateTicket = computed(() => this.authService.hasPermission('tickets.create') || ['ADMIN', 'SUPERVISOR', 'CASHIER', 'OPERATOR'].includes(this.authService.user()?.role ?? ''));
+  canCloseTicket = computed(() => this.authService.hasPermission('tickets.close') || ['ADMIN', 'SUPERVISOR', 'CASHIER'].includes(this.authService.user()?.role ?? ''));
+  canCancelTicket = computed(() => this.authService.hasPermission('tickets.cancel') || ['ADMIN', 'SUPERVISOR'].includes(this.authService.user()?.role ?? ''));
 
   tickets = signal<Ticket[]>([]);
   loading = signal(false);
@@ -55,14 +70,35 @@ export class Tickets {
   showCreateDialog = false;
   showCloseDialog = false;
   showDetailDialog = false;
-  selectedTicket = signal<Ticket | undefined>(undefined);
+  showPrintDialog = false;
 
-  createData: CreateTicketRequest = { lotId: '', plateNumber: '' };
-  closeData: CloseTicketRequest = {};
+  selectedTicket = signal<Ticket | undefined>(undefined);
+  qrDataUrl = signal<string>('');
+
+  createData: CreateTicketRequest = { lotId: '', plateNumber: '', photos: [] };
+  closeData: CloseTicketRequest = {
+    isLostTicket: false,
+    baseAmount: 0,
+    discountAmount: 0,
+    penaltyAmount: 0,
+    photos: [],
+  };
 
   lots = signal<ParkingLot[]>([]);
   availableSpots = signal<ParkingSpot[]>([]);
   rates = signal<Rate[]>([]);
+
+  entryPhotosOfSelected = computed(() => {
+    const t = this.selectedTicket();
+    if (!t || !t.photos) return [];
+    return t.photos.filter((p) => p.stage === 'ENTRY');
+  });
+
+  exitPhotosOfSelected = computed(() => {
+    const t = this.selectedTicket();
+    if (!t || !t.photos) return [];
+    return t.photos.filter((p) => p.stage === 'EXIT');
+  });
 
   statusOptions = [
     { value: 'ACTIVE', label: 'Activo' },
@@ -75,6 +111,33 @@ export class Tickets {
     { value: 'PAID', label: 'Pagado' },
     { value: 'REFUNDED', label: 'Reembolsado' },
   ];
+
+  // Dynamic Lost Ticket Calculation
+  closeCalculatedTotal = computed(() => {
+    const base = this.closeData.baseAmount || 0;
+    const discount = this.closeData.discountAmount || 0;
+    const isLost = this.closeData.isLostTicket || false;
+
+    // Recargo del 30% sobre el monto base si es ticket perdido
+    const penalty = isLost ? Number((base * 0.30).toFixed(2)) : 0;
+    const taxable = base - discount + penalty;
+
+    const t = this.selectedTicket();
+    const taxRate = t?.lot ? (Number((t.lot as any).taxPercentage || 16) / 100) : 0.16;
+    const tax = Number((taxable * taxRate).toFixed(2));
+    const totalUSD = Number((taxable + tax).toFixed(2));
+    const exRate = this.exchangeRateService.activeRate();
+
+    return {
+      base,
+      discount,
+      isLost,
+      penalty,
+      tax,
+      totalUSD,
+      totalVES: Number((totalUSD * exRate).toFixed(2)),
+    };
+  });
 
   constructor() {
     this.loadTickets();
@@ -149,12 +212,14 @@ export class Tickets {
         this.submitting.set(false);
         return of(null);
       }))
-      .subscribe(res => {
+      .subscribe(async res => {
         if (res) {
-          this.toast.add({ severity: 'success', summary: 'Ticket creado', detail: `#${res.data.ticketNumber}` });
+          this.toast.add({ severity: 'success', summary: 'Ticket Creado', detail: `#${res.data.ticketNumber}` });
           this.showCreateDialog = false;
-          this.createData = { lotId: '', plateNumber: '' };
+          this.createData = { lotId: '', plateNumber: '', photos: [] };
           this.loadTickets();
+          // Abrir automáticamente vista previa / impresión con QR Code
+          this.printTicket(res.data);
         }
         this.submitting.set(false);
       });
@@ -162,8 +227,24 @@ export class Tickets {
 
   openCloseDialog(ticket: Ticket): void {
     this.selectedTicket.set(ticket);
-    this.closeData = {};
+
+    // Estimación inicial del monto base
+    const base = ticket.baseAmount || (ticket.rate as any)?.baseAmount || 5;
+    this.closeData = {
+      rateId: ticket.rateId || (this.rates().length > 0 ? this.rates()[0].id : undefined),
+      baseAmount: base,
+      discountAmount: 0,
+      isLostTicket: false,
+      penaltyAmount: 0,
+      notes: '',
+      photos: [],
+    };
     this.showCloseDialog = true;
+  }
+
+  onLostTicketToggle(): void {
+    const calc = this.closeCalculatedTotal();
+    this.closeData.penaltyAmount = calc.penalty;
   }
 
   closeTicket(): void {
@@ -171,15 +252,24 @@ export class Tickets {
     if (!ticket) return;
     this.submitting.set(true);
 
-    this.http.patch<ApiResponse<Ticket>>(`${this.api}/${ticket.id}/close`, this.closeData)
+    const payload: CloseTicketRequest = {
+      ...this.closeData,
+      penaltyAmount: this.closeCalculatedTotal().penalty,
+    };
+
+    this.http.patch<ApiResponse<Ticket>>(`${this.api}/${ticket.id}/close`, payload)
       .pipe(catchError(err => {
-        this.error.set(err.error?.message || 'Error al cerrar ticket');
+        this.error.set(err.error?.message || 'Error al procesar cobro y salida');
         this.submitting.set(false);
         return of(null);
       }))
       .subscribe(res => {
         if (res) {
-          this.toast.add({ severity: 'success', summary: 'Ticket cerrado', detail: `#${ticket.ticketNumber}` });
+          this.toast.add({
+            severity: 'success',
+            summary: payload.isLostTicket ? 'Ticket Perdido Procesado (+30% recargo)' : 'Cobro y Salida Completada',
+            detail: `Ticket #${ticket.ticketNumber} cerrado exitosamente`
+          });
           this.showCloseDialog = false;
           this.loadTickets();
         }
@@ -209,12 +299,43 @@ export class Tickets {
   viewTicket(ticket: Ticket): void {
     this.http.get<ApiResponse<Ticket>>(`${this.api}/${ticket.id}`)
       .pipe(catchError(() => of(null)))
-      .subscribe(res => {
+      .subscribe(async res => {
         if (res) {
-          this.selectedTicket.set(res.data);
+          const t = res.data;
+          this.selectedTicket.set(t);
+          await this.generateQrCodeForTicket(t);
           this.showDetailDialog = true;
         }
       });
+  }
+
+  async printTicket(ticket: Ticket): Promise<void> {
+    this.selectedTicket.set(ticket);
+    await this.generateQrCodeForTicket(ticket);
+    this.showPrintDialog = true;
+  }
+
+  private async generateQrCodeForTicket(ticket: Ticket): Promise<void> {
+    const payload = JSON.stringify({
+      tkt: ticket.ticketNumber,
+      plate: ticket.plateNumber,
+      spot: ticket.spot?.spotNumber || 'N/A',
+      entry: ticket.entryTime,
+      client: ticket.client ? `${ticket.client.firstName} ${ticket.client.lastName} (${ticket.client.documentNumber || ''})` : 'Cliente General',
+      lot: ticket.lot?.name || 'Estacionamiento',
+    });
+
+    try {
+      const url = await QRCode.toDataURL(payload, { width: 220, margin: 1 });
+      this.qrDataUrl.set(url);
+    } catch (e) {
+      console.error('Error generating QR code', e);
+      this.qrDataUrl.set('');
+    }
+  }
+
+  triggerBrowserPrint(): void {
+    window.print();
   }
 
   onPageChange(event: any): void {

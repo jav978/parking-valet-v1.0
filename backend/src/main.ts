@@ -4,6 +4,12 @@ import { ConfigService } from '@nestjs/config';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
+import { HttpExceptionFilter, AllExceptionsFilter } from './common/filters/http-exception.filter';
+import { PrismaExceptionFilter } from './common/filters/prisma-exception.filter';
+
+import * as express from 'express';
+import * as path from 'path';
+import * as fs from 'fs';
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
@@ -21,7 +27,13 @@ async function bootstrap(): Promise<void> {
     credentials: true,
   });
 
-  app.use(helmet());
+  app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+
+  const uploadsPath = path.join(process.cwd(), 'uploads');
+  if (!fs.existsSync(uploadsPath)) {
+    fs.mkdirSync(uploadsPath, { recursive: true });
+  }
+  app.use('/uploads', express.static(uploadsPath));
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -35,6 +47,12 @@ async function bootstrap(): Promise<void> {
   );
 
   app.useGlobalInterceptors(new TransformInterceptor());
+
+  app.useGlobalFilters(
+    new PrismaExceptionFilter(),
+    new HttpExceptionFilter(),
+    new AllExceptionsFilter(),
+  );
 
   await app.listen(appPort);
   console.log(`🚀 Parking Management API running on http://localhost:${appPort}/${appPrefix}`);

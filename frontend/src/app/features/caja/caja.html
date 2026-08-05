@@ -1,0 +1,554 @@
+<p-toast></p-toast>
+<p-confirmdialog></p-confirmdialog>
+
+<div class="caja-container w-full space-y-6">
+
+  <!-- ─── HEADER & ACTIONS ──────────────────────────────────────── -->
+  <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-surface-0 dark:bg-surface-900 p-6 rounded-2xl border border-surface-200 dark:border-surface-800 shadow-sm">
+    <div class="flex items-center gap-3">
+      <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-primary-500/10 border border-primary-500/20 text-primary-500">
+        <i class="pi pi-credit-card text-2xl"></i>
+      </div>
+      <div>
+        <h1 class="text-2xl font-bold text-surface-900 dark:text-surface-0 m-0">Control y Cierre de Caja</h1>
+        <p class="text-surface-500 dark:text-surface-400 text-sm mt-0.5">Gestión de turnos, aperturas, movimientos de caja chica, arqueos y cierres multi-moneda</p>
+      </div>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-3">
+      <!-- Widget Tasas en Vivo (BCV USD, BCV EUR, Paralelo, Binance) -->
+      <div class="flex flex-wrap items-center gap-1 bg-surface-100 dark:bg-surface-800 p-1.5 rounded-xl border border-surface-200 dark:border-surface-700 text-xs">
+        @for (opt of exchangeRateService.rateOptions(); track opt.key) {
+          <button type="button" (click)="selectRateModality(opt.key)" class="px-2.5 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition-all" [ngClass]="{
+            'bg-emerald-500 text-white shadow-sm': exchangeRateService.selectedModality() === opt.key,
+            'text-surface-600 dark:text-surface-300 hover:bg-surface-200 dark:hover:bg-surface-700': exchangeRateService.selectedModality() !== opt.key
+          }">
+            <i [class]="opt.icon"></i>
+            <span>{{ opt.symbol }}: {{ opt.rate | number:'1.2-2' }} Bs.</span>
+          </button>
+        }
+
+        <!-- Botón Refrescar Tasas en Vivo -->
+        <button type="button" pTooltip="Actualizar tasas en tiempo real" (click)="refreshRates()" class="p-1.5 text-surface-500 hover:text-emerald-500 transition-colors" [class.animate-spin]="exchangeRateService.loading()">
+          <i class="pi pi-refresh"></i>
+        </button>
+      </div>
+
+      <!-- Botón Registrar Movimiento / Cierre -->
+      @if (activeRegister()) {
+        <button pButton type="button" class="p-button-outlined p-button-secondary" (click)="openMovementDialog()">
+          <i class="pi pi-arrow-up-right mr-1.5"></i>
+          <span>Movimiento</span>
+        </button>
+
+        <button pButton type="button" class="p-button-danger" (click)="openCloseDialog()">
+          <i class="pi pi-lock mr-1.5"></i>
+          <span>Cerrar Caja (Arqueo)</span>
+        </button>
+      } @else {
+        <button pButton type="button" class="p-button-primary font-semibold" (click)="openOpenDialog()">
+          <i class="pi pi-lock-open mr-1.5"></i>
+          <span>Abrir Caja</span>
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- ─── ACTIVE CASH REGISTER BANNER (ESTADO ACTUAL) ──────────── -->
+  @if (activeRegister(); as active) {
+    <div class="bg-gradient-to-r from-emerald-900/90 via-surface-900 to-surface-900 border border-emerald-500/30 rounded-2xl p-6 shadow-md text-surface-0 space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-surface-700/60 pb-4">
+        <div class="flex items-center gap-3">
+          <span class="w-3.5 h-3.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          <div>
+            <div class="text-xl font-bold flex items-center gap-2">
+              <span>{{ active.name }}</span>
+              <span class="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 uppercase font-extrabold tracking-wider">CAJA ABIERTA</span>
+            </div>
+            <span class="text-xs text-surface-300">
+              Estacionamiento: <strong class="text-surface-100">{{ active.lot?.name }}</strong> · Operador: <strong class="text-surface-100">{{ active.openedBy?.firstName }} {{ active.openedBy?.lastName }}</strong> · Apertura: {{ active.openedAt | date:'medium' }}
+            </span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button pButton type="button" class="p-button-sm p-button-success" (click)="openMovementDialog()">
+            <i class="pi pi-plus mr-1"></i>
+            <span>+ Ingreso / Egreso</span>
+          </button>
+          <button pButton type="button" class="p-button-sm p-button-danger" (click)="openCloseDialog()">
+            <i class="pi pi-lock mr-1"></i>
+            <span>Cerrar Caja</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Desglose de Caja Activa en tiempo real -->
+      @if (active.currentSummary; as sum) {
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-1 text-xs">
+          <!-- Fondo Inicial -->
+          <div class="bg-surface-800/80 p-3.5 rounded-xl border border-surface-700">
+            <span class="text-surface-400 block uppercase font-semibold">Fondo Inicial ($)</span>
+            <span class="text-lg font-bold text-surface-100">${{ sum.openingBalance | number:'1.2-2' }}</span>
+            <span class="text-emerald-400 text-xs block">≈ {{ (sum.openingBalance * exchangeRate()) | number:'1.2-2' }} Bs.</span>
+          </div>
+
+          <!-- Cobros de Tickets -->
+          <div class="bg-surface-800/80 p-3.5 rounded-xl border border-surface-700">
+            <span class="text-surface-400 block uppercase font-semibold">Ventas / Tickets</span>
+            <span class="text-lg font-bold text-emerald-400">${{ sum.ticketPayments | number:'1.2-2' }}</span>
+            <span class="text-emerald-300 text-xs block">≈ {{ (sum.ticketPayments * exchangeRate()) | number:'1.2-2' }} Bs.</span>
+          </div>
+
+          <!-- Ingresos / Egresos Extra -->
+          <div class="bg-surface-800/80 p-3.5 rounded-xl border border-surface-700">
+            <span class="text-surface-400 block uppercase font-semibold">Movimientos Extra</span>
+            <span class="text-lg font-bold text-blue-400">+${{ sum.totalIncomes | number:'1.2-2' }}</span>
+            <span class="text-red-400 font-semibold text-xs block">-${{ sum.totalExpenses | number:'1.2-2' }} egresos</span>
+          </div>
+
+          <!-- Balance Esperado Actual -->
+          <div class="bg-primary-900/40 p-3.5 rounded-xl border border-primary-500/40">
+            <span class="text-primary-300 block uppercase font-semibold">Balance Esperado</span>
+            <span class="text-xl font-extrabold text-primary-400">${{ sum.expectedBalance | number:'1.2-2' }}</span>
+            <span class="text-emerald-400 text-xs font-bold block">≈ {{ (sum.expectedBalance * exchangeRate()) | number:'1.2-2' }} Bs.</span>
+          </div>
+        </div>
+      }
+    </div>
+  } @else {
+    <!-- Banner de No hay Caja Abierta -->
+    <div class="bg-surface-0 dark:bg-surface-900 border border-amber-500/30 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-500 flex items-center justify-center">
+          <i class="pi pi-exclamation-circle text-2xl"></i>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-surface-900 dark:text-surface-0">No hay ninguna caja abierta en este turno</h3>
+          <p class="text-xs text-surface-500 dark:text-surface-400">Abre una caja registradora con un fondo inicial para registrar ventas de tickets y cobros del estacionamiento.</p>
+        </div>
+      </div>
+
+      <button pButton type="button" class="p-button-primary p-button-lg px-6 py-3 font-bold flex items-center gap-2" (click)="openOpenDialog()">
+        <i class="pi pi-lock-open text-lg"></i>
+        <span>Abrir Caja Ahora</span>
+      </button>
+    </div>
+  }
+
+  <!-- ─── KPI STATS CARDS ────────────────────────────────────────── -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+    <!-- Stat 1: Total Cajas -->
+    <div class="bg-surface-0 dark:bg-surface-900 p-5 rounded-2xl border border-surface-200 dark:border-surface-800 shadow-sm flex items-center justify-between">
+      <div>
+        <span class="text-surface-500 dark:text-surface-400 text-xs font-semibold uppercase tracking-wider">Historial de Cajas</span>
+        <div class="text-3xl font-extrabold text-surface-900 dark:text-surface-0 mt-1">{{ totalRegistersCount() }}</div>
+        <span class="text-xs text-surface-400 mt-1 block">Turnos registrados</span>
+      </div>
+      <div class="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center border border-blue-500/20">
+        <i class="pi pi-folder text-xl"></i>
+      </div>
+    </div>
+
+    <!-- Stat 2: Cajas Abiertas -->
+    <div class="bg-surface-0 dark:bg-surface-900 p-5 rounded-2xl border border-surface-200 dark:border-surface-800 shadow-sm flex items-center justify-between">
+      <div>
+        <span class="text-surface-500 dark:text-surface-400 text-xs font-semibold uppercase tracking-wider">Cajas Abiertas</span>
+        <div class="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">{{ openRegistersCount() }}</div>
+        <span class="text-xs text-emerald-500/80 mt-1 block">Turnos activos</span>
+      </div>
+      <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center border border-emerald-500/20">
+        <i class="pi pi-unlock text-xl"></i>
+      </div>
+    </div>
+
+    <!-- Stat 3: Fondo Inicial Total -->
+    <div class="bg-surface-0 dark:bg-surface-900 p-5 rounded-2xl border border-surface-200 dark:border-surface-800 shadow-sm flex items-center justify-between">
+      <div>
+        <span class="text-surface-500 dark:text-surface-400 text-xs font-semibold uppercase tracking-wider">Fondo Total en Cajas</span>
+        <div class="text-2xl font-extrabold text-surface-900 dark:text-surface-0 mt-1">
+          ${{ totalOpeningFund() | number:'1.2-2' }}
+        </div>
+        <span class="text-xs text-emerald-600 dark:text-emerald-400 font-semibold block mt-0.5">
+          ≈ {{ (totalOpeningFund() * exchangeRate()) | number:'1.2-2' }} Bs.
+        </span>
+      </div>
+      <div class="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center border border-amber-500/20">
+        <i class="pi pi-wallet text-xl"></i>
+      </div>
+    </div>
+
+    <!-- Stat 4: Estacionamientos -->
+    <div class="bg-surface-0 dark:bg-surface-900 p-5 rounded-2xl border border-surface-200 dark:border-surface-800 shadow-sm flex items-center justify-between">
+      <div>
+        <span class="text-surface-500 dark:text-surface-400 text-xs font-semibold uppercase tracking-wider">Estacionamientos</span>
+        <div class="text-3xl font-extrabold text-indigo-600 dark:text-indigo-400 mt-1">{{ parkingLots().length }}</div>
+        <span class="text-xs text-indigo-500/80 mt-1 block">Sucursales con caja</span>
+      </div>
+      <div class="w-12 h-12 rounded-xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center border border-indigo-500/20">
+        <i class="pi pi-building text-xl"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── FILTERS TOOLBAR ────────────────────────────────────────── -->
+  <div class="bg-surface-0 dark:bg-surface-900 p-4 rounded-2xl border border-surface-200 dark:border-surface-800 shadow-sm space-y-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+
+      <!-- Search Input -->
+      <div class="lg:col-span-3">
+        <p-iconfield iconPosition="left" class="w-full">
+          <p-inputicon styleClass="pi pi-search"></p-inputicon>
+          <input pInputText type="text" placeholder="Buscar por nombre de caja, estacionamiento u operador..." [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)" class="w-full" />
+        </p-iconfield>
+      </div>
+
+      <!-- Filter by Lot -->
+      <div>
+        <p-select [options]="parkingLots()" optionLabel="name" optionValue="id" placeholder="Todos los Estacionamientos" [showClear]="true" [ngModel]="selectedLotId()" (ngModelChange)="selectedLotId.set($event)" class="w-full"></p-select>
+      </div>
+
+      <!-- Filter by Status -->
+      <div>
+        <p-select [options]="statusOptions" optionLabel="label" optionValue="value" placeholder="Estado" [showClear]="true" [ngModel]="selectedStatus()" (ngModelChange)="selectedStatus.set($event)" class="w-full"></p-select>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ─── HISTORIAL DATA TABLE ───────────────────────────────────── -->
+  <div class="bg-surface-0 dark:bg-surface-900 rounded-2xl border border-surface-200 dark:border-surface-800 shadow-sm overflow-hidden">
+    <p-table [value]="filteredRegisters()" [loading]="loading()" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10, 25, 50]" responsiveLayout="scroll" styleClass="p-datatable-striped">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Caja / Turno</th>
+          <th>Estacionamiento</th>
+          <th>Operador Apertura</th>
+          <th>Apertura</th>
+          <th>Fondo Inicial ($ / Bs.)</th>
+          <th>Cierre / Diferencia</th>
+          <th>Estado</th>
+          <th class="text-right">Acciones</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-reg>
+        <tr>
+          <!-- Nombre -->
+          <td>
+            <div class="font-bold text-surface-900 dark:text-surface-0">{{ reg.name }}</div>
+            <span class="text-xs text-surface-400">ID: {{ reg.id.substring(0, 8) }}...</span>
+          </td>
+
+          <!-- Estacionamiento -->
+          <td>
+            <div class="flex items-center gap-2">
+              <i class="pi pi-building text-surface-400 text-sm"></i>
+              <span class="font-medium text-surface-800 dark:text-surface-200">{{ reg.lot?.name || 'N/A' }}</span>
+            </div>
+          </td>
+
+          <!-- Operador -->
+          <td>
+            <div class="text-sm font-semibold text-surface-900 dark:text-surface-0">
+              {{ reg.openedBy?.firstName }} {{ reg.openedBy?.lastName }}
+            </div>
+            <span class="text-xs text-surface-400 block">{{ reg.openedBy?.email }}</span>
+          </td>
+
+          <!-- Apertura -->
+          <td>
+            <div class="text-xs font-semibold text-surface-800 dark:text-surface-200">
+              {{ reg.openedAt | date:'mediumDate' }}
+            </div>
+            <span class="text-xs text-surface-400 block">{{ reg.openedAt | date:'shortTime' }}</span>
+          </td>
+
+          <!-- Fondo Inicial Multi-moneda -->
+          <td>
+            <div class="text-base font-bold text-surface-900 dark:text-surface-0">
+              ${{ reg.openingBalance | number:'1.2-2' }}
+            </div>
+            <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+              ≈ {{ (Number(reg.openingBalance) * exchangeRate()) | number:'1.2-2' }} Bs.
+            </span>
+          </td>
+
+          <!-- Cierre / Diferencia -->
+          <td>
+            @if (reg.status === 'CLOSED') {
+              <div class="text-sm font-bold text-surface-900 dark:text-surface-0">
+                ${{ reg.closingBalance | number:'1.2-2' }}
+              </div>
+              @if (reg.difference !== null && reg.difference !== undefined) {
+                <span class="text-xs font-bold block" [ngClass]="{ 'text-emerald-600': Number(reg.difference) >= 0, 'text-red-500': Number(reg.difference) < 0 }">
+                  Dif: {{ Number(reg.difference) > 0 ? '+' : '' }}${{ Number(reg.difference) | number:'1.2-2' }}
+                </span>
+              }
+            } @else {
+              <span class="text-xs text-emerald-500 font-bold italic animate-pulse">Caja en Curso...</span>
+            }
+          </td>
+
+          <!-- Estado -->
+          <td>
+            @if (reg.status === 'OPEN') {
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> ABIERTA
+              </span>
+            } @else {
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-surface-500/10 text-surface-500 border border-surface-500/20">
+                <span class="w-1.5 h-1.5 rounded-full bg-surface-400"></span> CERRADA
+              </span>
+            }
+          </td>
+
+          <!-- Acciones -->
+          <td class="text-right">
+            <div class="flex items-center justify-end gap-1">
+              <!-- Detalle de Arqueo -->
+              <button pButton type="button" icon="pi pi-eye" class="p-button-text p-button-rounded p-button-secondary" pTooltip="Ver Arqueo / Detalles" (click)="openDetailDialog(reg)"></button>
+              
+              <!-- Cerrar si está abierta -->
+              @if (reg.status === 'OPEN') {
+                <button pButton type="button" icon="pi pi-lock" class="p-button-text p-button-rounded p-button-danger" pTooltip="Cerrar Caja (Arqueo)" (click)="openCloseDialog(reg)"></button>
+              }
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <!-- Empty State -->
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="8" class="text-center py-12 text-surface-500 dark:text-surface-400">
+            <i class="pi pi-credit-card text-4xl mb-3 text-surface-300 block"></i>
+            <span class="text-base font-semibold">No se encontraron registros de caja</span>
+            <p class="text-xs mt-1">Abre tu primera caja registradora o ajusta los filtros</p>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+</div>
+
+<!-- ─── MODAL: APERTURA DE CAJA ───────────────────────────── -->
+<p-dialog [(visible)]="openDialogVisible" header="Apertura de Caja Registradora" [modal]="true" [style]="{ width: '90vw', maxWidth: '550px' }">
+  <div class="space-y-4 pt-2">
+    <div class="bg-primary-500/10 border border-primary-500/20 p-4 rounded-xl text-xs text-primary-700 dark:text-primary-300">
+      <i class="pi pi-info-circle mr-1"></i>
+      Ingresa el fondo inicial (efectivo/base) con el que se iniciará el turno de trabajo en el estacionamiento.
+    </div>
+
+    <div>
+      <label class="block text-xs font-bold text-surface-700 dark:text-surface-300 mb-1">Estacionamiento / Sucursal *</label>
+      <p-select [options]="parkingLots()" optionLabel="name" optionValue="id" placeholder="Selecciona Estacionamiento" [(ngModel)]="openFormData.lotId" class="w-full"></p-select>
+    </div>
+
+    <div>
+      <label class="block text-xs font-bold text-surface-700 dark:text-surface-300 mb-1">Nombre / Identificador de Caja *</label>
+      <input pInputText type="text" placeholder="Ej. Caja Turno Mañana - Puerta Principal" [(ngModel)]="openFormData.name" class="w-full" />
+    </div>
+
+    <div>
+      <label class="block text-xs font-bold text-surface-700 dark:text-surface-300 mb-1">Monto Inicial de Fondo ($ USD) *</label>
+      <p-inputnumber [(ngModel)]="openFormData.openingBalance" mode="currency" currency="USD" locale="en-US" [min]="0" class="w-full"></p-inputnumber>
+      <span class="text-xs text-emerald-600 dark:text-emerald-400 mt-1 block">
+        Equivalente: {{ (openFormData.openingBalance * exchangeRate()) | number:'1.2-2' }} Bs. (Tasa: {{ exchangeRate() }} Bs/$)
+      </span>
+    </div>
+
+    <div>
+      <label class="block text-xs font-bold text-surface-700 dark:text-surface-300 mb-1">Observaciones / Notas (Opcional)</label>
+      <input pInputText type="text" placeholder="Ej. Entregado 5 billetes de $10" [(ngModel)]="openFormData.notes" class="w-full" />
+    </div>
+  </div>
+
+  <ng-template #footer pTemplate="footer">
+    <button pButton type="button" class="p-button-text p-button-secondary" (click)="openDialogVisible = false">
+      <i class="pi pi-times mr-1"></i>
+      <span>Cancelar</span>
+    </button>
+    <button pButton type="button" class="p-button-primary font-semibold" [loading]="submitting()" (click)="submitOpen()">
+      <i class="pi pi-lock-open mr-1"></i>
+      <span>Abrir Caja</span>
+    </button>
+  </ng-template>
+</p-dialog>
+
+<!-- ─── MODAL: CIERRE Y ARQUEO DE CAJA ─────────────────────── -->
+<p-dialog [(visible)]="closeDialogVisible" header="Cierre y Arqueo de Caja Registradora" [modal]="true" [style]="{ width: '90vw', maxWidth: '650px' }">
+  <div class="space-y-4 pt-2">
+
+    @if (closingArqueo(); as arq) {
+      <!-- Resumen del Arqueo -->
+      <div class="bg-surface-900 text-surface-0 p-5 rounded-2xl border border-surface-700 space-y-3">
+        <div class="text-xs font-bold uppercase tracking-wider text-surface-400">Balance Calculado por Sistema</div>
+        <div class="flex justify-between items-center text-sm">
+          <span>Balance Esperado en Caja (Fondo + Ventas):</span>
+          <span class="text-xl font-extrabold text-primary-400">${{ arq.expectedUSD | number:'1.2-2' }}</span>
+        </div>
+        <div class="text-xs text-emerald-400 text-right font-semibold">
+          ≈ {{ arq.expectedVES | number:'1.2-2' }} Bs.
+        </div>
+      </div>
+
+      <!-- Conteo Real del Cajero -->
+      <div class="space-y-2">
+        <label class="block text-xs font-bold text-surface-700 dark:text-surface-300">Conteo Real en Caja / Arqueo Físico ($ USD) *</label>
+        <p-inputnumber [(ngModel)]="closeFormData.closingBalance" mode="currency" currency="USD" locale="en-US" [min]="0" class="w-full"></p-inputnumber>
+        <span class="text-xs text-emerald-600 dark:text-emerald-400 block font-semibold">
+          Equivalente contado: {{ (closeFormData.closingBalance * exchangeRate()) | number:'1.2-2' }} Bs.
+        </span>
+      </div>
+
+      <!-- Resultado Diferencia (Sobrante / Faltante / Cuadrada) -->
+      <div class="p-4 rounded-xl border text-xs flex items-center justify-between" [ngClass]="{
+        'bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-300': arq.isPerfect,
+        'bg-blue-500/10 border-blue-500/30 text-blue-700 dark:text-blue-300': arq.isSurplus,
+        'bg-red-500/10 border-red-500/30 text-red-700 dark:text-red-300': arq.isDeficit
+      }">
+        <div class="flex items-center gap-2">
+          <i class="pi" [ngClass]="{ 'pi-check-circle': arq.isPerfect, 'pi-plus-circle': arq.isSurplus, 'pi-exclamation-triangle': arq.isDeficit }"></i>
+          <div>
+            <strong class="block">
+              {{ arq.isPerfect ? 'Caja perfectamente cuadrada' : (arq.isSurplus ? 'Sobrante detectado' : 'Faltante de caja detectado') }}
+            </strong>
+            <span>Diferencia: ${{ arq.differenceUSD | number:'1.2-2' }} ({{ arq.differenceVES | number:'1.2-2' }} Bs.)</span>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-surface-700 dark:text-surface-300 mb-1">Notas / Justificación del Cierre</label>
+        <input pInputText type="text" placeholder="Ej. Cuadrada sin novedades / Faltante por cambio" [(ngModel)]="closeFormData.notes" class="w-full" />
+      </div>
+    }
+
+  </div>
+
+  <ng-template #footer pTemplate="footer">
+    <button pButton type="button" class="p-button-text p-button-secondary" (click)="closeDialogVisible = false">
+      <i class="pi pi-times mr-1"></i>
+      <span>Cancelar</span>
+    </button>
+    <button pButton type="button" class="p-button-danger font-semibold" [loading]="submitting()" (click)="submitClose()">
+      <i class="pi pi-lock mr-1"></i>
+      <span>Confirmar Cierre de Caja</span>
+    </button>
+  </ng-template>
+</p-dialog>
+
+<!-- ─── MODAL: REGISTRAR MOVIMIENTO (INGRESO / EGRESO) ──────── -->
+<p-dialog [(visible)]="movementDialogVisible" header="Registrar Movimiento de Caja Chica" [modal]="true" [style]="{ width: '90vw', maxWidth: '500px' }">
+  <div class="space-y-4 pt-2">
+
+    <div>
+      <label class="block text-xs font-bold text-surface-700 dark:text-surface-300 mb-1">Tipo de Movimiento *</label>
+      <p-select [options]="movementTypeOptions" optionLabel="label" optionValue="value" [(ngModel)]="movementFormData.type" class="w-full"></p-select>
+    </div>
+
+    <div>
+      <label class="block text-xs font-bold text-surface-700 dark:text-surface-300 mb-1">Monto ($ USD) *</label>
+      <p-inputnumber [(ngModel)]="movementFormData.amount" mode="currency" currency="USD" locale="en-US" [min]="0.01" class="w-full"></p-inputnumber>
+      <span class="text-xs text-emerald-600 dark:text-emerald-400 mt-1 block font-semibold">
+        Equivalente: {{ ((movementFormData.amount || 0) * exchangeRate()) | number:'1.2-2' }} Bs.
+      </span>
+    </div>
+
+    <div>
+      <label class="block text-xs font-bold text-surface-700 dark:text-surface-300 mb-1">Descripción / Motivo</label>
+      <input pInputText type="text" placeholder="Ej. Compra de papel para ticketera, Retiro parcial" [(ngModel)]="movementFormData.description" class="w-full" />
+    </div>
+
+    <div>
+      <label class="block text-xs font-bold text-surface-700 dark:text-surface-300 mb-1">N° Referencia / Factura (Opcional)</label>
+      <input pInputText type="text" placeholder="Ej. REC-009812" [(ngModel)]="movementFormData.referenceNumber" class="w-full" />
+    </div>
+
+  </div>
+
+  <ng-template #footer pTemplate="footer">
+    <button pButton type="button" class="p-button-text p-button-secondary" (click)="movementDialogVisible = false">
+      <i class="pi pi-times mr-1"></i>
+      <span>Cancelar</span>
+    </button>
+    <button pButton type="button" class="p-button-primary font-semibold" [loading]="submitting()" (click)="submitMovement()">
+      <i class="pi pi-check mr-1"></i>
+      <span>Registrar</span>
+    </button>
+  </ng-template>
+</p-dialog>
+
+<!-- ─── MODAL: DETALLE COMPLETO Y ARQUEO DE CAJA ───────────── -->
+<p-dialog [(visible)]="detailDialogVisible" header="Detalles del Arqueo de Caja" [modal]="true" [style]="{ width: '90vw', maxWidth: '700px' }">
+  @if (selectedRegister(); as reg) {
+    <div class="space-y-4 pt-2">
+      <!-- Encabezado de la caja -->
+      <div class="p-4 bg-surface-50 dark:bg-surface-800 rounded-xl border border-surface-200 dark:border-surface-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+        <div>
+          <div class="text-base font-bold text-surface-900 dark:text-surface-0">{{ reg.name }}</div>
+          <span class="text-surface-500">Estacionamiento: {{ reg.lot?.name }}</span>
+        </div>
+        <div>
+          <span class="px-2.5 py-1 rounded-full font-bold" [ngClass]="reg.status === 'OPEN' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-surface-500/20 text-surface-400'">
+            {{ reg.status === 'OPEN' ? 'ABIERTA' : 'CERRADA' }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Resumen Auditado -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+        <div class="p-3 bg-surface-100 dark:bg-surface-800 rounded-lg">
+          <span class="text-surface-500 block font-semibold">Fondo Inicial</span>
+          <span class="text-sm font-bold">${{ reg.openingBalance | number:'1.2-2' }}</span>
+        </div>
+        <div class="p-3 bg-surface-100 dark:bg-surface-800 rounded-lg">
+          <span class="text-surface-500 block font-semibold">Esperado</span>
+          <span class="text-sm font-bold text-primary-500">${{ (reg.expectedBalance || reg.openingBalance) | number:'1.2-2' }}</span>
+        </div>
+        <div class="p-3 bg-surface-100 dark:bg-surface-800 rounded-lg">
+          <span class="text-surface-500 block font-semibold">Cierre Real</span>
+          <span class="text-sm font-bold">${{ (reg.closingBalance || 0) | number:'1.2-2' }}</span>
+        </div>
+        <div class="p-3 bg-surface-100 dark:bg-surface-800 rounded-lg">
+          <span class="text-surface-500 block font-semibold">Diferencia</span>
+          <span class="text-sm font-bold" [ngClass]="Number(reg.difference || 0) >= 0 ? 'text-emerald-500' : 'text-red-500'">
+            ${{ (reg.difference || 0) | number:'1.2-2' }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Movimientos de Caja -->
+      <div>
+        <span class="text-xs font-bold uppercase tracking-wider text-surface-500 block mb-2">Movimientos Registrados ({{ reg.movements?.length || 0 }})</span>
+        <div class="max-h-48 overflow-y-auto space-y-2 border border-surface-200 dark:border-surface-700 rounded-xl p-3 bg-surface-0 dark:bg-surface-900">
+          @for (m of reg.movements; track m.id) {
+            <div class="flex items-center justify-between text-xs p-2 rounded-lg bg-surface-50 dark:bg-surface-800">
+              <div class="flex items-center gap-2">
+                <i class="pi" [ngClass]="m.type === 'INCOME' ? 'pi-plus-circle text-emerald-500' : 'pi-minus-circle text-red-500'"></i>
+                <div>
+                  <span class="font-semibold">{{ m.description || (m.type === 'INCOME' ? 'Ingreso' : 'Egreso') }}</span>
+                  <span class="text-surface-400 block text-[10px]">{{ m.createdAt | date:'short' }} · Por: {{ m.createdBy?.firstName }}</span>
+                </div>
+              </div>
+              <span class="font-bold" [ngClass]="m.type === 'INCOME' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'">
+                {{ m.type === 'INCOME' ? '+' : '-' }}${{ m.amount | number:'1.2-2' }}
+              </span>
+            </div>
+          } @empty {
+            <div class="text-xs text-surface-400 text-center py-4">No hay movimientos registrados en esta caja</div>
+          }
+        </div>
+      </div>
+
+    </div>
+  }
+
+  <ng-template #footer pTemplate="footer">
+    <button pButton type="button" class="p-button-primary font-semibold" (click)="detailDialogVisible = false">
+      <i class="pi pi-check mr-1"></i>
+      <span>Cerrar</span>
+    </button>
+  </ng-template>
+</p-dialog>

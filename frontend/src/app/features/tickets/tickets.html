@@ -1,306 +1,541 @@
-<div class="tickets-header">
-  <h1>Tickets</h1>
-  <p-button
-    label="Nuevo Ticket"
-    icon="pi pi-plus"
-    (click)="showCreateDialog = true"
-    [disabled]="!lots().length"
-  />
-</div>
+<p-toast></p-toast>
 
-@if (error()) {
-  <p-message severity="error" styleClass="mb-3 w-full">{{ error() }}</p-message>
-}
+<div class="tickets-container w-full space-y-6">
 
-<div class="card">
-  <div class="flex flex-wrap gap-3 mb-3">
-    <p-iconfield>
-      <p-inputicon styleClass="pi pi-search" />
-      <input
-        pInputText
-        type="text"
-        placeholder="Buscar ticket o placa..."
-        [ngModel]="search()"
-        (ngModelChange)="search.set($event); loadTickets()"
-        class="w-64"
-      />
-    </p-iconfield>
+  <!-- ─── HEADER & ACTIONS ──────────────────────────────────────── -->
+  <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-surface-0 dark:bg-surface-900 p-6 rounded-2xl border border-surface-200 dark:border-surface-800 shadow-sm">
+    <div class="flex items-center gap-3">
+      <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-primary-500/10 border border-primary-500/20 text-primary-500">
+        <i class="pi pi-ticket text-2xl"></i>
+      </div>
+      <div>
+        <h1 class="text-2xl font-bold text-surface-900 dark:text-surface-0 m-0">Gestión de Tickets y Estacionamiento</h1>
+        <p class="text-surface-500 dark:text-surface-400 text-sm mt-0.5">Control de entradas, salidas, impresión con Código QR/Barras, penalidad de Ticket Perdido (+30%) y búsqueda indexada</p>
+      </div>
+    </div>
 
-    <p-select
-      [options]="statusOptions"
-      placeholder="Estado"
-      [ngModel]="statusFilter()"
-      (ngModelChange)="statusFilter.set($event); loadTickets()"
-      class="w-40"
-      clearable
-    />
-
-    <p-select
-      [options]="paymentStatusOptions"
-      placeholder="Pago"
-      [ngModel]="paymentFilter()"
-      (ngModelChange)="paymentFilter.set($event); loadTickets()"
-      class="w-40"
-      clearable
-    />
+    @if (canCreateTicket()) {
+      <button pButton type="button" class="p-button-primary font-semibold flex items-center gap-2 px-4 py-2.5" (click)="showCreateDialog = true">
+        <i class="pi pi-plus text-base"></i>
+        <span>Emitir Nuevo Ticket</span>
+      </button>
+    }
   </div>
 
-  <p-table
-    [value]="tickets()"
-    [loading]="loading()"
-    [paginator]="true"
-    [rows]="limit"
-    [totalRecords]="total()"
-    [rowsPerPageOptions]="[10, 25, 50]"
-    (onPage)="onPageChange($event)"
-    [lazy]="true"
-    [sortField]="sortBy()"
-    [sortOrder]="sortOrder() === 'asc' ? 1 : -1"
-    (onSort)="onSort($event)"
-    dataKey="id"
-  >
-    <ng-template pTemplate="header">
-      <tr>
-        <th># Ticket</th>
-        <th>Placa</th>
-        <th>Ingreso</th>
-        <th>Salida</th>
-        <th>Duración</th>
-        <th>Total</th>
-        <th>Estado</th>
-        <th>Pago</th>
-        <th style="width: 8rem"></th>
-      </tr>
-    </ng-template>
-    <ng-template pTemplate="body" let-ticket>
-      <tr>
-        <td class="font-medium">{{ ticket.ticketNumber }}</td>
-        <td>{{ ticket.plateNumber }}</td>
-        <td>{{ ticket.entryTime | date:'dd/MM/yy HH:mm' }}</td>
-        <td>{{ (ticket.exitTime | date:'dd/MM/yy HH:mm') || '-' }}</td>
-        <td>{{ ticket.durationMinutes ? (ticket.durationMinutes + ' min') : '-' }}</td>
-        <td class="font-medium">{{ ticket.totalAmount ? ('$' + ticket.totalAmount) : '-' }}</td>
-        <td>
-          <span class="status-badge" [class]="ticket.status.toLowerCase()">
-            {{ statusLabel(ticket.status) }}
-          </span>
-        </td>
-        <td>
-          <span class="status-badge" [class]="ticket.paymentStatus.toLowerCase()">
-            {{ paymentLabel(ticket.paymentStatus) }}
-          </span>
-        </td>
-        <td>
-          <div class="flex gap-1">
-            <p-button icon="pi pi-eye" severity="secondary" size="small" (click)="viewTicket(ticket)" />
-            @if (ticket.status === 'ACTIVE') {
-              <p-button icon="pi pi-check" severity="success" size="small" (click)="openCloseDialog(ticket)" />
-              <p-button icon="pi pi-times" severity="danger" size="small" (click)="cancelTicket(ticket)" />
+  <!-- ─── FILTERS & INDEXED LOOKUP TOOLBAR ──────────────────────── -->
+  <div class="bg-surface-0 dark:bg-surface-900 p-4 rounded-2xl border border-surface-200 dark:border-surface-800 shadow-sm space-y-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+
+      <!-- Indexed Search Input (Ticket #, Placa, Cédula / Documento) -->
+      <div class="lg:col-span-3">
+        <p-iconfield iconPosition="left" class="w-full">
+          <p-inputicon styleClass="pi pi-search"></p-inputicon>
+          <input pInputText type="text" placeholder="🔍 Buscar por N° Ticket, Placa de Vehículo o Cédula/Documento del cliente..." [ngModel]="search()" (ngModelChange)="search.set($event); page = 1; loadTickets()" class="w-full" />
+        </p-iconfield>
+      </div>
+
+      <!-- Filter by Status -->
+      <div>
+        <p-select [options]="statusOptions" optionLabel="label" optionValue="value" placeholder="Estado del Ticket" [showClear]="true" [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event); page = 1; loadTickets()" class="w-full"></p-select>
+      </div>
+
+      <!-- Filter by Payment Status -->
+      <div>
+        <p-select [options]="paymentStatusOptions" optionLabel="label" optionValue="value" placeholder="Estado del Pago" [showClear]="true" [ngModel]="paymentFilter()" (ngModelChange)="paymentFilter.set($event); page = 1; loadTickets()" class="w-full"></p-select>
+      </div>
+
+    </div>
+  </div>
+
+  @if (error()) {
+    <p-message severity="error">{{ error() }}</p-message>
+  }
+
+  <!-- ─── TICKETS DATA TABLE ─────────────────────────────────────── -->
+  <div class="bg-surface-0 dark:bg-surface-900 rounded-2xl border border-surface-200 dark:border-surface-800 shadow-sm overflow-hidden">
+    <p-table
+      [value]="tickets()"
+      [lazy]="true"
+      [loading]="loading()"
+      [paginator]="true"
+      [rows]="limit"
+      [totalRecords]="total()"
+      [rowsPerPageOptions]="[10, 25, 50]"
+      (onPage)="onPageChange($event)"
+      (onSort)="onSort($event)"
+      responsiveLayout="scroll"
+      styleClass="p-datatable-striped"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th pSortableColumn="ticketNumber">N° Ticket</th>
+          <th pSortableColumn="plateNumber">Vehículo / Placa</th>
+          <th>Cliente / Cédula</th>
+          <th>Estacionamiento / Puesto</th>
+          <th pSortableColumn="entryTime">Entrada</th>
+          <th pSortableColumn="totalAmount">Monto Total ($ / Bs.)</th>
+          <th>Estado</th>
+          <th class="text-right">Acciones</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-ticket>
+        <tr>
+          <!-- N° Ticket -->
+          <td>
+            <div class="flex items-center gap-2">
+              <i class="pi pi-qrcode text-emerald-500 text-base"></i>
+              <span class="font-extrabold text-surface-900 dark:text-surface-0">#{{ ticket.ticketNumber }}</span>
+            </div>
+            <span class="text-[11px] text-surface-400 block">Prefijo: {{ ticket.lot?.code || 'TKT' }}</span>
+          </td>
+
+          <!-- Vehículo / Placa -->
+          <td>
+            <div class="font-bold text-surface-900 dark:text-surface-0 flex items-center gap-1.5">
+              <i class="pi pi-car text-surface-400"></i>
+              <span>{{ ticket.plateNumber }}</span>
+            </div>
+            @if (ticket.vehicle) {
+              <span class="text-xs text-surface-400 block">{{ ticket.vehicle.brand }} {{ ticket.vehicle.model }}</span>
             }
-          </div>
-        </td>
-      </tr>
-    </ng-template>
-  </p-table>
+          </td>
+
+          <!-- Cliente / Cédula -->
+          <td>
+            @if (ticket.client) {
+              <div class="font-semibold text-surface-900 dark:text-surface-0">
+                {{ ticket.client.firstName }} {{ ticket.client.lastName }}
+              </div>
+              <span class="text-xs text-emerald-600 dark:text-emerald-400 font-semibold block">
+                {{ ticket.client.documentType || 'V' }}-{{ ticket.client.documentNumber }}
+              </span>
+            } @else {
+              <span class="text-xs text-surface-400 italic">Cliente Eventual</span>
+            }
+          </td>
+
+          <!-- Estacionamiento / Puesto -->
+          <td>
+            <div class="text-sm font-semibold text-surface-800 dark:text-surface-200">
+              {{ ticket.lot?.name }}
+            </div>
+            @if (ticket.spot) {
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-primary-500/10 text-primary-600 dark:text-primary-400 text-xs font-bold mt-0.5">
+                <i class="pi pi-map-marker text-[10px]"></i> Puesto {{ ticket.spot.spotNumber }}
+              </span>
+            }
+          </td>
+
+          <!-- Entrada / Duración -->
+          <td>
+            <div class="text-xs font-bold text-surface-900 dark:text-surface-0">
+              {{ ticket.entryTime | date:'shortTime' }}
+            </div>
+            <span class="text-[11px] text-surface-400 block">{{ ticket.entryTime | date:'mediumDate' }}</span>
+            @if (ticket.durationMinutes) {
+              <span class="text-[10px] text-surface-500 font-medium block mt-0.5">{{ ticket.durationMinutes }} min de estadía</span>
+            }
+          </td>
+
+          <!-- Monto Total ($ / Bs.) + Lost Ticket Badge -->
+          <td>
+            @if (ticket.totalAmount !== null && ticket.totalAmount !== undefined) {
+              <div class="text-base font-bold text-surface-900 dark:text-surface-0">
+                ${{ ticket.totalAmount | number:'1.2-2' }}
+              </div>
+              <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 block">
+                ≈ {{ (Number(ticket.totalAmount) * exchangeRateService.activeRate()) | number:'1.2-2' }} Bs.
+              </span>
+            } @else {
+              <span class="text-xs text-amber-500 font-bold italic">Calculando en salida...</span>
+            }
+
+            @if (ticket.isLostTicket) {
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-500/10 text-red-500 border border-red-500/20 text-[10px] font-extrabold mt-1 uppercase">
+                <i class="pi pi-exclamation-triangle text-[9px]"></i> Ticket Perdido (+30%)
+              </span>
+            }
+          </td>
+
+          <!-- Estado -->
+          <td>
+            @if (ticket.status === 'ACTIVE') {
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> ACTIVO
+              </span>
+            } @else if (ticket.status === 'COMPLETED') {
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                COMPLETADO
+              </span>
+            } @else {
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-surface-500/10 text-surface-500 border border-surface-500/20">
+                CANCELADO
+              </span>
+            }
+          </td>
+
+          <!-- Acciones -->
+          <td class="text-right">
+            <div class="flex items-center justify-end gap-1">
+              <!-- Imprimir Ticket Térmico con QR -->
+              <button pButton type="button" icon="pi pi-print" class="p-button-text p-button-rounded p-button-secondary" pTooltip="Imprimir Ticket Térmico" (click)="printTicket(ticket)"></button>
+              
+              <!-- Ver Detalle / QR -->
+              <button pButton type="button" icon="pi pi-eye" class="p-button-text p-button-rounded p-button-secondary" pTooltip="Ver Detalles / QR" (click)="viewTicket(ticket)"></button>
+
+              <!-- Procesar Cobro y Salida -->
+              @if (ticket.status === 'ACTIVE' && canCloseTicket()) {
+                <button pButton type="button" icon="pi pi-sign-out" class="p-button-text p-button-rounded p-button-success" pTooltip="Procesar Salida / Cobro" (click)="openCloseDialog(ticket)"></button>
+              }
+
+              <!-- Cancelar -->
+              @if (ticket.status === 'ACTIVE' && canCancelTicket()) {
+                <button pButton type="button" icon="pi pi-times" class="p-button-text p-button-rounded p-button-danger" pTooltip="Cancelar Ticket" (click)="cancelTicket(ticket)"></button>
+              }
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <!-- Empty State -->
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="8" class="text-center py-12 text-surface-500 dark:text-surface-400">
+            <i class="pi pi-ticket text-4xl mb-3 text-surface-300 block"></i>
+            <span class="text-base font-semibold">No se encontraron tickets registrados</span>
+            <p class="text-xs mt-1">Busca por N° de ticket, placa o cédula del cliente</p>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
 </div>
 
-<p-dialog
-  header="Nuevo Ticket"
-  [(visible)]="showCreateDialog"
-  [modal]="true"
-  [style]="{ width: '500px' }"
->
-  <form #createForm="ngForm" (ngSubmit)="createTicket()" class="flex flex-col gap-3">
-    <div class="flex flex-col gap-1">
-      <label class="text-sm font-medium">Estacionamiento *</label>
-      <p-select
-        name="lotId"
-        [options]="lots()"
-        optionLabel="name"
-        optionValue="id"
-        [(ngModel)]="createData.lotId"
-        placeholder="Seleccionar..."
-        required
-      />
+<!-- ─── MODAL: EMITIR NUEVO TICKET (ENTRADA) ────────────────── -->
+<p-dialog [(visible)]="showCreateDialog" header="Emitir Ticket de Entrada" [modal]="true" [style]="{ width: '90vw', maxWidth: '550px' }">
+  <div class="space-y-4 pt-2">
+
+    <div>
+      <label class="block text-xs font-bold text-surface-700 dark:text-surface-300 mb-1">Estacionamiento / Sucursal *</label>
+      <p-select [options]="lots()" optionLabel="name" optionValue="id" placeholder="Seleccionar Estacionamiento" [(ngModel)]="createData.lotId" (onChange)="onLotChange()" class="w-full"></p-select>
     </div>
 
-    <div class="flex flex-col gap-1">
-      <label class="text-sm font-medium">Placa *</label>
-      <input pInputText type="text" name="plateNumber" [(ngModel)]="createData.plateNumber" placeholder="ABC-123" required class="uppercase" />
+    <div>
+      <label class="block text-xs font-bold text-surface-700 dark:text-surface-300 mb-1">Placa del Vehículo *</label>
+      <input pInputText type="text" placeholder="Ej. ABC123X" [(ngModel)]="createData.plateNumber" class="w-full uppercase font-bold tracking-wider" />
     </div>
 
-    <div class="flex flex-col gap-1">
-      <label class="text-sm font-medium">Espacio (opcional)</label>
-      <p-select
-        name="spotId"
-        [options]="availableSpots()"
-        optionLabel="label"
-        optionValue="id"
-        [(ngModel)]="createData.spotId"
-        placeholder="Seleccionar..."
-      />
+    <div>
+      <label class="block text-xs font-bold text-surface-700 dark:text-surface-300 mb-1">Puesto de Estacionamiento (Opcional)</label>
+      <p-select [options]="availableSpots()" optionLabel="label" optionValue="id" placeholder="Asignar Puesto Disponible" [showClear]="true" [(ngModel)]="createData.spotId" class="w-full"></p-select>
     </div>
 
-    <div class="flex flex-col gap-1">
-      <label class="text-sm font-medium">Notas (opcional)</label>
-      <textarea pInputTextarea name="notes" [(ngModel)]="createData.notes" rows="2"></textarea>
+    <div>
+      <label class="block text-xs font-bold text-surface-700 dark:text-surface-300 mb-1">Observaciones / Notas</label>
+      <textarea pTextarea [(ngModel)]="createData.notes" placeholder="Notas de inspección o rayones previos..." class="w-full" rows="2"></textarea>
     </div>
 
-    <div class="flex justify-end gap-2 mt-2">
-      <p-button label="Cancelar" severity="secondary" (click)="showCreateDialog = false" />
-      <p-button label="Crear" type="submit" [loading]="submitting()" />
+    <!-- Registro Fotográfico de Inspección al Ingresar (1-4 fotos via Webcam / Móvil / Archivo) -->
+    <div class="pt-2 border-t border-surface-200 dark:border-surface-800">
+      <app-camera-capture [photos]="createData.photos || []" (photosChange)="createData.photos = $event" stageLabel="Entrada del Vehículo" [maxPhotos]="4"></app-camera-capture>
     </div>
-  </form>
+
+  </div>
+
+  <ng-template #footer pTemplate="footer">
+    <button pButton type="button" class="p-button-text p-button-secondary" (click)="showCreateDialog = false">
+      <i class="pi pi-times mr-1"></i>
+      <span>Cancelar</span>
+    </button>
+    <button pButton type="button" class="p-button-primary font-semibold" [loading]="submitting()" (click)="createTicket()">
+      <i class="pi pi-plus mr-1"></i>
+      <span>Emitir Ticket e Imprimir QR</span>
+    </button>
+  </ng-template>
 </p-dialog>
 
-<p-dialog
-  header="Cerrar Ticket"
-  [(visible)]="showCloseDialog"
-  [modal]="true"
-  [style]="{ width: '500px' }"
->
-  @if (selectedTicket()) {
-    <form #closeForm="ngForm" (ngSubmit)="closeTicket()" class="flex flex-col gap-3">
-      <div class="p-3 bg-surface-50 rounded-lg text-sm mb-2">
-        <div class="flex justify-between mb-1">
-          <span class="text-surface-500">Ticket:</span>
-          <span class="font-medium">{{ selectedTicket()!.ticketNumber }}</span>
+<!-- ─── MODAL: PROCESAR COBRO Y SALIDA (TICKET PERDIDO +30%) ─── -->
+<p-dialog [(visible)]="showCloseDialog" header="Procesar Salida y Cobro de Ticket" [modal]="true" [style]="{ width: '90vw', maxWidth: '650px' }">
+  @if (selectedTicket(); as tkt) {
+    <div class="space-y-4 pt-2">
+
+      <!-- Banner de Datos de Ticket -->
+      <div class="p-4 bg-surface-900 text-surface-0 rounded-2xl space-y-2 border border-surface-700">
+        <div class="flex justify-between items-center text-xs">
+          <span class="font-extrabold text-base text-primary-400">#{{ tkt.ticketNumber }}</span>
+          <span class="text-surface-400">Entrada: {{ tkt.entryTime | date:'medium' }}</span>
         </div>
-        <div class="flex justify-between mb-1">
-          <span class="text-surface-500">Placa:</span>
-          <span class="font-medium">{{ selectedTicket()!.plateNumber }}</span>
-        </div>
-        <div class="flex justify-between">
-          <span class="text-surface-500">Ingreso:</span>
-          <span class="font-medium">{{ selectedTicket()!.entryTime | date:'dd/MM/yy HH:mm' }}</span>
+        <div class="text-xs text-surface-300 flex flex-wrap gap-4 pt-1">
+          <span>Placa: <strong class="text-surface-100 font-bold uppercase">{{ tkt.plateNumber }}</strong></span>
+          <span>Sucursal: <strong class="text-surface-100">{{ tkt.lot?.name }}</strong></span>
+          <span>Puesto: <strong class="text-surface-100">{{ tkt.spot?.spotNumber || 'Libre' }}</strong></span>
         </div>
       </div>
 
-      <div class="flex flex-col gap-1">
-        <label class="text-sm font-medium">Tarifa</label>
-        <p-select
-          name="rateId"
-          [options]="rates()"
-          optionLabel="name"
-          optionValue="id"
-          [(ngModel)]="closeData.rateId"
-          placeholder="Seleccionar..."
-        />
+      <!-- Tarifa Seleccionada y Monto Base -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-bold text-surface-700 dark:text-surface-300 mb-1">Esquema de Tarifa *</label>
+          <p-select [options]="rates()" optionLabel="name" optionValue="id" [(ngModel)]="closeData.rateId" class="w-full"></p-select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-surface-700 dark:text-surface-300 mb-1">Monto Base ($ USD) *</label>
+          <p-inputnumber [(ngModel)]="closeData.baseAmount" mode="currency" currency="USD" locale="en-US" [min]="0" (ngModelChange)="onLostTicketToggle()" class="w-full"></p-inputnumber>
+        </div>
       </div>
 
-      <div class="flex flex-col gap-1">
-        <label class="text-sm font-medium">Monto base</label>
-        <p-inputnumber
-          name="baseAmount"
-          [(ngModel)]="closeData.baseAmount"
-          [min]="0"
-          [max]="999999"
-          mode="currency"
-          currency="USD"
-          locale="en-US"
-        />
-      </div>
+      <!-- CASO DE USO: CHECKBOX TICKET PERDIDO (+30% SURCHARGE) -->
+      <div class="p-4 rounded-xl border border-red-500/30 bg-red-500/10 space-y-2">
+        <div class="flex items-center gap-3">
+          <p-checkbox [(ngModel)]="closeData.isLostTicket" [binary]="true" inputId="lostTicketCheck" (onChange)="onLostTicketToggle()"></p-checkbox>
+          <label for="lostTicketCheck" class="text-sm font-extrabold text-red-600 dark:text-red-400 cursor-pointer flex items-center gap-1.5">
+            <i class="pi pi-exclamation-triangle"></i>
+            <span>¿Ticket Perdido por el Cliente? (+30% de Penalidad)</span>
+          </label>
+        </div>
 
-      <div class="flex flex-col gap-1">
-        <label class="text-sm font-medium">Descuento</label>
-        <p-inputnumber
-          name="discountAmount"
-          [(ngModel)]="closeData.discountAmount"
-          [min]="0"
-          [max]="999999"
-          mode="currency"
-          currency="USD"
-          locale="en-US"
-        />
-      </div>
-
-      <div class="flex flex-col gap-1">
-        <label class="text-sm font-medium">Notas (opcional)</label>
-        <textarea pInputTextarea name="notes" [(ngModel)]="closeData.notes" rows="2"></textarea>
-      </div>
-
-      <div class="flex justify-end gap-2 mt-2">
-        <p-button label="Cancelar" severity="secondary" (click)="showCloseDialog = false" />
-        <p-button label="Cerrar Ticket" type="submit" [loading]="submitting()" />
-      </div>
-    </form>
-  }
-</p-dialog>
-
-<p-dialog
-  header="Detalle del Ticket"
-  [(visible)]="showDetailDialog"
-  [modal]="true"
-  [style]="{ width: '600px' }"
->
-  @if (selectedTicket()) {
-    <div class="flex flex-col gap-3 text-sm">
-      <div class="grid grid-cols-2 gap-3">
-        <div>
-          <span class="block text-surface-400 text-xs">Ticket</span>
-          <span class="font-medium">{{ selectedTicket()!.ticketNumber }}</span>
-        </div>
-        <div>
-          <span class="block text-surface-400 text-xs">Placa</span>
-          <span class="font-medium">{{ selectedTicket()!.plateNumber }}</span>
-        </div>
-        <div>
-          <span class="block text-surface-400 text-xs">Estado</span>
-          <span class="status-badge" [class]="selectedTicket()!.status.toLowerCase()">{{ statusLabel(selectedTicket()!.status) }}</span>
-        </div>
-        <div>
-          <span class="block text-surface-400 text-xs">Pago</span>
-          <span class="status-badge" [class]="selectedTicket()!.paymentStatus.toLowerCase()">{{ paymentLabel(selectedTicket()!.paymentStatus) }}</span>
-        </div>
-        <div>
-          <span class="block text-surface-400 text-xs">Ingreso</span>
-          <span>{{ selectedTicket()!.entryTime | date:'dd/MM/yy HH:mm' }}</span>
-        </div>
-        <div>
-          <span class="block text-surface-400 text-xs">Salida</span>
-          <span>{{ (selectedTicket()!.exitTime | date:'dd/MM/yy HH:mm') || '-' }}</span>
-        </div>
-        <div>
-          <span class="block text-surface-400 text-xs">Duración</span>
-          <span>{{ selectedTicket()!.durationMinutes ? (selectedTicket()!.durationMinutes + ' min') : '-' }}</span>
-        </div>
-        <div>
-          <span class="block text-surface-400 text-xs">Total</span>
-          <span class="font-medium">{{ selectedTicket()!.totalAmount ? ('$' + selectedTicket()!.totalAmount) : '-' }}</span>
-        </div>
-        @if (selectedTicket()!.lot) {
-          <div>
-            <span class="block text-surface-400 text-xs">Estacionamiento</span>
-            <span>{{ selectedTicket()!.lot!.name }}</span>
-          </div>
-        }
-        @if (selectedTicket()!.spot) {
-          <div>
-            <span class="block text-surface-400 text-xs">Espacio</span>
-            <span>{{ selectedTicket()!.spot!.spotNumber }}</span>
-          </div>
-        }
-        @if (selectedTicket()!.entryOperator) {
-          <div>
-            <span class="block text-surface-400 text-xs">Operador ingreso</span>
-            <span>{{ selectedTicket()!.entryOperator!.firstName }} {{ selectedTicket()!.entryOperator!.lastName }}</span>
-          </div>
-        }
-        @if (selectedTicket()!.exitOperator) {
-          <div>
-            <span class="block text-surface-400 text-xs">Operador salida</span>
-            <span>{{ selectedTicket()!.exitOperator!.firstName }} {{ selectedTicket()!.exitOperator!.lastName }}</span>
+        @if (closeData.isLostTicket) {
+          <div class="text-xs text-red-700 dark:text-red-300 pl-7 font-semibold">
+            Se aplicará un recargo administrativo adicional del +30% (+${{ closeCalculatedTotal().penalty | number:'1.2-2' }}) sobre la tarifa base debido a la pérdida del comprobante.
           </div>
         }
       </div>
-      @if (selectedTicket()!.notes) {
-        <div>
-          <span class="block text-surface-400 text-xs">Notas</span>
-          <span>{{ selectedTicket()!.notes }}</span>
+
+      <!-- Desglose de Cálculo Final -->
+      @if (closeCalculatedTotal(); as calc) {
+        <div class="bg-surface-50 dark:bg-surface-800 p-4 rounded-xl border border-surface-200 dark:border-surface-700 space-y-2 text-xs">
+          <div class="flex justify-between">
+            <span class="text-surface-500">Monto Tarifa Base:</span>
+            <span class="font-bold">${{ calc.base | number:'1.2-2' }}</span>
+          </div>
+
+          @if (calc.isLost) {
+            <div class="flex justify-between text-red-600 dark:text-red-400 font-bold">
+              <span>+ Penalidad Ticket Perdido (30%):</span>
+              <span>+${{ calc.penalty | number:'1.2-2' }}</span>
+            </div>
+          }
+
+          <div class="flex justify-between text-surface-500">
+            <span>+ IVA (16%):</span>
+            <span class="font-bold">${{ calc.tax | number:'1.2-2' }}</span>
+          </div>
+
+          <div class="border-t border-surface-300 dark:border-surface-600 pt-2 flex justify-between items-center text-sm">
+            <span class="font-extrabold text-surface-900 dark:text-surface-0 uppercase">TOTAL A COBRAR:</span>
+            <div class="text-right">
+              <span class="text-xl font-extrabold text-primary-500 block">${{ calc.totalUSD | number:'1.2-2' }}</span>
+              <span class="text-xs text-emerald-600 dark:text-emerald-400 font-extrabold block">
+                ≈ {{ calc.totalVES | number:'1.2-2' }} Bs. (Tasa: {{ exchangeRateService.activeRate() }} Bs/$)
+              </span>
+            </div>
+          </div>
         </div>
       }
+
+      <div>
+        <label class="block text-xs font-bold text-surface-700 dark:text-surface-300 mb-1">Notas de Cierre / Obsevaciones</label>
+        <input pInputText type="text" placeholder="Ej. Verificado documento de propiedad por ticket perdido" [(ngModel)]="closeData.notes" class="w-full" />
+      </div>
+
+      <!-- Referencia de Fotos de Entrada Previa -->
+      @if (entryPhotosOfSelected().length > 0) {
+        <div class="p-3 bg-surface-900 rounded-xl border border-surface-700 text-xs space-y-2">
+          <span class="font-bold text-surface-200 block flex items-center gap-1.5">
+            <i class="pi pi-images text-emerald-400"></i>
+            Fotos Registradas al Ingresar ({{ entryPhotosOfSelected().length }} fotos de inspección):
+          </span>
+          <div class="grid grid-cols-4 gap-2">
+            @for (p of entryPhotosOfSelected(); track p.id) {
+              <a [href]="p.photoUrl" target="_blank" class="aspect-video rounded-lg overflow-hidden border border-surface-700 block hover:opacity-80 transition-opacity">
+                <img [src]="p.photoUrl" [alt]="p.caption || 'Foto Entrada'" class="w-full h-full object-cover" />
+              </a>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Registro Fotográfico de Salida del Vehículo (1-4 fotos) -->
+      <div class="pt-2 border-t border-surface-200 dark:border-surface-800">
+        <app-camera-capture [photos]="closeData.photos || []" (photosChange)="closeData.photos = $event" stageLabel="Salida del Vehículo" [maxPhotos]="4"></app-camera-capture>
+      </div>
+
     </div>
   }
+
+  <ng-template #footer pTemplate="footer">
+    <button pButton type="button" class="p-button-text p-button-secondary" (click)="showCloseDialog = false">
+      <i class="pi pi-times mr-1"></i>
+      <span>Cancelar</span>
+    </button>
+    <button pButton type="button" class="p-button-success font-semibold" [loading]="submitting()" (click)="closeTicket()">
+      <i class="pi pi-check mr-1"></i>
+      <span>Procesar Cobro y Liberar Puesto</span>
+    </button>
+  </ng-template>
 </p-dialog>
 
-<p-toast />
+<!-- ─── MODAL: IMPRESIÓN Y TICKET TÉRMICO CON CÓDIGO QR ──────── -->
+<p-dialog [(visible)]="showPrintDialog" header="Impresión de Ticket de Estacionamiento" [modal]="true" [style]="{ width: '90vw', maxWidth: '420px' }">
+  @if (selectedTicket(); as tkt) {
+    <!-- Contenedor del Ticket Térmico (80mm Formato Estándar POS) -->
+    <div id="printable-ticket" class="bg-white text-black p-6 rounded-xl border border-gray-300 font-mono text-center space-y-4 shadow-inner">
+      <!-- Logo y Nombre de Sucursal -->
+      <div>
+        <div class="text-lg font-extrabold uppercase tracking-widest text-black">PARKING SYSTEM</div>
+        <div class="text-xs font-bold text-gray-700">{{ tkt.lot?.name || 'Estacionamiento Principal' }}</div>
+        <div class="text-[10px] text-gray-500">RIF: J-40918239-1 · COMPROBANTE DE ENTADA</div>
+      </div>
+
+      <div class="border-t border-b border-dashed border-gray-400 py-2">
+        <div class="text-2xl font-extrabold text-black tracking-widest">#{{ tkt.ticketNumber }}</div>
+        <div class="text-xs font-bold text-gray-800 uppercase mt-0.5">PLACA: {{ tkt.plateNumber }}</div>
+      </div>
+
+      <!-- CÓDIGO QR DINÁMICO IMPRESO -->
+      @if (qrDataUrl()) {
+        <div class="flex flex-col items-center justify-center space-y-1 py-1">
+          <img [src]="qrDataUrl()" alt="Código QR Ticket" class="w-44 h-44 border border-gray-200 p-1 bg-white rounded" />
+          <span class="text-[9px] text-gray-500 tracking-wider">ESCANEAR PARA SALIDA / CONTROL</span>
+        </div>
+      }
+
+      <!-- Datos del Cliente y Vehículo -->
+      <div class="text-left text-xs space-y-1 bg-gray-50 p-3 rounded border border-gray-200 font-sans">
+        <div class="flex justify-between">
+          <span class="text-gray-500">Fecha/Hora Entrada:</span>
+          <span class="font-bold text-gray-900">{{ tkt.entryTime | date:'medium' }}</span>
+        </div>
+        
+        @if (tkt.client) {
+          <div class="flex justify-between">
+            <span class="text-gray-500">Cliente:</span>
+            <span class="font-bold text-gray-900">{{ tkt.client.firstName }} {{ tkt.client.lastName }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-500">Cédula/Doc:</span>
+            <span class="font-bold text-gray-900">{{ tkt.client.documentType || 'V' }}-{{ tkt.client.documentNumber }}</span>
+          </div>
+        }
+
+        <div class="flex justify-between">
+          <span class="text-gray-500">Ubicación / Puesto:</span>
+          <span class="font-bold text-gray-900">{{ tkt.spot ? ('Puesto ' + tkt.spot.spotNumber) : 'Libre' }}</span>
+        </div>
+      </div>
+
+      <div class="text-[10px] text-gray-600 leading-tight border-t border-dashed border-gray-400 pt-3">
+        * Por favor conserve este ticket hasta la salida.<br>
+        * <strong>EN CASO DE PÉRDIDA SE APLICARÁ UN RECARGO DEL 30% SOBRE EL COSTO TOTAL.</strong><br>
+        ¡Gracias por su preferencia!
+      </div>
+    </div>
+  }
+
+  <ng-template #footer pTemplate="footer">
+    <button pButton type="button" class="p-button-text p-button-secondary" (click)="showPrintDialog = false">Cerrar</button>
+    <button pButton type="button" class="p-button-primary font-bold" (click)="triggerBrowserPrint()">
+      <i class="pi pi-print mr-1.5"></i>
+      <span>Imprimir Ticket POS</span>
+    </button>
+  </ng-template>
+</p-dialog>
+
+<!-- ─── MODAL: VER DETALLE E INSPECCIÓN FOTOGRÁFICA ───────── -->
+<p-dialog [(visible)]="showDetailDialog" header="Inspección Fotográfica y Detalle de Ticket" [modal]="true" [style]="{ width: '90vw', maxWidth: '750px' }">
+  @if (selectedTicket(); as tkt) {
+    <div class="space-y-4 pt-2 text-xs">
+
+      <!-- Header del Ticket -->
+      <div class="p-4 bg-surface-900 text-surface-0 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border border-surface-700">
+        <div>
+          <div class="text-xl font-extrabold text-primary-400">#{{ tkt.ticketNumber }}</div>
+          <div class="text-surface-300 font-bold uppercase tracking-wider text-sm mt-0.5">Placa: {{ tkt.plateNumber }}</div>
+          <span class="text-surface-400 block mt-1">Estacionamiento: {{ tkt.lot?.name }} · Puesto: {{ tkt.spot?.spotNumber || 'Libre' }}</span>
+        </div>
+
+        @if (qrDataUrl()) {
+          <div class="bg-white p-2 rounded-xl shadow">
+            <img [src]="qrDataUrl()" alt="QR" class="w-24 h-24" />
+          </div>
+        }
+      </div>
+
+      <!-- Tiempos y Operadores -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <div class="p-3 bg-surface-100 dark:bg-surface-800 rounded-xl">
+          <span class="text-surface-500 block font-semibold">Entrada</span>
+          <span class="font-bold text-surface-900 dark:text-surface-0 text-sm">{{ tkt.entryTime | date:'medium' }}</span>
+          <span class="text-surface-400 block text-[11px]">Operador: {{ tkt.entryOperator?.firstName }}</span>
+        </div>
+
+        <div class="p-3 bg-surface-100 dark:bg-surface-800 rounded-xl">
+          <span class="text-surface-500 block font-semibold">Salida</span>
+          <span class="font-bold text-surface-900 dark:text-surface-0 text-sm">{{ tkt.exitTime ? (tkt.exitTime | date:'medium') : 'Vehículo en Estacionamiento' }}</span>
+          <span class="text-surface-400 block text-[11px]">{{ tkt.exitOperator ? ('Operador: ' + tkt.exitOperator.firstName) : '' }}</span>
+        </div>
+
+        <div class="p-3 bg-surface-100 dark:bg-surface-800 rounded-xl">
+          <span class="text-surface-500 block font-semibold">Estado / Total</span>
+          <span class="font-extrabold text-emerald-600 dark:text-emerald-400 text-sm">${{ (tkt.totalAmount || 0) | number:'1.2-2' }}</span>
+          <span class="text-surface-400 block text-[11px]">{{ tkt.status }}</span>
+        </div>
+      </div>
+
+      <!-- GALERÍA COMPARATIVA DE REGISTRO FOTOGRÁFICO DE SEGURIDAD -->
+      <div class="space-y-3 pt-2">
+        <h4 class="font-bold text-surface-900 dark:text-surface-0 uppercase tracking-wider flex items-center gap-1.5 m-0">
+          <i class="pi pi-camera text-primary-500 text-sm"></i>
+          <span>Galeria Fotográfica de Inspección y Seguridad</span>
+        </h4>
+
+        <!-- Fotos Entrada -->
+        <div class="p-3 bg-surface-50 dark:bg-surface-800/60 rounded-xl border border-surface-200 dark:border-surface-700 space-y-2">
+          <div class="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+            <i class="pi pi-sign-in"></i> Fotos al Ingresar ({{ entryPhotosOfSelected().length }}):
+          </div>
+          @if (entryPhotosOfSelected().length > 0) {
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              @for (p of entryPhotosOfSelected(); track p.id) {
+                <a [href]="p.photoUrl" target="_blank" class="aspect-video rounded-lg overflow-hidden border border-surface-300 dark:border-surface-600 block hover:opacity-80 transition-opacity">
+                  <img [src]="p.photoUrl" [alt]="p.caption || 'Foto Entrada'" class="w-full h-full object-cover" />
+                </a>
+              }
+            </div>
+          } @else {
+            <span class="text-surface-400 italic block">No se registraron fotos de inspección al ingresar</span>
+          }
+        </div>
+
+        <!-- Fotos Salida -->
+        <div class="p-3 bg-surface-50 dark:bg-surface-800/60 rounded-xl border border-surface-200 dark:border-surface-700 space-y-2">
+          <div class="font-bold text-blue-600 dark:text-blue-400 flex items-center gap-1">
+            <i class="pi pi-sign-out"></i> Fotos al Salir ({{ exitPhotosOfSelected().length }}):
+          </div>
+          @if (exitPhotosOfSelected().length > 0) {
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              @for (p of exitPhotosOfSelected(); track p.id) {
+                <a [href]="p.photoUrl" target="_blank" class="aspect-video rounded-lg overflow-hidden border border-surface-300 dark:border-surface-600 block hover:opacity-80 transition-opacity">
+                  <img [src]="p.photoUrl" [alt]="p.caption || 'Foto Salida'" class="w-full h-full object-cover" />
+                </a>
+              }
+            </div>
+          } @else {
+            <span class="text-surface-400 italic block">No se registraron fotos al salir</span>
+          }
+        </div>
+      </div>
+
+    </div>
+  }
+
+  <ng-template #footer pTemplate="footer">
+    <button pButton type="button" class="p-button-primary font-bold" (click)="showDetailDialog = false">
+      <i class="pi pi-check mr-1"></i>
+      <span>Cerrar</span>
+    </button>
+  </ng-template>
+</p-dialog>

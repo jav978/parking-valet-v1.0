@@ -7,16 +7,41 @@ import { CancelTicketDto } from './dto/cancel-ticket.dto';
 import { TicketFilterDto } from './dto/ticket-filter.dto';
 import { NotFoundException } from '../../common/exceptions/not-found.exception';
 import { BusinessException } from '../../common/exceptions/business.exception';
+import * as fs from 'fs';
+import * as path from 'path';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class TicketsService {
   constructor(private readonly prisma: PrismaService) {}
 
+  private savePhotoFile(base64Data: string, prefix: string): string {
+    if (!base64Data) return '';
+    if (base64Data.startsWith('http://') || base64Data.startsWith('https://') || base64Data.startsWith('/uploads/')) {
+      return base64Data;
+    }
+
+    const matches = base64Data.match(/^data:image\/([a-zA-Z0-9]+);base64,(.+)$/);
+    if (!matches) return base64Data;
+
+    const ext = matches[1] === 'jpeg' ? 'jpg' : matches[1];
+    const buffer = Buffer.from(matches[2], 'base64');
+
+    const dir = path.join(process.cwd(), 'uploads', 'tickets');
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+
+    const filename = `${prefix}-${uuidv4()}.${ext}`;
+    const filePath = path.join(dir, filename);
+    fs.writeFileSync(filePath, buffer);
+
+    return `/uploads/tickets/${filename}`;
+  }
+
   async create(dto: CreateTicketDto, entryOperatorId: string) {
     const lot = await this.prisma.parkingLot.findUnique({ where: { id: dto.lotId } });
-    if (!lot) throw new NotFoundException('ParkingLot', dto.lotId);
-
-    const ticketNumber = await this.generateTicketNumber(dto.lotId);
+    if (!lot || lot.deletedAt) throw new NotFoundException('ParkingLot', dto.lotId);
 
     if (dto.spotId) {
       const spot = await this.prisma.parkingSpot.findUnique({ where: { id: dto.spotId } });
@@ -24,7 +49,14 @@ export class TicketsService {
       if (spot.status !== 'AVAILABLE') throw new BusinessException('Parking spot is not available');
     }
 
-    const [ticket] = await this.prisma.$transaction(async (tx) => {
+    let savedEntryPhotoUrls: string[] = [];
+    if (dto.photos && dto.photos.length > 0) {
+      savedEntryPhotoUrls = dto.photos.map((p, idx) => this.savePhotoFile(p, `entry-${idx + 1}`));
+    }
+
+    const ticket = await this.prisma.$transaction(async (tx) => {
+      const ticketNumber = await this.generateTicketNumber(tx, dto.lotId);
+
       if (dto.spotId) {
         await tx.parkingSpot.update({
           where: { id: dto.spotId },
@@ -36,7 +68,7 @@ export class TicketsService {
         });
       }
 
-      const created = await tx.ticket.create({
+      const createdTicket = await tx.ticket.create({
         data: {
           ticketNumber,
           lotId: dto.lotId,
@@ -47,6 +79,7 @@ export class TicketsService {
           entryTime: dto.entryTime ? new Date(dto.entryTime) : new Date(),
           entryOperatorId,
           notes: dto.notes,
+          entryPhotoUrl: savedEntryPhotoUrls.length > 0 ? savedEntryPhotoUrls[0] : null,
         },
         include: {
           lot: { select: { id: true, name: true, code: true } },
@@ -55,10 +88,21 @@ export class TicketsService {
         },
       });
 
-      return [created];
+      if (savedEntryPhotoUrls.length > 0) {
+        await tx.ticketPhoto.createMany({
+          data: savedEntryPhotoUrls.map((url, idx) => ({
+            ticketId: createdTicket.id,
+            photoUrl: url,
+            stage: 'ENTRY' as const,
+            caption: `Foto Entrada #${idx + 1}`,
+          })),
+        });
+      }
+
+      return createdTicket;
     });
 
-    return ticket;
+    return this.findOne(ticket.id);
   }
 
   async findAll(filter: TicketFilterDto) {
@@ -76,6 +120,9 @@ export class TicketsService {
       where.OR = [
         { ticketNumber: { contains: search, mode: 'insensitive' } },
         { plateNumber: { contains: search, mode: 'insensitive' } },
+        { client: { documentNumber: { contains: search, mode: 'insensitive' } } },
+        { client: { firstName: { contains: search, mode: 'insensitive' } } },
+        { client: { lastName: { contains: search, mode: 'insensitive' } } },
       ];
     }
 
@@ -92,11 +139,12 @@ export class TicketsService {
         include: {
           lot: { select: { id: true, name: true, code: true } },
           spot: { select: { id: true, spotNumber: true } },
-          client: { select: { id: true, firstName: true, lastName: true } },
-          vehicle: { select: { id: true, plateNumber: true } },
+          client: { select: { id: true, firstName: true, lastName: true, documentType: true, documentNumber: true } },
+          vehicle: { select: { id: true, plateNumber: true, brand: true, model: true } },
           entryOperator: { select: { id: true, firstName: true, lastName: true } },
           exitOperator: { select: { id: true, firstName: true, lastName: true } },
           rate: { select: { id: true, name: true } },
+          photos: { select: { id: true, photoUrl: true, stage: true, caption: true, createdAt: true } },
         },
         skip: (page - 1) * limit,
         take: limit,
@@ -112,8 +160,8 @@ export class TicketsService {
   }
 
   async findOne(id: string) {
-    const ticket = await this.prisma.ticket.findUnique({
-      where: { id },
+    const ticket = await this.prisma.ticket.findFirst({
+      where: { id, deletedAt: null },
       include: {
         lot: { select: { id: true, name: true, code: true, taxPercentage: true } },
         spot: { select: { id: true, spotNumber: true, floor: true, section: true } },
@@ -125,6 +173,8 @@ export class TicketsService {
         payments: true,
         accessLogs: { orderBy: { accessTime: 'asc' } },
         entryCashRegister: { select: { id: true, name: true } },
+        exitCashRegister: { select: { id: true, name: true } },
+        photos: { orderBy: { createdAt: 'asc' } },
       },
     });
 
@@ -141,6 +191,9 @@ export class TicketsService {
 
     const exitTime = dto.exitTime ? new Date(dto.exitTime) : new Date();
     const durationMinutes = Math.round((exitTime.getTime() - ticket.entryTime.getTime()) / 60000);
+    if (durationMinutes < 0) {
+      throw new BusinessException('Exit time cannot be before entry time');
+    }
 
     const updateData: Prisma.TicketUpdateInput = {
       exitTime,
@@ -150,7 +203,21 @@ export class TicketsService {
     };
 
     if (dto.rateId) updateData.rate = { connect: { id: dto.rateId } };
-    if (dto.exitCashRegisterId) updateData.entryCashRegister = { connect: { id: dto.exitCashRegisterId } };
+    if (dto.exitCashRegisterId) {
+      updateData.exitCashRegister = { connect: { id: dto.exitCashRegisterId } };
+    } else {
+      const activeRegister = await this.prisma.cashRegister.findFirst({
+        where: {
+          lotId: ticket.lotId,
+          status: 'OPEN',
+          deletedAt: null,
+        },
+        orderBy: { openedAt: 'desc' },
+      });
+      if (activeRegister) {
+        updateData.exitCashRegister = { connect: { id: activeRegister.id } };
+      }
+    }
     if (dto.notes !== undefined) updateData.notes = dto.notes;
 
     if (dto.baseAmount !== undefined) {
@@ -158,36 +225,54 @@ export class TicketsService {
       const discount = dto.discountAmount ?? 0;
       updateData.discountAmount = discount;
 
+      const isLost = dto.isLostTicket ?? false;
+      const penalty = isLost ? (dto.penaltyAmount ?? (dto.baseAmount * 0.30)) : 0;
+      updateData.isLostTicket = isLost;
+      updateData.penaltyAmount = penalty;
+
       const taxRate = Number(ticket.lot.taxPercentage) / 100;
-      const taxableAmount = dto.baseAmount - discount;
+      const taxableAmount = dto.baseAmount - discount + penalty;
       const tax = taxableAmount * taxRate;
       updateData.taxAmount = tax;
       updateData.totalAmount = taxableAmount + tax;
       updateData.paymentStatus = 'PENDING';
     }
 
-    if (ticket.spotId) {
-      await this.prisma.parkingSpot.update({
-        where: { id: ticket.spotId },
-        data: { status: 'AVAILABLE' },
-      });
-      await this.prisma.parkingLot.update({
-        where: { id: ticket.lotId },
-        data: { availableSpots: { increment: 1 } },
-      });
+    let savedExitPhotoUrls: string[] = [];
+    if (dto.photos && dto.photos.length > 0) {
+      savedExitPhotoUrls = dto.photos.map((p, idx) => this.savePhotoFile(p, `exit-${id}-${idx + 1}`));
     }
 
-    return this.prisma.ticket.update({
-      where: { id },
-      data: updateData,
-      include: {
-        lot: { select: { id: true, name: true, code: true } },
-        spot: { select: { id: true, spotNumber: true } },
-        rate: { select: { id: true, name: true } },
-        entryOperator: { select: { id: true, firstName: true, lastName: true } },
-        exitOperator: { select: { id: true, firstName: true, lastName: true } },
-      },
+    await this.prisma.$transaction(async (tx) => {
+      if (ticket.spotId) {
+        await tx.parkingSpot.update({
+          where: { id: ticket.spotId },
+          data: { status: 'AVAILABLE' },
+        });
+        await tx.parkingLot.update({
+          where: { id: ticket.lotId },
+          data: { availableSpots: { increment: 1 } },
+        });
+      }
+
+      await tx.ticket.update({
+        where: { id },
+        data: updateData,
+      });
+
+      if (savedExitPhotoUrls.length > 0) {
+        await tx.ticketPhoto.createMany({
+          data: savedExitPhotoUrls.map((url, idx) => ({
+            ticketId: id,
+            photoUrl: url,
+            stage: 'EXIT' as const,
+            caption: `Foto Salida #${idx + 1}`,
+          })),
+        });
+      }
     });
+
+    return this.findOne(id);
   }
 
   async cancel(id: string, dto: CancelTicketDto) {
@@ -200,25 +285,26 @@ export class TicketsService {
       throw new BusinessException('Cannot cancel a completed ticket');
     }
 
-    if (ticket.spotId) {
-      await this.prisma.parkingSpot.update({
-        where: { id: ticket.spotId },
-        data: { status: 'AVAILABLE' },
-      });
-      await this.prisma.parkingLot.update({
-        where: { id: ticket.lotId },
-        data: { availableSpots: { increment: 1 } },
-      });
-    }
+    return this.prisma.$transaction(async (tx) => {
+      if (ticket.spotId) {
+        await tx.parkingSpot.update({
+          where: { id: ticket.spotId },
+          data: { status: 'AVAILABLE' },
+        });
+        await tx.parkingLot.update({
+          where: { id: ticket.lotId },
+          data: { availableSpots: { increment: 1 } },
+        });
+      }
 
-    return this.prisma.ticket.update({
-      where: { id },
-      data: {
-        status: 'CANCELLED',
-        cancelledAt: new Date(),
-        cancelReason: dto.cancelReason,
-        exitTime: new Date(),
-      },
+      return tx.ticket.update({
+        where: { id },
+        data: {
+          status: 'CANCELLED',
+          cancelledAt: new Date(),
+          cancelReason: dto.cancelReason,
+        },
+      });
     });
   }
 
@@ -234,8 +320,11 @@ export class TicketsService {
     });
   }
 
-  private async generateTicketNumber(lotId: string): Promise<string> {
-    const lot = await this.prisma.parkingLot.findUnique({
+  private async generateTicketNumber(
+    tx: Prisma.TransactionClient,
+    lotId: string,
+  ): Promise<string> {
+    const lot = await tx.parkingLot.findUnique({
       where: { id: lotId },
       select: { ticketPrefix: true, ticketNextNum: true, code: true },
     });
@@ -245,7 +334,7 @@ export class TicketsService {
     const prefix = lot.ticketPrefix || lot.code || 'TKT';
     const nextNum = lot.ticketNextNum ?? 1;
 
-    await this.prisma.parkingLot.update({
+    await tx.parkingLot.update({
       where: { id: lotId },
       data: { ticketNextNum: nextNum + 1 },
     });

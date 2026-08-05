@@ -5,7 +5,7 @@ set -e
 export NVM_DIR="$HOME/.nvm"
 if [ -s "$NVM_DIR/nvm.sh" ]; then
   source "$NVM_DIR/nvm.sh"
-  nvm use v24.16.0 >/dev/null
+  nvm use v24.16.0 2>/dev/null || true
 else
   # Fallback: agregar al PATH la versión de node v24 si existe
   if [ -d "$HOME/.nvm/versions/node/v24.16.0/bin" ]; then
@@ -26,7 +26,7 @@ cleanup() {
   kill $BACKEND_PID $FRONTEND_PID 2>/dev/null
   wait $BACKEND_PID $FRONTEND_PID 2>/dev/null
   # Detener el servidor de Excalidraw
-  EXPRESS_SERVER_URL=http://127.0.0.1:3015 bunx mcp-excalidraw-server stop 2>/dev/null || true
+  EXPRESS_SERVER_URL=http://127.0.0.1:3015 npx -y mcp-excalidraw-server stop 2>/dev/null || true
   echo -e "${GREEN}Servicios detenidos.${NC}"
   exit 0
 }
@@ -38,8 +38,8 @@ kill_port() {
   pid=$(lsof -ti :"$port" 2>/dev/null) || true
   if [ -n "$pid" ]; then
     echo -e "${YELLOW}  → Puerto $port ocupado por PID $pid. Cerrando...${NC}"
-    kill "$pid" 2>/dev/null || true
-    sleep 1
+    kill -9 $pid 2>/dev/null || true
+    sleep 2
   fi
 }
 
@@ -72,7 +72,7 @@ echo -e "${GREEN}  → Frontend PID: $FRONTEND_PID${NC}"
 
 # ─── Excalidraw ─────────────────────────────────────────
 echo -e "\n${YELLOW}[3/3] Iniciando Excalidraw...${NC}"
-PORT=3015 EXPRESS_SERVER_URL=http://127.0.0.1:3015 bunx mcp-excalidraw-server start
+PORT=3015 EXPRESS_SERVER_URL=http://127.0.0.1:3015 npx -y mcp-excalidraw-server start
 
 # ─── Info ───────────────────────────────────────────────
 echo -e "\n${CYAN}══════════════════════════════════════════════${NC}"

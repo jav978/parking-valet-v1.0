@@ -92,6 +92,11 @@ enum SubscriptionStatus {
   SUSPENDED
 }
 
+enum TicketPhotoStage {
+  ENTRY
+  EXIT
+}
+
 enum ReservationStatus {
   CONFIRMED
   CHECKED_IN
@@ -423,10 +428,13 @@ model Ticket {
   entryOperatorId String       @map("entry_operator_id") @db.Uuid
   exitOperatorId  String?      @map("exit_operator_id") @db.Uuid
   entryCashRegisterId String?  @map("entry_cash_register_id") @db.Uuid
+  exitCashRegisterId  String?  @map("exit_cash_register_id") @db.Uuid
   notes          String?
   entryPhotoUrl  String?       @map("entry_photo_url")
   platePhotoUrl  String?       @map("plate_photo_url")
   qrHash         String?       @map("qr_hash")
+  isLostTicket   Boolean       @default(false) @map("is_lost_ticket")
+  penaltyAmount  Decimal?      @default(0) @map("penalty_amount") @db.Decimal(10, 2)
   cancelledAt    DateTime?     @map("cancelled_at")
   cancelReason   String?       @map("cancel_reason")
   createdAt      DateTime      @default(now()) @map("created_at")
@@ -440,11 +448,13 @@ model Ticket {
   rate            Rate?      @relation(fields: [rateId], references: [id])
   entryOperator   User       @relation("TicketEntryOperator", fields: [entryOperatorId], references: [id])
   exitOperator    User?      @relation("TicketExitOperator", fields: [exitOperatorId], references: [id])
-  entryCashRegister CashRegister? @relation(fields: [entryCashRegisterId], references: [id])
+  entryCashRegister CashRegister? @relation("TicketEntryCashRegister", fields: [entryCashRegisterId], references: [id])
+  exitCashRegister  CashRegister? @relation("TicketExitCashRegister", fields: [exitCashRegisterId], references: [id])
 
   payments    Payment[]
   accessLogs  AccessLog[]
   reservation Reservation[]
+  photos      TicketPhoto[]
 
   @@index([ticketNumber])
   @@index([plateNumber, status])
@@ -506,7 +516,8 @@ model CashRegister {
   closedBy  User?      @relation("CashRegisterClosedBy", fields: [closedById], references: [id])
 
   movements CashRegisterMovement[]
-  tickets   Ticket[]
+  ticketsEntry Ticket[] @relation("TicketEntryCashRegister")
+  ticketsExit  Ticket[] @relation("TicketExitCashRegister")
 
   @@index([lotId, status])
   @@index([openedAt])
@@ -730,4 +741,20 @@ model Backup {
 
   @@index([createdAt])
   @@map("backups")
+}
+
+// ─── TICKET PHOTOS (INSPECTION & SECURITY) ─────────────────
+
+model TicketPhoto {
+  id        String           @id @default(uuid()) @db.Uuid
+  ticketId  String           @map("ticket_id") @db.Uuid
+  photoUrl  String           @map("photo_url")
+  stage     TicketPhotoStage @default(ENTRY)
+  caption   String?
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+  @@map("ticket_photos")
 }

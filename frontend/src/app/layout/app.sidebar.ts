@@ -12,10 +12,10 @@ import { LayoutService } from './layout.service';
   template: `
     <div class="layout-sidebar">
       <!-- Sidebar Logo Header -->
-      <div class="sidebar-header flex items-center gap-3 px-6 h-16 border-b border-surface-200">
-        <a class="flex items-center gap-3 text-lg font-bold text-surface-800" routerLink="/">
-          <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-            <i class="pi pi-car text-xl text-emerald-500"></i>
+      <div class="sidebar-header flex items-center gap-3 px-6 h-16 border-b border-surface-100">
+        <a class="flex items-center gap-3 text-lg font-bold text-surface-800 dark:text-surface-100" routerLink="/">
+          <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-primary-500/10 border border-primary-500/20">
+            <i class="pi pi-car text-xl text-primary-500"></i>
           </div>
           <span class="tracking-wide">Parking System</span>
         </a>

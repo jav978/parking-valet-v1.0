@@ -8,7 +8,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { MessageService, ConfirmationService } from 'primeng/api';
+import { MessageService, ConfirmationService, SharedModule } from 'primeng/api';
 import { RoleService, CreateRoleRequest, UpdateRoleRequest } from '../../core/services/role.service';
 import { PermissionService } from '../../core/services/permission.service';
 import { Role, Permission } from '../../core/interfaces/user';
@@ -26,7 +26,8 @@ import { catchError, of } from 'rxjs';
     InputTextModule,
     MessageModule,
     ToastModule,
-    ConfirmDialogModule
+    ConfirmDialogModule,
+    SharedModule
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './roles.html',

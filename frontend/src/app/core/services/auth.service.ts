@@ -6,7 +6,6 @@ import {
   LoginRequest,
   LoginResponse,
   UserProfile,
-  RefreshTokenRequest,
   ChangePasswordRequest,
   ApiResponse,
 } from '../interfaces';
@@ -33,7 +32,7 @@ export class AuthService {
     );
   }
 
-  register(data: { email: string; password: string; firstName: string; lastName: string; roleId: string }): Observable<ApiResponse<LoginResponse>> {
+  register(data: { email: string; password: string; firstName: string; lastName: string }): Observable<ApiResponse<LoginResponse>> {
     return this.http.post<ApiResponse<LoginResponse>>(`${this.API_URL}/register`, data).pipe(
       tap((res) => {
         this.setSession(res.data);
@@ -46,7 +45,11 @@ export class AuthService {
     if (!refreshToken) throw new Error('No refresh token');
 
     return this.http
-      .post<ApiResponse<LoginResponse>>(`${this.API_URL}/refresh`, { refreshToken } as RefreshTokenRequest)
+      .post<ApiResponse<LoginResponse>>(
+        `${this.API_URL}/refresh`,
+        {},
+        { headers: { Authorization: `Bearer ${refreshToken}` } }
+      )
       .pipe(tap((res) => this.setSession(res.data)));
   }
 
@@ -58,6 +61,26 @@ export class AuthService {
 
   getProfile(): Observable<ApiResponse<UserProfile>> {
     return this.http.get<ApiResponse<UserProfile>>(`${this.API_URL}/profile`);
+  }
+
+  loadProfile(): void {
+    if (!this.getAccessToken()) return;
+
+    this.getProfile().subscribe({
+      next: (res) => {
+        const current = this.userSignal();
+        const roleName = (res.data.role as unknown as { name?: string })?.name;
+        this.userSignal.set({
+          id: res.data.id,
+          email: res.data.email,
+          firstName: res.data.firstName,
+          lastName: res.data.lastName,
+          role: roleName ?? current?.role ?? '',
+          permissions: current?.permissions ?? [],
+        });
+      },
+      error: () => {},
+    });
   }
 
   changePassword(data: ChangePasswordRequest): Observable<ApiResponse<null>> {
@@ -96,7 +119,7 @@ export class AuthService {
     const token = localStorage.getItem(this.TOKEN_KEY);
     if (!token) return null;
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
+      const payload = JSON.parse(this.decodeJwtPayload(token));
       return {
         id: payload.sub,
         email: payload.email,
@@ -108,5 +131,17 @@ export class AuthService {
     } catch {
       return null;
     }
+  }
+
+  private decodeJwtPayload(token: string): string {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=');
+    return decodeURIComponent(
+      atob(padded)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join(''),
+    );
   }
 }

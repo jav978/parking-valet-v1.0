@@ -15,6 +15,7 @@ export interface Role {
   id: string;
   name: string;
   description?: string;
+  isSystem?: boolean;
   _count?: { users: number; permissions: number };
 }
 
@@ -36,7 +37,6 @@ export interface RegisterRequest {
   password: string;
   firstName: string;
   lastName: string;
-  roleId: string;
 }
 
 export interface LoginResponse {

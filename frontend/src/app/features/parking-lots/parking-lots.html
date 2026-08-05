@@ -1,0 +1,343 @@
+<p-toast />
+<p-confirmdialog />
+
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
+  <div>
+    <h1 class="text-2xl font-bold text-color">Estacionamientos</h1>
+    <p class="text-sm text-muted-color">Gestiona las playas de estacionamiento, ubicación, horarios y capacidades.</p>
+  </div>
+  @if (canCreate()) {
+    <p-button label="Nuevo Estacionamiento" icon="pi pi-plus" (click)="openCreateDialog()" />
+  }
+</div>
+
+@if (error()) {
+  <p-message severity="error" styleClass="mb-3 w-full">{{ error() }}</p-message>
+}
+
+<!-- ─── SUMMARY KPI CARDS ────────────────────────────────────── -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+  <div class="card p-4 flex items-center justify-between !mb-0">
+    <div>
+      <span class="text-xs font-medium text-muted-color block mb-1">Total Estacionamientos</span>
+      <span class="text-2xl font-bold text-color">{{ total() }}</span>
+    </div>
+    <div class="w-12 h-12 rounded-xl bg-teal-500/10 text-teal-600 flex items-center justify-center">
+      <i class="pi pi-building text-xl"></i>
+    </div>
+  </div>
+
+  <div class="card p-4 flex items-center justify-between !mb-0">
+    <div>
+      <span class="text-xs font-medium text-muted-color block mb-1">Capacidad Total</span>
+      <span class="text-2xl font-bold text-color">{{ totalCapacity() }}</span>
+    </div>
+    <div class="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center">
+      <i class="pi pi-th-large text-xl"></i>
+    </div>
+  </div>
+
+  <div class="card p-4 flex items-center justify-between !mb-0">
+    <div>
+      <span class="text-xs font-medium text-muted-color block mb-1">Lugares Disponibles</span>
+      <span class="text-2xl font-bold text-color">{{ totalAvailable() }}</span>
+    </div>
+    <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+      <i class="pi pi-check-circle text-xl"></i>
+    </div>
+  </div>
+
+  <div class="card p-4 flex items-center justify-between !mb-0">
+    <div>
+      <span class="text-xs font-medium text-muted-color block mb-1">Ocupación Promedio</span>
+      <span class="text-2xl font-bold text-color">{{ occupancyPercentage() }}%</span>
+    </div>
+    <div class="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center">
+      <i class="pi pi-chart-line text-xl"></i>
+    </div>
+  </div>
+</div>
+
+<!-- ─── DATATABLE CARD ──────────────────────────────────────── -->
+<div class="card">
+  <div class="flex flex-wrap items-center gap-3 mb-3">
+    <p-iconfield>
+      <p-inputicon styleClass="pi pi-search" />
+      <input pInputText type="text" placeholder="Buscar por nombre, código o ciudad..."
+        [ngModel]="search()" (ngModelChange)="search.set($event); loadParkingLots()" class="w-full md:w-80" />
+    </p-iconfield>
+
+    <p-select [options]="statusFilterOptions" optionLabel="label" optionValue="value" placeholder="Estado"
+      [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event); loadParkingLots()" class="w-full sm:w-44" />
+  </div>
+
+  <p-table [value]="parkingLots()" [loading]="loading()" [paginator]="true"
+    [rows]="limit" [totalRecords]="total()" [rowsPerPageOptions]="[10, 25, 50]"
+    (onPage)="onPageChange($event)" [lazy]="true"
+    [sortField]="sortBy()" [sortOrder]="sortOrder() === 'asc' ? 1 : -1"
+    (onSort)="onSort($event)" dataKey="id" class="w-full">
+
+    <ng-template #header>
+      <tr>
+        <th pSortableColumn="code">Código <p-sorticon field="code" /></th>
+        <th pSortableColumn="name">Estacionamiento / Ubicación <p-sorticon field="name" /></th>
+        <th pSortableColumn="totalSpots">Capacidad <p-sorticon field="totalSpots" /></th>
+        <th pSortableColumn="availableSpots">Disponibles <p-sorticon field="availableSpots" /></th>
+        <th>Servicios</th>
+        <th pSortableColumn="isActive">Estado <p-sorticon field="isActive" /></th>
+        <th style="width: 10rem"></th>
+      </tr>
+    </ng-template>
+
+    <ng-template #body let-lot>
+      <tr>
+        <td>
+          <span class="p-column-title font-bold md:hidden">Código: </span>
+          <span class="font-mono font-bold text-color">{{ lot.code }}</span>
+        </td>
+        <td>
+          <span class="p-column-title font-bold md:hidden">Nombre: </span>
+          <div>
+            <div class="font-medium text-color">{{ lot.name }}</div>
+            <span class="text-xs text-muted-color block">
+              <i class="pi pi-map-marker text-[10px] mr-1"></i>{{ lot.address || 'Sin dirección' }}{{ lot.city ? ', ' + lot.city : '' }}
+            </span>
+          </div>
+        </td>
+        <td>
+          <span class="p-column-title font-bold md:hidden">Capacidad: </span>
+          <span class="font-semibold text-color">{{ lot.totalSpots }} lugares</span>
+        </td>
+        <td>
+          <span class="p-column-title font-bold md:hidden">Disponibles: </span>
+          <span class="status-badge" [class]="lot.availableSpots > 0 ? 'green' : 'red'">
+            {{ lot.availableSpots }} libres
+          </span>
+        </td>
+        <td>
+          <span class="p-column-title font-bold md:hidden">Servicios: </span>
+          <div class="flex gap-1 flex-wrap">
+            @if (lot.is24h) {
+              <span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-blue-500/10 text-blue-600">24H</span>
+            } @else {
+              <span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-surface-100 text-muted-color">
+                {{ lot.openingTime || '06:00' }}-{{ lot.closingTime || '23:00' }}
+              </span>
+            }
+            @if (lot.hasEvCharging) {
+              <span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600" pTooltip="Carga Eléctrica"><i class="pi pi-bolt mr-0.5"></i>EV</span>
+            }
+            @if (lot.hasSecurity) {
+              <span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-purple-500/10 text-purple-600" pTooltip="Seguridad 24/7"><i class="pi pi-shield mr-0.5"></i>Seguridad</span>
+            }
+            @if (lot.hasCovered) {
+              <span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-amber-500/10 text-amber-600" pTooltip="Techado"><i class="pi pi-home mr-0.5"></i>Techado</span>
+            }
+          </div>
+        </td>
+        <td>
+          <span class="p-column-title font-bold md:hidden">Estado: </span>
+          <span class="status-badge" [class]="lot.isActive ? 'active' : 'cancelled'">
+            {{ lot.isActive ? 'Activo' : 'Inactivo' }}
+          </span>
+        </td>
+        <td>
+          <span class="p-column-title font-bold md:hidden">Acciones: </span>
+          <div class="flex gap-1 justify-end">
+            <p-button icon="pi pi-eye" severity="secondary" size="small" (click)="openDetailDialog(lot)" pTooltip="Ver detalle" />
+            @if (canEdit()) {
+              <p-button icon="pi pi-pencil" severity="secondary" size="small" (click)="openEditDialog(lot)" pTooltip="Editar" />
+            }
+            @if (canDelete()) {
+              <p-button icon="pi pi-trash" severity="danger" size="small" (click)="confirmDelete(lot)" pTooltip="Eliminar" />
+            }
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="7" class="text-center p-6 text-muted-color">No se encontraron playas de estacionamiento.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- ─── FORM DIALOG (CREATE / EDIT) ─────────────────────────── -->
+<p-dialog [header]="isEditMode ? 'Editar Estacionamiento' : 'Nuevo Estacionamiento'"
+  [(visible)]="showFormDialog" [modal]="true"
+  [style]="{ width: '90%', maxWidth: '700px' }" [draggable]="false" [resizable]="false">
+  <form #form="ngForm" (ngSubmit)="saveParkingLot()" class="flex flex-col gap-4 mt-2">
+    
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div class="sm:col-span-2 flex flex-col gap-1">
+        <label class="text-sm font-medium text-color">Nombre de la Playa *</label>
+        <input pInputText type="text" name="name" [(ngModel)]="lotForm.name"
+          placeholder="Ej: Estacionamiento Central" required #nameModel="ngModel"
+          [class.ng-invalid]="nameModel.invalid && nameModel.touched" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-color">Código Único *</label>
+        <input pInputText type="text" name="code" [(ngModel)]="lotForm.code"
+          placeholder="Ej: MAIN-001" required style="text-transform: uppercase" #codeModel="ngModel"
+          [class.ng-invalid]="codeModel.invalid && codeModel.touched" />
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium text-color">Dirección</label>
+      <input pInputText type="text" name="address" [(ngModel)]="lotForm.address"
+        placeholder="Av. Principal #123" />
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-color">Ciudad</label>
+        <input pInputText type="text" name="city" [(ngModel)]="lotForm.city" placeholder="Ciudad" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-color">Estado / Provincia</label>
+        <input pInputText type="text" name="state" [(ngModel)]="lotForm.state" placeholder="Estado" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-color">País</label>
+        <input pInputText type="text" name="country" [(ngModel)]="lotForm.country" placeholder="País" />
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-color">Teléfono</label>
+        <input pInputText type="text" name="phone" [(ngModel)]="lotForm.phone" placeholder="+582121234567" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-color">Correo Electrónico</label>
+        <input pInputText type="email" name="email" [(ngModel)]="lotForm.email" placeholder="contacto@parking.com" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-color">Capacidad Total *</label>
+        <p-inputnumber name="totalSpots" [(ngModel)]="lotForm.totalSpots" [min]="1" [max]="5000" class="w-full" />
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-color">Moneda</label>
+        <p-select name="currency" [options]="currencyOptions" optionLabel="label" optionValue="value"
+          [(ngModel)]="lotForm.currency" class="w-full" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-color">Impuesto IVA (%)</label>
+        <p-inputnumber name="taxPercentage" [(ngModel)]="lotForm.taxPercentage" [min]="0" [max]="100" class="w-full" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-color">Prefijo Ticket</label>
+        <input pInputText type="text" name="ticketPrefix" [(ngModel)]="lotForm.ticketPrefix" placeholder="TKT" style="text-transform: uppercase" />
+      </div>
+    </div>
+
+    <div class="p-3 bg-surface-50 dark:bg-surface-800 rounded-lg flex flex-col gap-3">
+      <span class="text-xs font-bold text-muted-color uppercase tracking-wider">Horario y Servicios</span>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 items-center">
+        <label class="flex items-center gap-2 text-sm text-color cursor-pointer">
+          <input type="checkbox" name="is24h" [(ngModel)]="lotForm.is24h" class="rounded accent-teal-600" />
+          <span>Abierto 24H</span>
+        </label>
+        <label class="flex items-center gap-2 text-sm text-color cursor-pointer">
+          <input type="checkbox" name="hasEvCharging" [(ngModel)]="lotForm.hasEvCharging" class="rounded accent-teal-600" />
+          <span>Carga EV</span>
+        </label>
+        <label class="flex items-center gap-2 text-sm text-color cursor-pointer">
+          <input type="checkbox" name="hasSecurity" [(ngModel)]="lotForm.hasSecurity" class="rounded accent-teal-600" />
+          <span>Seguridad</span>
+        </label>
+        <label class="flex items-center gap-2 text-sm text-color cursor-pointer">
+          <input type="checkbox" name="hasCovered" [(ngModel)]="lotForm.hasCovered" class="rounded accent-teal-600" />
+          <span>Techado</span>
+        </label>
+      </div>
+
+      @if (!lotForm.is24h) {
+        <div class="grid grid-cols-2 gap-3 mt-1">
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-medium text-muted-color">Hora Apertura</label>
+            <input pInputText type="time" name="openingTime" [(ngModel)]="lotForm.openingTime" />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-medium text-muted-color">Hora Cierre</label>
+            <input pInputText type="time" name="closingTime" [(ngModel)]="lotForm.closingTime" />
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="flex justify-end gap-2 mt-2">
+      <p-button label="Cancelar" severity="secondary" [disabled]="submitting()" (click)="showFormDialog = false" />
+      <p-button label="Guardar Estacionamiento" type="submit" [loading]="submitting()" [disabled]="form.invalid || submitting()" />
+    </div>
+  </form>
+</p-dialog>
+
+<!-- ─── DETAIL DIALOG ───────────────────────────────────────── -->
+<p-dialog [header]="selectedLot() ? selectedLot()!.name : 'Detalle del Estacionamiento'"
+  [(visible)]="showDetailDialog" [modal]="true"
+  [style]="{ width: '90%', maxWidth: '750px' }" [draggable]="false" [resizable]="false">
+
+  @if (selectedLot(); as lot) {
+    <div class="flex flex-col gap-4 mt-2">
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3 bg-surface-50 dark:bg-surface-800 rounded-lg">
+        <div>
+          <span class="text-xs text-muted-color block">Código</span>
+          <span class="text-sm font-mono font-bold text-color">{{ lot.code }}</span>
+        </div>
+        <div>
+          <span class="text-xs text-muted-color block">Capacidad</span>
+          <span class="text-sm font-semibold text-color">{{ lot.totalSpots }} lugares</span>
+        </div>
+        <div>
+          <span class="text-xs text-muted-color block">Libres</span>
+          <span class="text-sm font-semibold text-emerald-500">{{ lot.availableSpots }} libres</span>
+        </div>
+        <div>
+          <span class="text-xs text-muted-color block">Estado</span>
+          <span class="status-badge" [class]="lot.isActive ? 'active' : 'cancelled'">
+            {{ lot.isActive ? 'Activo' : 'Inactivo' }}
+          </span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <h4 class="text-xs font-bold text-muted-color uppercase mb-2">Ubicación y Contacto</h4>
+          <div class="text-sm flex flex-col gap-1 text-color">
+            <span><i class="pi pi-map-marker text-xs mr-1 text-teal-500"></i>{{ lot.address || 'Sin dirección' }}</span>
+            <span><i class="pi pi-building text-xs mr-1 text-teal-500"></i>{{ lot.city || 'Ciudad' }}{{ lot.state ? ', ' + lot.state : '' }}</span>
+            @if (lot.phone) { <span><i class="pi pi-phone text-xs mr-1 text-teal-500"></i>{{ lot.phone }}</span> }
+            @if (lot.email) { <span><i class="pi pi-envelope text-xs mr-1 text-teal-500"></i>{{ lot.email }}</span> }
+          </div>
+        </div>
+        <div>
+          <h4 class="text-xs font-bold text-muted-color uppercase mb-2">Configuración Operativa</h4>
+          <div class="text-sm flex flex-col gap-1 text-color">
+            <span><i class="pi pi-clock text-xs mr-1 text-teal-500"></i>Horario: {{ lot.is24h ? 'Abierto 24 Horas' : (lot.openingTime + ' a ' + lot.closingTime) }}</span>
+            <span><i class="pi pi-percentage text-xs mr-1 text-teal-500"></i>Impuesto IVA: {{ lot.taxPercentage || 16 }}% ({{ lot.currency || 'USD' }})</span>
+            <span><i class="pi pi-ticket text-xs mr-1 text-teal-500"></i>Prefijo Ticket: {{ lot.ticketPrefix || 'TKT' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Occupancy Bar -->
+      <div class="p-3 bg-surface-50 dark:bg-surface-800 rounded-lg">
+        <div class="flex justify-between text-xs font-medium mb-1">
+          <span class="text-muted-color">Ocupación Actual</span>
+          <span class="text-color font-bold">{{ lot.totalSpots ? Math.round(((lot.totalSpots - lot.availableSpots) / lot.totalSpots) * 100) : 0 }}%</span>
+        </div>
+        <div class="w-full bg-surface-200 dark:bg-surface-700 h-3 rounded-full overflow-hidden">
+          <div class="bg-teal-500 h-full transition-all duration-300"
+            [style.width.%]="lot.totalSpots ? Math.round(((lot.totalSpots - lot.availableSpots) / lot.totalSpots) * 100) : 0"></div>
+        </div>
+      </div>
+    </div>
+  }
+</p-dialog>

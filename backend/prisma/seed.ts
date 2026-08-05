@@ -339,11 +339,11 @@ async function main() {
       address: 'Av. Principal 123',
       city: 'Ciudad Central',
       state: 'Estado',
-      country: 'País',
-      phone: '+1234567890',
+      country: 'México',
+      phone: '+521234567890',
       email: 'contacto@parkingpro.com',
-      totalSpots: 20,
-      availableSpots: 20,
+      totalSpots: 50,
+      availableSpots: 48,
       openingTime: '06:00',
       closingTime: '23:00',
       is24h: false,
@@ -352,14 +352,72 @@ async function main() {
       hasSecurity: true,
       hasCovered: true,
       taxPercentage: 16,
-      currency: 'MXN',
+      currency: 'USD',
       ticketPrefix: 'TKT',
-      ticketNextNum: 1,
+      ticketNextNum: 4,
       notes: 'Estacionamiento principal del sistema',
     },
     update: {},
   });
-  console.log('  ✓ Parking lot created');
+
+  await prisma.parkingLot.upsert({
+    where: { code: 'NOR-002' },
+    create: {
+      name: 'Estacionamiento Zona Norte',
+      code: 'NOR-002',
+      address: 'Calle 45 Norte #890',
+      city: 'Ciudad Central',
+      state: 'Estado',
+      country: 'México',
+      phone: '+521234567899',
+      email: 'norte@parkingpro.com',
+      totalSpots: 30,
+      availableSpots: 30,
+      openingTime: '00:00',
+      closingTime: '23:59',
+      is24h: true,
+      isActive: true,
+      hasEvCharging: true,
+      hasSecurity: true,
+      hasCovered: false,
+      taxPercentage: 16,
+      currency: 'USD',
+      ticketPrefix: 'NOR',
+      ticketNextNum: 1,
+      notes: 'Playa abierta 24H con estaciones de carga rápida EV',
+    },
+    update: {},
+  });
+
+  await prisma.parkingLot.upsert({
+    where: { code: 'EXPRESS-003' },
+    create: {
+      name: 'Valet Parking Express - Centro',
+      code: 'EXPRESS-003',
+      address: 'Plaza Comercial Centro',
+      city: 'Ciudad Central',
+      state: 'Estado',
+      country: 'México',
+      phone: '+521234567888',
+      email: 'express@parkingpro.com',
+      totalSpots: 25,
+      availableSpots: 22,
+      openingTime: '08:00',
+      closingTime: '22:00',
+      is24h: false,
+      isActive: true,
+      hasEvCharging: false,
+      hasSecurity: true,
+      hasCovered: true,
+      taxPercentage: 16,
+      currency: 'USD',
+      ticketPrefix: 'EXP',
+      ticketNextNum: 1,
+      notes: 'Servicio Valet exclusivo para plaza comercial',
+    },
+    update: {},
+  });
+  console.log('  ✓ 3 Parking lots created');
 
   // ─── Parking Spots ────────────────────────────────────────
   console.log('  Creating parking spots...');
@@ -636,6 +694,70 @@ async function main() {
   });
 
   console.log('  ✓ 4 demo vehicles created');
+
+  // ─── Demo Tickets ──────────────────────────────────────────
+  console.log('  Creating demo tickets...');
+
+  const spot1 = await prisma.parkingSpot.findFirst({ where: { lotId: parkingLot.id, spotNumber: '1A02' } });
+  const spot2 = await prisma.parkingSpot.findFirst({ where: { lotId: parkingLot.id, spotNumber: '1B02' } });
+  const rateObj = await prisma.rate.findFirst({ where: { lotId: parkingLot.id } });
+
+  await prisma.ticket.upsert({
+    where: { ticketNumber: 'TKT-000001' },
+    create: {
+      ticketNumber: 'TKT-000001',
+      lotId: parkingLot.id,
+      spotId: spot1?.id,
+      clientId: client1.id,
+      plateNumber: 'ABC-123',
+      status: 'ACTIVE',
+      paymentStatus: 'PENDING',
+      entryTime: new Date(Date.now() - 45 * 60 * 1000),
+      entryOperatorId: adminUser.id,
+      notes: 'Entrada sin novedades',
+    },
+    update: {},
+  });
+
+  await prisma.ticket.upsert({
+    where: { ticketNumber: 'TKT-000002' },
+    create: {
+      ticketNumber: 'TKT-000002',
+      lotId: parkingLot.id,
+      spotId: spot2?.id,
+      clientId: client2.id,
+      plateNumber: 'XYZ-789',
+      status: 'ACTIVE',
+      paymentStatus: 'PENDING',
+      entryTime: new Date(Date.now() - 20 * 60 * 1000),
+      entryOperatorId: operatorUser.id,
+      notes: 'Vehículo VIP',
+    },
+    update: {},
+  });
+
+  await prisma.ticket.upsert({
+    where: { ticketNumber: 'TKT-000003' },
+    create: {
+      ticketNumber: 'TKT-000003',
+      lotId: parkingLot.id,
+      clientId: client3.id,
+      plateNumber: 'DEF-456',
+      status: 'COMPLETED',
+      paymentStatus: 'PAID',
+      entryTime: new Date(Date.now() - 180 * 60 * 1000),
+      exitTime: new Date(Date.now() - 30 * 60 * 1000),
+      durationMinutes: 150,
+      baseAmount: 60.00,
+      totalAmount: 69.60,
+      rateId: rateObj?.id,
+      entryOperatorId: adminUser.id,
+      exitOperatorId: cashierUser.id,
+    },
+    update: {},
+  });
+
+  console.log('  ✓ 3 demo tickets created');
 
   // ─── System Settings ──────────────────────────────────────
   console.log('  Creating system settings...');
