@@ -1,0 +1,14 @@
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  .layout-sidebar,
+  .layout-topbar,
+  button {
+    display: none !important;
+  }
+  .p-4, .p-6 {
+    padding: 0 !important;
+  }
+}
