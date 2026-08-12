@@ -1,53 +1,107 @@
-<div class="dashboard">
-  <div class="dashboard-header">
-    <h1>Dashboard</h1>
-    <p>Bienvenido, {{ user()?.firstName }} {{ user()?.lastName }}</p>
-  </div>
-
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-icon" style="background: var(--p-blue-100); color: var(--p-blue-700);">
-        <i class="pi pi-ticket"></i>
-      </div>
-      <div class="stat-info">
-        <span class="stat-value">--</span>
-        <span class="stat-label">Tickets Activos</span>
-      </div>
+<div class="flex flex-col gap-4">
+  <div class="flex flex-wrap items-center justify-between gap-2">
+    <div>
+      <h1 class="text-2xl font-bold text-color m-0">Dashboard</h1>
+      <p class="text-sm text-muted-color m-0">Bienvenido, {{ auth.user()?.firstName }} {{ auth.user()?.lastName }}</p>
     </div>
-
-    <div class="stat-card">
-      <div class="stat-icon" style="background: var(--p-green-100); color: var(--p-green-700);">
-        <i class="pi pi-car"></i>
-      </div>
-      <div class="stat-info">
-        <span class="stat-value">--</span>
-        <span class="stat-label">Vehículos Estacionados</span>
-      </div>
-    </div>
-
-    <div class="stat-card">
-      <div class="stat-icon" style="background: var(--p-yellow-100); color: var(--p-yellow-700);">
-        <i class="pi pi-dollar"></i>
-      </div>
-      <div class="stat-info">
-        <span class="stat-value">--</span>
-        <span class="stat-label">Ingresos del Día</span>
-      </div>
-    </div>
-
-    <div class="stat-card">
-      <div class="stat-icon" style="background: var(--p-purple-100); color: var(--p-purple-700);">
-        <i class="pi pi-building"></i>
-      </div>
-      <div class="stat-info">
-        <span class="stat-value">--</span>
-        <span class="stat-label">Disponibles</span>
-      </div>
+    
+    <div class="w-full sm:w-auto">
+      <p-select 
+        [options]="lots()" 
+        optionLabel="name" 
+        optionValue="id" 
+        [ngModel]="selectedLotId()" 
+        (ngModelChange)="selectedLotId.set($event); onLotChange()"
+        placeholder="Selecciona Estacionamiento"
+        class="w-full sm:w-64"
+      ></p-select>
     </div>
   </div>
 
-  <div class="dashboard-placeholder">
-    <i class="pi pi-chart-line"></i>
-    <p>Los módulos de reportes y estadísticas estarán disponibles próximamente.</p>
+  <div class="grid grid-cols-12 gap-4">
+    <!-- Active Tickets -->
+    <div class="col-span-12 sm:col-span-6 xl:col-span-3">
+      <div class="card h-full">
+        <div class="flex items-center gap-3">
+          <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-200">
+            <i class="pi pi-ticket text-xl"></i>
+          </div>
+          <div>
+            <span class="text-muted-color text-sm font-medium">Tickets Activos</span>
+            <div class="text-2xl font-bold text-color">{{ stats().activeTickets }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vehicles Inside -->
+    <div class="col-span-12 sm:col-span-6 xl:col-span-3">
+      <div class="card h-full">
+        <div class="flex items-center gap-3">
+          <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-cyan-100 text-cyan-600 dark:bg-cyan-500/20 dark:text-cyan-200">
+            <i class="pi pi-car text-xl"></i>
+          </div>
+          <div>
+            <span class="text-muted-color text-sm font-medium">Vehículos</span>
+            <div class="text-2xl font-bold text-color">{{ stats().occupiedSpots }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Daily Revenue -->
+    <div class="col-span-12 sm:col-span-6 xl:col-span-3">
+      <div class="card h-full">
+        <div class="flex items-center gap-3">
+          <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-green-100 text-green-600 dark:bg-green-500/20 dark:text-green-200">
+            <i class="pi pi-dollar text-xl"></i>
+          </div>
+          <div>
+            <span class="text-muted-color text-sm font-medium">Ingresos Hoy</span>
+            <div class="text-2xl font-bold text-color">{{ stats().dailyRevenue | currency }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Available Spots -->
+    <div class="col-span-12 sm:col-span-6 xl:col-span-3">
+      <div class="card h-full">
+        <div class="flex items-center gap-3">
+          <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-orange-100 text-orange-600 dark:bg-orange-500/20 dark:text-orange-200">
+            <i class="pi pi-map-marker text-xl"></i>
+          </div>
+          <div>
+            <span class="text-muted-color text-sm font-medium">Lugares Disp.</span>
+            <div class="text-2xl font-bold text-color">{{ stats().availableSpots }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-12 gap-4">
+    <div class="col-span-12 lg:col-span-6">
+      <div class="card h-full">
+        <h2 class="text-lg font-bold mb-4 text-color">Ingresos por Método de Pago (Hoy)</h2>
+        <div class="flex justify-center h-64">
+          @if (chartData()) {
+            <p-chart type="doughnut" [data]="chartData()" [options]="chartOptions()" height="250px"></p-chart>
+          } @else {
+            <div class="flex items-center justify-center h-full text-muted-color">Sin datos</div>
+          }
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-span-12 lg:col-span-6">
+      <div class="card h-full flex flex-col items-center justify-center text-center p-8">
+        <div class="w-16 h-16 rounded-full bg-surface-100 dark:bg-surface-800 flex items-center justify-center mb-4">
+          <i class="pi pi-chart-bar text-3xl text-surface-400"></i>
+        </div>
+        <h3 class="text-lg font-bold text-color mb-2">Más gráficas pronto</h3>
+        <p class="text-muted-color max-w-sm">El módulo completo de reportes y gráficas históricas estará disponible en el próximo sprint.</p>
+      </div>
+    </div>
   </div>
 </div>

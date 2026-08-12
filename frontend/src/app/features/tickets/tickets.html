@@ -1,11 +1,19 @@
 <div class="tickets-header">
   <h1>Tickets</h1>
-  <p-button
-    label="Nuevo Ticket"
-    icon="pi pi-plus"
-    (click)="showCreateDialog = true"
-    [disabled]="!lots().length"
-  />
+  <div class="flex gap-2">
+    <p-button
+      label="Escanear QR"
+      icon="pi pi-qrcode"
+      severity="secondary"
+      (click)="showScannerDialog = true"
+    />
+    <p-button
+      label="Nuevo Ticket"
+      icon="pi pi-plus"
+      (click)="showCreateDialog = true"
+      [disabled]="!lots().length"
+    />
+  </div>
 </div>
 
 @if (error()) {
@@ -52,11 +60,8 @@
     [rows]="limit"
     [totalRecords]="total()"
     [rowsPerPageOptions]="[10, 25, 50]"
-    (onPage)="onPageChange($event)"
     [lazy]="true"
-    [sortField]="sortBy()"
-    [sortOrder]="sortOrder() === 'asc' ? 1 : -1"
-    (onSort)="onSort($event)"
+    (onLazyLoad)="onLazyLoad($event)"
     dataKey="id"
   >
     <ng-template pTemplate="header">
@@ -235,6 +240,12 @@
 >
   @if (selectedTicket()) {
     <div class="flex flex-col gap-3 text-sm">
+      @if (selectedTicket()!.qrHash) {
+        <div class="flex flex-col items-center justify-center p-4 bg-surface-50 rounded-lg">
+          <qrcode [qrdata]="getTicketUrl(selectedTicket()!.qrHash!)" [width]="200" [errorCorrectionLevel]="'M'"></qrcode>
+          <span class="text-xs text-surface-500 mt-2 font-mono break-all text-center">{{ selectedTicket()!.qrHash }}</span>
+        </div>
+      }
       <div class="grid grid-cols-2 gap-3">
         <div>
           <span class="block text-surface-400 text-xs">Ticket</span>
@@ -300,6 +311,18 @@
         </div>
       }
     </div>
+  }
+</p-dialog>
+
+<p-dialog
+  header="Escanear Código QR"
+  [(visible)]="showScannerDialog"
+  [modal]="true"
+  [style]="{ width: '500px' }"
+  (onHide)="showScannerDialog = false"
+>
+  @if (showScannerDialog) {
+    <app-qr-scanner (scanSuccess)="onScanSuccess($event)"></app-qr-scanner>
   }
 </p-dialog>
 

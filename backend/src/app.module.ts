@@ -10,6 +10,10 @@ import { PermissionsModule } from './modules/permissions/permissions.module';
 import { TicketsModule } from './modules/tickets/tickets.module';
 import { ClientsModule } from './modules/clients/clients.module';
 import { VehiclesModule } from './modules/vehicles/vehicles.module';
+import { ParkingLotsModule } from './modules/parking-lots/parking-lots.module';
+import { RatesModule } from './modules/rates/rates.module';
+import { CashRegisterModule } from './modules/cash-register/cash-register.module';
+import { PaymentsModule } from './modules/payments/payments.module';
 
 @Module({
   imports: [
@@ -30,6 +34,10 @@ import { VehiclesModule } from './modules/vehicles/vehicles.module';
     TicketsModule,
     ClientsModule,
     VehiclesModule,
+    ParkingLotsModule,
+    RatesModule,
+    CashRegisterModule,
+    PaymentsModule,
   ],
   controllers: [],
   providers: [
@@ -42,3 +50,4 @@ import { VehiclesModule } from './modules/vehicles/vehicles.module';
   exports: [PrismaService],
 })
 export class AppModule {}
+

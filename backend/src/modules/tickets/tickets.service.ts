@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import * as crypto from 'crypto';
+import * as QRCode from 'qrcode';
 import { PrismaService } from '../../common/database/prisma.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { CloseTicketDto } from './dto/close-ticket.dto';
@@ -24,6 +26,15 @@ export class TicketsService {
       if (spot.status !== 'AVAILABLE') throw new BusinessException('Parking spot is not available');
     }
 
+    // Generate QR hash before transaction
+    const qrPayload = JSON.stringify({
+      t: ticketNumber,
+      l: dto.lotId,
+      p: dto.plateNumber,
+      ts: Date.now(),
+    });
+    const qrHash = crypto.createHash('sha256').update(qrPayload).digest('hex');
+
     const [ticket] = await this.prisma.$transaction(async (tx) => {
       if (dto.spotId) {
         await tx.parkingSpot.update({
@@ -47,6 +58,7 @@ export class TicketsService {
           entryTime: dto.entryTime ? new Date(dto.entryTime) : new Date(),
           entryOperatorId,
           notes: dto.notes,
+          qrHash,
         },
         include: {
           lot: { select: { id: true, name: true, code: true } },
@@ -232,6 +244,42 @@ export class TicketsService {
       },
       orderBy: { entryTime: 'desc' },
     });
+  }
+
+  async findByQrHash(qrHash: string) {
+    const ticket = await this.prisma.ticket.findFirst({
+      where: { qrHash, deletedAt: null },
+      include: {
+        lot: { select: { id: true, name: true, code: true, taxPercentage: true, currency: true } },
+        spot: { select: { id: true, spotNumber: true, floor: true, section: true } },
+        client: { select: { id: true, firstName: true, lastName: true } },
+        vehicle: { select: { id: true, plateNumber: true, brand: true, model: true, color: true } },
+        rate: true,
+        entryOperator: { select: { id: true, firstName: true, lastName: true } },
+        exitOperator: { select: { id: true, firstName: true, lastName: true } },
+        payments: true,
+      },
+    });
+
+    if (!ticket) throw new NotFoundException('Ticket', qrHash);
+    return ticket;
+  }
+
+  async generateQrImage(id: string): Promise<{ qrHash: string; qrDataUrl: string }> {
+    const ticket = await this.prisma.ticket.findUnique({
+      where: { id },
+      select: { id: true, ticketNumber: true, qrHash: true },
+    });
+
+    if (!ticket) throw new NotFoundException('Ticket', id);
+
+    const qrDataUrl = await QRCode.toDataURL(ticket.qrHash ?? ticket.ticketNumber, {
+      errorCorrectionLevel: 'H',
+      width: 300,
+      margin: 2,
+    });
+
+    return { qrHash: ticket.qrHash ?? '', qrDataUrl };
   }
 
   private async generateTicketNumber(lotId: string): Promise<string> {

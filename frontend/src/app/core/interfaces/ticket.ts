@@ -21,6 +21,7 @@ export interface Ticket {
   notes?: string;
   cancelledAt?: string;
   cancelReason?: string;
+  qrHash?: string;
   createdAt: string;
   updatedAt: string;
 

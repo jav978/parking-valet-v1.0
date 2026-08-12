@@ -14,9 +14,12 @@ import { InputIconModule } from 'primeng/inputicon';
 import { MessageModule } from 'primeng/message';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
+import { SharedModule } from 'primeng/api';
 import { Ticket, CreateTicketRequest, CloseTicketRequest, TicketFilterParams } from '../../core/interfaces/ticket';
 import { ApiResponse } from '../../core/interfaces/api-response';
 import { catchError, of } from 'rxjs';
+import { QRCodeComponent } from 'angularx-qrcode';
+import { QrScannerComponent } from './components/qr-scanner/qr-scanner';
 
 interface ParkingLot { id: string; name: string; code: string; }
 interface ParkingSpot { id: string; spotNumber: string; floor: string; label: string; }
@@ -29,6 +32,7 @@ interface Rate { id: string; name: string; baseAmount: number; }
     FormsModule, DatePipe, TableModule, DialogModule, ButtonModule,
     InputTextModule, InputNumberModule, TextareaModule, SelectModule,
     IconFieldModule, InputIconModule, MessageModule, ToastModule,
+    QRCodeComponent, QrScannerComponent, SharedModule
   ],
   providers: [MessageService],
   templateUrl: './tickets.html',
@@ -55,6 +59,7 @@ export class Tickets {
   showCreateDialog = false;
   showCloseDialog = false;
   showDetailDialog = false;
+  showScannerDialog = false;
   selectedTicket = signal<Ticket | undefined>(undefined);
 
   createData: CreateTicketRequest = { lotId: '', plateNumber: '' };
@@ -77,7 +82,6 @@ export class Tickets {
   ];
 
   constructor() {
-    this.loadTickets();
     this.loadLots();
     this.loadRates();
   }
@@ -217,15 +221,47 @@ export class Tickets {
       });
   }
 
-  onPageChange(event: any): void {
-    this.page = Math.floor(event.first / event.rows) + 1;
-    this.limit = event.rows;
-    this.loadTickets();
+  getTicketUrl(hash: string): string {
+    const baseUrl = window.location.origin; // or a specific public URL
+    return `${baseUrl}/tickets/qr/${hash}`;
   }
 
-  onSort(event: any): void {
-    this.sortBy.set(event.field);
-    this.sortOrder.set(event.order === 1 ? 'asc' : 'desc');
+  onScanSuccess(decodedText: string): void {
+    // If the scanner returns a URL, extract the hash. E.g. http://localhost:4200/tickets/qr/abcdef...
+    this.showScannerDialog = false;
+    let hash = decodedText;
+    if (decodedText.includes('/tickets/qr/')) {
+      hash = decodedText.split('/tickets/qr/')[1];
+    }
+
+    this.loading.set(true);
+    // Call our backend endpoint to find ticket by hash
+    this.http.get<ApiResponse<Ticket>>(`/api/tickets/qr/${hash}`)
+      .pipe(catchError(err => {
+        this.error.set(err.error?.message || 'Ticket no encontrado por QR');
+        this.loading.set(false);
+        this.toast.add({ severity: 'error', summary: 'Error', detail: 'QR inválido o ticket no encontrado' });
+        return of(null);
+      }))
+      .subscribe(res => {
+        if (res) {
+          this.toast.add({ severity: 'success', summary: 'QR Escaneado', detail: `Ticket #${res.data.ticketNumber} encontrado.` });
+          this.selectedTicket.set(res.data);
+          this.showDetailDialog = true;
+        }
+        this.loading.set(false);
+      });
+  }
+
+  onLazyLoad(event: any): void {
+    if (event.first !== undefined && event.rows) {
+      this.page = Math.floor(event.first / event.rows) + 1;
+      this.limit = event.rows;
+    }
+    if (event.sortField) {
+      this.sortBy.set(event.sortField);
+      this.sortOrder.set(event.sortOrder === 1 ? 'asc' : 'desc');
+    }
     this.loadTickets();
   }
 

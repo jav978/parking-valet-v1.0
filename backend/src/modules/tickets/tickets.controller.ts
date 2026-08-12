@@ -45,11 +45,25 @@ export class TicketsController {
     return this.ticketsService.findAll(filter);
   }
 
+  @Get('qr/:hash')
+  @Roles(ROLES.ADMIN, ROLES.SUPERVISOR, ROLES.CASHIER, ROLES.OPERATOR)
+  @Permissions(PERMISSIONS.TICKETS_READ)
+  async findByQr(@Param('hash') hash: string) {
+    return this.ticketsService.findByQrHash(hash);
+  }
+
   @Get('active')
   @Roles(ROLES.ADMIN, ROLES.SUPERVISOR, ROLES.CASHIER, ROLES.OPERATOR)
   @Permissions(PERMISSIONS.TICKETS_LIST)
   async getActive(@Query('lotId', UuidValidationPipe) lotId: string) {
     return this.ticketsService.getActiveByLot(lotId);
+  }
+
+  @Get(':id/qr')
+  @Roles(ROLES.ADMIN, ROLES.SUPERVISOR, ROLES.CASHIER, ROLES.OPERATOR)
+  @Permissions(PERMISSIONS.TICKETS_READ)
+  async getQrImage(@Param('id', UuidValidationPipe) id: string) {
+    return this.ticketsService.generateQrImage(id);
   }
 
   @Get(':id')
