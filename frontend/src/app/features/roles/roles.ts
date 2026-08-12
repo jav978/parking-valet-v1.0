@@ -158,6 +158,7 @@ export class Roles implements OnInit {
           if (res?.data) {
             this.toast.add({ severity: 'success', summary: 'Éxito', detail: 'Rol actualizado correctamente' });
             this.showFormDialog = false;
+            this.submitting.set(false);
             this.loadRoles();
           }
         });
@@ -180,6 +181,7 @@ export class Roles implements OnInit {
           if (res?.data) {
             this.toast.add({ severity: 'success', summary: 'Éxito', detail: 'Rol creado correctamente' });
             this.showFormDialog = false;
+            this.submitting.set(false);
             this.loadRoles();
           }
         });

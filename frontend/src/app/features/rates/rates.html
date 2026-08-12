@@ -128,7 +128,7 @@
   <!-- ─── DATA TABLE ─────────────────────────────────────────────── -->
   <div class="bg-surface-0 dark:bg-surface-900 rounded-2xl border border-surface-200 dark:border-surface-800 shadow-sm overflow-hidden">
     <p-table [value]="filteredRates()" [loading]="loading()" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10, 25, 50]" responsiveLayout="scroll" styleClass="p-datatable-striped">
-      <ng-template pTemplate="header">
+      <ng-template #header>
         <tr>
           <th>Nombre de Tarifa</th>
           <th>Estacionamiento / Sucursal</th>
@@ -140,7 +140,7 @@
           <th class="text-right">Acciones</th>
         </tr>
       </ng-template>
-      <ng-template pTemplate="body" let-rate>
+      <ng-template #body let-rate>
         <tr>
           <!-- Nombre -->
           <td>
@@ -271,7 +271,7 @@
       </ng-template>
 
       <!-- Empty State -->
-      <ng-template pTemplate="emptymessage">
+      <ng-template #emptymessage>
         <tr>
           <td colspan="8" class="text-center py-12 text-surface-500 dark:text-surface-400">
             <i class="pi pi-dollar text-4xl mb-3 text-surface-300 block"></i>
@@ -299,7 +299,7 @@
     </div>
   </div>
 
-  <ng-template pTemplate="footer">
+  <ng-template #footer>
     <button pButton type="button" icon="pi pi-times" class="p-button-text p-button-secondary" (click)="rateConfigDialogVisible = false">Cancelar</button>
     <button pButton type="button" icon="pi pi-check" class="p-button-primary" (click)="saveExchangeRate()">Guardar Tasa</button>
   </ng-template>
@@ -377,7 +377,7 @@
 
   </div>
 
-  <ng-template pTemplate="footer">
+  <ng-template #footer>
     <button pButton type="button" icon="pi pi-times" class="p-button-text p-button-secondary" (click)="dialogVisible = false">Cancelar</button>
     <button pButton type="button" icon="pi pi-check" class="p-button-primary" [loading]="submitting()" (click)="saveRate()">{{ isEditMode ? 'Guardar Cambios' : 'Crear Tarifa' }}</button>
   </ng-template>
@@ -468,7 +468,7 @@
 
   </div>
 
-  <ng-template pTemplate="footer">
+  <ng-template #footer>
     <button pButton type="button" icon="pi pi-copy" class="p-button-outlined p-button-secondary" (click)="copySimulatedReceipt()">Copiar Recibo</button>
     <button pButton type="button" icon="pi pi-check" class="p-button-primary" (click)="simulatorVisible = false">Cerrar</button>
   </ng-template>

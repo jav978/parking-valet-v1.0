@@ -1,53 +1,246 @@
-<div class="dashboard">
-  <div class="dashboard-header">
-    <h1>Dashboard</h1>
-    <p>Bienvenido, {{ user()?.firstName }} {{ user()?.lastName }}</p>
-  </div>
+<p-toast />
 
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-icon" style="background: var(--p-blue-100); color: var(--p-blue-700);">
-        <i class="pi pi-ticket"></i>
+<div class="flex flex-col gap-6">
+  <!-- ─── HEADER & ACCIONES ──────────────────────────────────────── -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface-0 dark:bg-surface-900 p-6 rounded-2xl border border-surface-200 dark:border-surface-800 shadow-sm">
+    <div class="flex items-center gap-3">
+      <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-primary-500/10 border border-primary-500/20 text-primary-500">
+        <i class="pi pi-th-large text-2xl"></i>
       </div>
-      <div class="stat-info">
-        <span class="stat-value">--</span>
-        <span class="stat-label">Tickets Activos</span>
+      <div>
+        <h1 class="text-2xl font-bold text-surface-900 dark:text-surface-0 m-0">Dashboard Principal</h1>
+        <p class="text-surface-500 dark:text-surface-400 text-sm mt-0.5">
+          Bienvenido, {{ user()?.firstName }} {{ user()?.lastName }}. Resumen de operaciones y ocupación en tiempo real.
+        </p>
       </div>
     </div>
 
-    <div class="stat-card">
-      <div class="stat-icon" style="background: var(--p-green-100); color: var(--p-green-700);">
-        <i class="pi pi-car"></i>
+    <div class="flex items-center gap-3">
+      <!-- Tasa BCV -->
+      <div class="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 px-3.5 py-2 rounded-xl text-emerald-600 dark:text-emerald-400 font-semibold text-xs">
+        <i class="pi pi-sync"></i>
+        <span>1 USD = {{ exchangeRateService.activeRate() | number:'1.2-2' }} VES</span>
       </div>
-      <div class="stat-info">
-        <span class="stat-value">--</span>
-        <span class="stat-label">Vehículos Estacionados</span>
-      </div>
-    </div>
 
-    <div class="stat-card">
-      <div class="stat-icon" style="background: var(--p-yellow-100); color: var(--p-yellow-700);">
-        <i class="pi pi-dollar"></i>
-      </div>
-      <div class="stat-info">
-        <span class="stat-value">--</span>
-        <span class="stat-label">Ingresos del Día</span>
-      </div>
-    </div>
-
-    <div class="stat-card">
-      <div class="stat-icon" style="background: var(--p-purple-100); color: var(--p-purple-700);">
-        <i class="pi pi-building"></i>
-      </div>
-      <div class="stat-info">
-        <span class="stat-value">--</span>
-        <span class="stat-label">Disponibles</span>
-      </div>
+      <p-button
+        icon="pi pi-refresh"
+        label="Refrescar"
+        severity="secondary"
+        [outlined]="true"
+        [loading]="loading()"
+        (onClick)="loadStats()"
+      />
     </div>
   </div>
 
-  <div class="dashboard-placeholder">
-    <i class="pi pi-chart-line"></i>
-    <p>Los módulos de reportes y estadísticas estarán disponibles próximamente.</p>
+  <!-- ─── KPI CARDS ────────────────────────────────────────────────── -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+    <!-- Card 1: Tickets Hoy -->
+    <div class="bg-surface-0 dark:bg-surface-900 p-5 rounded-2xl border border-surface-200 dark:border-surface-800 shadow-sm flex items-center justify-between">
+      <div>
+        <span class="text-surface-500 dark:text-surface-400 text-xs font-semibold uppercase tracking-wider">Tickets Hoy</span>
+        <div class="text-3xl font-extrabold text-surface-900 dark:text-surface-0 mt-1">
+          {{ stats()?.ticketsToday ?? 0 }}
+        </div>
+        <span class="text-xs text-primary-500 font-medium mt-1 block">Registrados en la fecha</span>
+      </div>
+      <div class="w-12 h-12 rounded-xl bg-primary-500/10 text-primary-500 flex items-center justify-center border border-primary-500/20">
+        <i class="pi pi-ticket text-xl"></i>
+      </div>
+    </div>
+
+    <!-- Card 2: Vehículos Dentro -->
+    <div class="bg-surface-0 dark:bg-surface-900 p-5 rounded-2xl border border-surface-200 dark:border-surface-800 shadow-sm flex items-center justify-between">
+      <div>
+        <span class="text-surface-500 dark:text-surface-400 text-xs font-semibold uppercase tracking-wider">Vehículos Adentro</span>
+        <div class="text-3xl font-extrabold text-cyan-600 dark:text-cyan-400 mt-1">
+          {{ stats()?.vehiclesInside ?? 0 }}
+        </div>
+        <span class="text-xs text-cyan-500/80 font-medium mt-1 block">En estacionamiento</span>
+      </div>
+      <div class="w-12 h-12 rounded-xl bg-cyan-500/10 text-cyan-500 flex items-center justify-center border border-cyan-500/20">
+        <i class="pi pi-car text-xl"></i>
+      </div>
+    </div>
+
+    <!-- Card 3: Ingresos Hoy -->
+    <div class="bg-surface-0 dark:bg-surface-900 p-5 rounded-2xl border border-surface-200 dark:border-surface-800 shadow-sm flex items-center justify-between">
+      <div>
+        <span class="text-surface-500 dark:text-surface-400 text-xs font-semibold uppercase tracking-wider">Ingresos Hoy</span>
+        <div class="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">
+          ${{ (stats()?.revenueToday ?? 0) | number:'1.2-2' }}
+        </div>
+        <span class="text-xs text-emerald-500/80 font-mono mt-0.5 block">
+          Bs. {{ ((stats()?.revenueToday ?? 0) * exchangeRateService.activeRate()) | number:'1.2-2' }}
+        </span>
+      </div>
+      <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center border border-emerald-500/20">
+        <i class="pi pi-dollar text-xl"></i>
+      </div>
+    </div>
+
+    <!-- Card 4: Puestos Disponibles -->
+    <div class="bg-surface-0 dark:bg-surface-900 p-5 rounded-2xl border border-surface-200 dark:border-surface-800 shadow-sm flex items-center justify-between">
+      <div>
+        <span class="text-surface-500 dark:text-surface-400 text-xs font-semibold uppercase tracking-wider">Disponibles</span>
+        <div class="text-3xl font-extrabold text-amber-600 dark:text-amber-400 mt-1">
+          {{ stats()?.availableSpots ?? 0 }}
+        </div>
+        <span class="text-xs text-surface-400 mt-1 block">
+          De {{ stats()?.totalSpots ?? 0 }} puestos totales
+        </span>
+      </div>
+      <div class="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center border border-amber-500/20">
+        <i class="pi pi-map-marker text-xl"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── SECCIÓN DE OCUPACIÓN Y TENDENCIA SEMANAL ───────────────────── -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <!-- Nivel de Ocupación -->
+    <div class="lg:col-span-5 bg-surface-0 dark:bg-surface-900 p-6 rounded-2xl border border-surface-200 dark:border-surface-800 shadow-sm flex flex-col justify-between gap-4">
+      <div>
+        <div class="flex items-center justify-between">
+          <h2 class="text-base font-bold text-surface-900 dark:text-surface-0 m-0">Nivel de Ocupación</h2>
+          <span class="text-sm font-extrabold text-primary-500">
+            {{ stats()?.occupancyPercentage ?? 0 }}%
+          </span>
+        </div>
+        <p class="text-xs text-surface-500 dark:text-surface-400 mt-1">Capacidad utilizada en tiempo real</p>
+
+        <div class="mt-4">
+          <p-progressbar
+            [value]="stats()?.occupancyPercentage ?? 0"
+            [showValue]="false"
+            styleClass="h-3 rounded-full"
+          />
+        </div>
+      </div>
+
+      <div class="grid grid-cols-3 gap-2 pt-4 border-t border-surface-200 dark:border-surface-800 text-center">
+        <div>
+          <span class="text-xs text-surface-400 block">Total</span>
+          <span class="font-bold text-sm text-surface-900 dark:text-surface-0">{{ stats()?.totalSpots ?? 0 }}</span>
+        </div>
+        <div>
+          <span class="text-xs text-surface-400 block">Ocupados</span>
+          <span class="font-bold text-sm text-cyan-500">{{ stats()?.occupiedSpots ?? 0 }}</span>
+        </div>
+        <div>
+          <span class="text-xs text-surface-400 block">Libres</span>
+          <span class="font-bold text-sm text-amber-500">{{ stats()?.availableSpots ?? 0 }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tendencia Semanal de Entradas -->
+    <div class="lg:col-span-7 bg-surface-0 dark:bg-surface-900 p-6 rounded-2xl border border-surface-200 dark:border-surface-800 shadow-sm flex flex-col justify-between gap-4">
+      <div>
+        <h2 class="text-base font-bold text-surface-900 dark:text-surface-0 m-0">Flujo Semanal de Vehículos</h2>
+        <p class="text-xs text-surface-500 dark:text-surface-400 mt-1">Entradas registradas en los últimos 7 días</p>
+      </div>
+
+      <div class="flex items-end justify-between gap-2 pt-2 h-36">
+        @for (dayStat of stats()?.weeklyEntries; track dayStat.date) {
+          <div class="flex flex-col items-center flex-1 gap-2 h-full justify-end">
+            <span class="text-xs font-bold text-surface-700 dark:text-surface-300">
+              {{ dayStat.count }}
+            </span>
+            <div
+              class="w-full bg-primary-500/20 dark:bg-primary-500/30 rounded-t-lg transition-all hover:bg-primary-500"
+              [style.height.%]="dayStat.count > 0 ? Math.min(100, Math.max(15, dayStat.count * 10)) : 8"
+            ></div>
+            <span class="text-xs font-medium text-surface-400 uppercase">
+              {{ dayStat.day }}
+            </span>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── ACTIVIDAD RECIENTE ────────────────────────────────────────── -->
+  <div class="bg-surface-0 dark:bg-surface-900 p-6 rounded-2xl border border-surface-200 dark:border-surface-800 shadow-sm">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <h2 class="text-lg font-bold text-surface-900 dark:text-surface-0 m-0">Actividad Reciente</h2>
+        <p class="text-xs text-surface-500 dark:text-surface-400 mt-0.5">Últimos tickets procesados en el sistema</p>
+      </div>
+    </div>
+
+    <p-table
+      [value]="stats()?.recentActivity ?? []"
+      [loading]="loading()"
+      dataKey="id"
+      class="w-full"
+    >
+      <ng-template #header>
+        <tr>
+          <th>Ticket</th>
+          <th>Placa</th>
+          <th>Puesto</th>
+          <th>Hora Entrada</th>
+          <th>Estado</th>
+          <th>Pago</th>
+          <th class="text-right">Monto</th>
+        </tr>
+      </ng-template>
+
+      <ng-template #body let-t>
+        <tr>
+          <td>
+            <span class="font-bold text-primary-500 font-mono">{{ t.ticketNumber }}</span>
+          </td>
+          <td>
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 rounded bg-surface-100 dark:bg-surface-800 text-surface-900 dark:text-surface-100 font-mono font-bold text-xs border border-surface-300 dark:border-surface-700">
+                {{ t.plateNumber }}
+              </span>
+              @if (t.vehicle?.brand || t.vehicle?.model) {
+                <span class="text-xs text-surface-400">
+                  {{ t.vehicle?.brand }} {{ t.vehicle?.model }}
+                </span>
+              }
+            </div>
+          </td>
+          <td>
+            @if (t.spot?.spotNumber) {
+              <span class="px-2 py-0.5 text-xs rounded-full font-mono bg-surface-700 text-white">
+                P-{{ t.spot.spotNumber }}
+              </span>
+            } @else {
+              <span class="text-xs text-surface-400">-</span>
+            }
+          </td>
+          <td>
+            <span class="text-xs text-surface-700 dark:text-surface-300">
+              {{ t.entryTime | date:'dd/MM/yyyy HH:mm' }}
+            </span>
+          </td>
+          <td>
+            <span class="px-2.5 py-1 text-xs rounded-full font-semibold border" [class]="getStatusClass(t.status)">
+              {{ getStatusLabel(t.status) }}
+            </span>
+          </td>
+          <td>
+            <span class="px-2.5 py-1 text-xs rounded-full font-semibold border" [class]="getPaymentStatusClass(t.paymentStatus)">
+              {{ getPaymentStatusLabel(t.paymentStatus) }}
+            </span>
+          </td>
+          <td class="text-right font-bold text-surface-900 dark:text-surface-0 font-mono">
+            ${{ t.totalAmount | number:'1.2-2' }}
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="7" class="text-center p-6 text-surface-400">
+            No hay tickets o actividad registrada recientemente.
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
   </div>
 </div>

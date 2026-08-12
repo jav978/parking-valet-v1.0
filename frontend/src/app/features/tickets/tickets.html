@@ -66,7 +66,7 @@
       responsiveLayout="scroll"
       styleClass="p-datatable-striped"
     >
-      <ng-template pTemplate="header">
+      <ng-template #header>
         <tr>
           <th pSortableColumn="ticketNumber">N° Ticket</th>
           <th pSortableColumn="plateNumber">Vehículo / Placa</th>
@@ -79,7 +79,7 @@
         </tr>
       </ng-template>
 
-      <ng-template pTemplate="body" let-ticket>
+      <ng-template #body let-ticket>
         <tr>
           <!-- N° Ticket -->
           <td>
@@ -199,7 +199,7 @@
       </ng-template>
 
       <!-- Empty State -->
-      <ng-template pTemplate="emptymessage">
+      <ng-template #emptymessage>
         <tr>
           <td colspan="8" class="text-center py-12 text-surface-500 dark:text-surface-400">
             <i class="pi pi-ticket text-4xl mb-3 text-surface-300 block"></i>
@@ -244,7 +244,7 @@
 
   </div>
 
-  <ng-template #footer pTemplate="footer">
+  <ng-template #footer>
     <button pButton type="button" class="p-button-text p-button-secondary" (click)="showCreateDialog = false">
       <i class="pi pi-times mr-1"></i>
       <span>Cancelar</span>
@@ -366,7 +366,7 @@
     </div>
   }
 
-  <ng-template #footer pTemplate="footer">
+  <ng-template #footer>
     <button pButton type="button" class="p-button-text p-button-secondary" (click)="showCloseDialog = false">
       <i class="pi pi-times mr-1"></i>
       <span>Cancelar</span>
@@ -435,7 +435,7 @@
     </div>
   }
 
-  <ng-template #footer pTemplate="footer">
+  <ng-template #footer>
     <button pButton type="button" class="p-button-text p-button-secondary" (click)="showPrintDialog = false">Cerrar</button>
     <button pButton type="button" class="p-button-primary font-bold" (click)="triggerBrowserPrint()">
       <i class="pi pi-print mr-1.5"></i>
@@ -532,7 +532,7 @@
     </div>
   }
 
-  <ng-template #footer pTemplate="footer">
+  <ng-template #footer>
     <button pButton type="button" class="p-button-primary font-bold" (click)="showDetailDialog = false">
       <i class="pi pi-check mr-1"></i>
       <span>Cerrar</span>

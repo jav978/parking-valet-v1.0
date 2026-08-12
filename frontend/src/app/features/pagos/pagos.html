@@ -1,0 +1,170 @@
+<p-toast></p-toast>
+
+<div class="flex flex-col gap-6">
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h2 class="text-2xl font-bold text-gray-800">Pagos</h2>
+      <p class="text-sm text-gray-500">Gestión de pagos y transacciones</p>
+    </div>
+    <p-button
+      *ngIf="canCreatePayment()"
+      label="Registrar Pago"
+      icon="pi pi-plus"
+      (onClick)="openCreateDialog()"
+    />
+  </div>
+
+  <!-- Filtros -->
+  <div class="bg-white rounded-lg shadow-sm p-4">
+    <div class="flex items-center gap-4 flex-wrap">
+      <p-iconfield iconPosition="left" class="w-full">
+        <p-inputicon styleClass="pi pi-search" />
+        <input pInputText placeholder="Buscar por número de ticket..." [(ngModel)]="searchTerm" (keyup.enter)="onSearch()" class="w-full" />
+      </p-iconfield>
+      <p-button label="Buscar" icon="pi pi-search" (onClick)="onSearch()" />
+      <p-button label="Limpiar" icon="pi pi-times" severity="secondary" (onClick)="clearFilters()" />
+    </div>
+  </div>
+
+  <!-- Tabla -->
+  <div class="bg-white rounded-lg shadow-sm">
+    <p-table
+      [value]="payments()"
+      [loading]="loading()"
+      [rows]="limit()"
+      [totalRecords]="total()"
+      [paginator]="true"
+      [rowsPerPageOptions]="[10, 20, 50]"
+      (onPage)="onPageChange($event)"
+      [tableStyle]="{ 'min-width': '70rem' }"
+      [showCurrentPageReport]="true"
+      currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} pagos"
+    >
+      <ng-template #header>
+        <tr>
+          <th>N° Ticket</th>
+          <th>Placa</th>
+          <th>Método</th>
+          <th>Monto</th>
+          <th>Fecha</th>
+          <th>Operador</th>
+          <th>Acciones</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-payment>
+        <tr>
+          <td class="font-mono text-sm">{{ payment.ticket?.ticketNumber || '-' }}</td>
+          <td class="font-semibold">{{ payment.ticket?.plateNumber || '-' }}</td>
+          <td>
+            <span class="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+              {{ getPaymentMethodLabel(payment.paymentMethod) }}
+            </span>
+          </td>
+          <td class="font-semibold">${{ Number(payment.amount).toFixed(2) }}</td>
+          <td>{{ payment.paidAt | date: 'dd/MM/yyyy HH:mm' }}</td>
+          <td>{{ payment.createdBy?.firstName }} {{ payment.createdBy?.lastName }}</td>
+          <td>
+            <div class="flex gap-1">
+              <p-button icon="pi pi-eye" severity="info" [rounded]="true" [text]="true" pTooltip="Ver detalle" (onClick)="openDetailDialog(payment)" />
+              <p-button
+                *ngIf="canDeletePayment()"
+                icon="pi pi-trash"
+                severity="danger"
+                [rounded]="true"
+                [text]="true"
+                pTooltip="Anular"
+                (onClick)="deletePayment(payment)"
+              />
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="7" class="text-center py-6 text-gray-500">
+            No se encontraron pagos
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <!-- Dialog Crear Pago -->
+  <p-dialog
+    header="Registrar Pago"
+    [(visible)]="showCreateDialog"
+    [modal]="true"
+    [style]="{ width: '450px' }"
+    [closable]="true"
+  >
+    <div class="flex flex-col gap-4">
+      <div>
+        <label class="block text-sm font-medium mb-1">ID del Ticket *</label>
+        <input pInputText [(ngModel)]="createData.ticketId" placeholder="UUID del ticket" class="w-full" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">Método de pago *</label>
+        <p-select
+          [(ngModel)]="createData.paymentMethod"
+          [options]="paymentMethods"
+          optionLabel="label"
+          optionValue="value"
+          class="w-full"
+        />
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">Monto *</label>
+        <p-inputNumber [(ngModel)]="createData.amount" mode="currency" currency="USD" class="w-full" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">N° Referencia</label>
+        <input pInputText [(ngModel)]="createData.referenceNumber" placeholder="Opcional" class="w-full" />
+      </div>
+    </div>
+    <ng-template #footer>
+      <p-button label="Cancelar" severity="secondary" (onClick)="showCreateDialog = false" />
+      <p-button label="Registrar" icon="pi pi-check" (onClick)="createPayment()" />
+    </ng-template>
+  </p-dialog>
+
+  <!-- Dialog Detalle -->
+  <p-dialog
+    header="Detalle del Pago"
+    [(visible)]="showDetailDialog"
+    [modal]="true"
+    [style]="{ width: '500px' }"
+    [closable]="true"
+  >
+    <div class="flex flex-col gap-3" *ngIf="selectedPayment() as p">
+      <div class="flex justify-between border-b pb-2">
+        <span class="text-gray-600">N° Ticket:</span>
+        <span class="font-semibold">{{ p.ticket?.ticketNumber }}</span>
+      </div>
+      <div class="flex justify-between border-b pb-2">
+        <span class="text-gray-600">Placa:</span>
+        <span class="font-semibold">{{ p.ticket?.plateNumber }}</span>
+      </div>
+      <div class="flex justify-between border-b pb-2">
+        <span class="text-gray-600">Método:</span>
+        <span>{{ getPaymentMethodLabel(p.paymentMethod) }}</span>
+      </div>
+      <div class="flex justify-between border-b pb-2">
+        <span class="text-gray-600">Monto:</span>
+        <span class="font-bold text-lg">${{ Number(p.amount).toFixed(2) }}</span>
+      </div>
+      <div class="flex justify-between border-b pb-2">
+        <span class="text-gray-600">Referencia:</span>
+        <span>{{ p.referenceNumber || 'N/A' }}</span>
+      </div>
+      <div class="flex justify-between border-b pb-2">
+        <span class="text-gray-600">Fecha:</span>
+        <span>{{ p.paidAt | date: 'dd/MM/yyyy HH:mm:ss' }}</span>
+      </div>
+      <div class="flex justify-between">
+        <span class="text-gray-600">Operador:</span>
+        <span>{{ p.createdBy?.firstName }} {{ p.createdBy?.lastName }}</span>
+      </div>
+    </div>
+  </p-dialog>
+</div>

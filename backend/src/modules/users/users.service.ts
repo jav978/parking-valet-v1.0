@@ -74,6 +74,7 @@ export class UsersService {
           phone: true,
           isActive: true,
           lastLoginAt: true,
+          roleId: true,
           role: { select: { id: true, name: true } },
           createdAt: true,
         },

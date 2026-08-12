@@ -1,50 +1,133 @@
-import { Component } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { CommonModule, DatePipe, DecimalPipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { TableModule } from 'primeng/table';
+import { ButtonModule } from 'primeng/button';
+import { SelectModule } from 'primeng/select';
+import { ToastModule } from 'primeng/toast';
+import { MessageModule } from 'primeng/message';
+import { ProgressBarModule, ProgressBar } from 'primeng/progressbar';
+import { MessageService } from 'primeng/api';
+import { catchError, of } from 'rxjs';
+
+import { DashboardService } from '../../core/services/dashboard.service';
+import { DashboardStats } from '../../core/interfaces/dashboard';
+import { AuthService } from '../../core/services/auth.service';
+import { ExchangeRateService } from '../../core/services/exchange-rate.service';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  template: `
-    <div class="flex flex-col gap-4">
-      <div class="flex items-center justify-between">
-        <h1 class="text-2xl font-bold text-color">Dashboard</h1>
-        <span class="text-sm text-muted-color">Resumen del día</span>
-      </div>
-
-      <div class="grid grid-cols-12 gap-4">
-        @for (item of stats; track item.label) {
-          <div class="col-span-12 sm:col-span-6 xl:col-span-3">
-            <div class="card">
-              <div class="flex items-center gap-3">
-                <div
-                  class="flex items-center justify-center w-12 h-12 rounded-xl"
-                  [style]="{ background: item.iconBg }"
-                >
-                  <i [class]="item.icon" style="font-size: 1.25rem; color: white;"></i>
-                </div>
-                <div>
-                  <span class="text-muted-color text-sm font-medium">{{ item.label }}</span>
-                  <div class="text-2xl font-bold text-color">{{ item.value }}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        }
-      </div>
-
-      <div class="card">
-        <h2 class="text-lg font-bold mb-3 text-color">Actividad Reciente</h2>
-        <p class="text-sm text-muted-color">
-          Los tickets y movimientos del día se mostrarán aquí cuando el módulo de tickets esté operativo.
-        </p>
-      </div>
-    </div>
-  `
+  imports: [
+    CommonModule,
+    FormsModule,
+    DatePipe,
+    DecimalPipe,
+    TableModule,
+    ButtonModule,
+    SelectModule,
+    ToastModule,
+    MessageModule,
+    ProgressBarModule,
+    ProgressBar,
+  ],
+  providers: [MessageService],
+  templateUrl: './dashboard.html',
+  styleUrl: './dashboard.scss',
 })
-export class Dashboard {
-  stats = [
-    { label: 'Tickets Hoy', value: 0, icon: 'pi pi-ticket', iconBg: 'var(--p-primary-500)' },
-    { label: 'Vehículos Dentro', value: 0, icon: 'pi pi-car', iconBg: 'var(--p-cyan-500)' },
-    { label: 'Ingresos Hoy', value: '$0.00', icon: 'pi pi-dollar', iconBg: 'var(--p-green-500)' },
-    { label: 'Disponibles', value: 22, icon: 'pi pi-map-marker', iconBg: 'var(--p-orange-500)' }
-  ];
+export class Dashboard implements OnInit {
+  protected Math = Math;
+  private dashboardService = inject(DashboardService);
+  private authService = inject(AuthService);
+  public exchangeRateService = inject(ExchangeRateService);
+  private toast = inject(MessageService);
+
+  user = computed(() => this.authService.user());
+  stats = signal<DashboardStats | null>(null);
+  loading = signal(true);
+  selectedLotId = signal<string | undefined>(undefined);
+
+  ngOnInit(): void {
+    this.loadStats();
+  }
+
+  loadStats(): void {
+    this.loading.set(true);
+    this.dashboardService
+      .getStats(this.selectedLotId())
+      .pipe(
+        catchError((err) => {
+          const errMsg = err.error?.message || 'Error al cargar estadísticas del dashboard';
+          this.toast.add({ severity: 'error', summary: 'Error', detail: errMsg });
+          this.loading.set(false);
+          return of(null);
+        })
+      )
+      .subscribe((res) => {
+        if (res?.data) {
+          this.stats.set(res.data);
+        }
+        this.loading.set(false);
+      });
+  }
+
+  getStatusClass(status: string): string {
+    switch (status) {
+      case 'ACTIVE':
+        return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
+      case 'COMPLETED':
+        return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+      case 'CANCELLED':
+        return 'bg-red-500/10 text-red-400 border-red-500/20';
+      case 'LOST':
+        return 'bg-orange-500/10 text-orange-400 border-orange-500/20';
+      default:
+        return 'bg-surface-700 text-surface-200 border-surface-600';
+    }
+  }
+
+  getStatusLabel(status: string): string {
+    switch (status) {
+      case 'ACTIVE':
+        return 'Estacionado';
+      case 'COMPLETED':
+        return 'Completado';
+      case 'CANCELLED':
+        return 'Cancelado';
+      case 'LOST':
+        return 'Ticket Extraviado';
+      default:
+        return status;
+    }
+  }
+
+  getPaymentStatusClass(paymentStatus: string): string {
+    switch (paymentStatus) {
+      case 'PAID':
+        return 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30';
+      case 'PENDING':
+        return 'bg-amber-500/15 text-amber-400 border-amber-500/30';
+      case 'PARTIAL':
+        return 'bg-blue-500/15 text-blue-400 border-blue-500/30';
+      case 'EXEMPT':
+        return 'bg-purple-500/15 text-purple-400 border-purple-500/30';
+      default:
+        return 'bg-surface-700 text-surface-200 border-surface-600';
+    }
+  }
+
+  getPaymentStatusLabel(paymentStatus: string): string {
+    switch (paymentStatus) {
+      case 'PAID':
+        return 'Pagado';
+      case 'PENDING':
+        return 'Pendiente';
+      case 'PARTIAL':
+        return 'Parcial';
+      case 'EXEMPT':
+        return 'Exento';
+      default:
+        return paymentStatus;
+    }
+  }
 }

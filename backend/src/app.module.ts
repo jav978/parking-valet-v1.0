@@ -14,6 +14,9 @@ import { ParkingLotsModule } from './modules/parking-lots/parking-lots.module';
 import { ParkingSpotsModule } from './modules/parking-spots/parking-spots.module';
 import { RatesModule } from './modules/rates/rates.module';
 import { CashRegistersModule } from './modules/cash-registers/cash-registers.module';
+import { PaymentsModule } from './modules/payments/payments.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { SettingsModule } from './modules/settings/settings.module';
 
 @Module({
   imports: [
@@ -38,6 +41,9 @@ import { CashRegistersModule } from './modules/cash-registers/cash-registers.mod
     ParkingSpotsModule,
     RatesModule,
     CashRegistersModule,
+    PaymentsModule,
+    DashboardModule,
+    SettingsModule,
   ],
   controllers: [],
   providers: [

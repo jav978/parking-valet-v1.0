@@ -58,6 +58,14 @@ export const routes: Routes = [
         path: 'caja',
         loadComponent: () => import('./features/caja/caja').then((m) => m.Caja),
       },
+      {
+        path: 'pagos',
+        loadComponent: () => import('./features/pagos/pagos').then((m) => m.Pagos),
+      },
+      {
+        path: 'configuracion',
+        loadComponent: () => import('./features/configuracion/configuracion').then((m) => m.Configuracion),
+      },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
     ],
   },

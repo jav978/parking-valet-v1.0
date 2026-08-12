@@ -52,19 +52,20 @@ export class UserService {
     return this.http.get<ApiResponse<User[]>>(this.apiUrl, { params: httpParams });
   }
 
-  getUser(id: string): Observable<User> {
-    return this.http.get<User>(`${this.apiUrl}/${id}`);
+  getUser(id: string): Observable<ApiResponse<User>> {
+    return this.http.get<ApiResponse<User>>(`${this.apiUrl}/${id}`);
   }
 
-  createUser(request: CreateUserRequest): Observable<User> {
-    return this.http.post<User>(this.apiUrl, request);
+  createUser(request: CreateUserRequest): Observable<ApiResponse<User>> {
+    return this.http.post<ApiResponse<User>>(this.apiUrl, request);
   }
 
-  updateUser(id: string, request: UpdateUserRequest): Observable<User> {
-    return this.http.patch<User>(`${this.apiUrl}/${id}`, request);
+  updateUser(id: string, request: UpdateUserRequest): Observable<ApiResponse<User>> {
+    return this.http.patch<ApiResponse<User>>(`${this.apiUrl}/${id}`, request);
   }
 
-  deleteUser(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  deleteUser(id: string): Observable<ApiResponse<void>> {
+    return this.http.delete<ApiResponse<void>>(`${this.apiUrl}/${id}`);
   }
 }
+

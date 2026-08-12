@@ -177,7 +177,7 @@ export class Usuarios implements OnInit {
       firstName: user.firstName,
       lastName: user.lastName,
       phone: user.phone || '',
-      roleId: user.roleId,
+      roleId: user.roleId || user.role?.id || '',
       isActive: user.isActive
     };
     this.showFormDialog = true;
@@ -218,10 +218,11 @@ export class Usuarios implements OnInit {
             return of(null);
           })
         )
-        .subscribe(user => {
-          if (user) {
+        .subscribe(res => {
+          if (res?.data) {
             this.toast.add({ severity: 'success', summary: 'Éxito', detail: 'Usuario actualizado correctamente' });
             this.showFormDialog = false;
+            this.submitting.set(false);
             this.loadUsers();
           }
         });
@@ -245,10 +246,11 @@ export class Usuarios implements OnInit {
             return of(null);
           })
         )
-        .subscribe(user => {
-          if (user) {
+        .subscribe(res => {
+          if (res?.data) {
             this.toast.add({ severity: 'success', summary: 'Éxito', detail: 'Usuario creado correctamente' });
             this.showFormDialog = false;
+            this.submitting.set(false);
             this.loadUsers();
           }
         });
@@ -277,11 +279,11 @@ export class Usuarios implements OnInit {
             catchError(err => {
               const errMsg = err.error?.message || 'Error al eliminar usuario';
               this.toast.add({ severity: 'error', summary: 'Error', detail: errMsg });
-              return of(false);
+              return of(null);
             })
           )
-          .subscribe(success => {
-            if (success !== false) {
+          .subscribe(res => {
+            if (res?.success !== false) {
               this.toast.add({ severity: 'success', summary: 'Éxito', detail: 'Usuario eliminado correctamente' });
               this.loadUsers();
             }

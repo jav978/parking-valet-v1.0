@@ -20,7 +20,7 @@
     dataKey="id"
     class="w-full"
   >
-    <ng-template pTemplate="header">
+    <ng-template #header>
       <tr>
         <th>Nombre</th>
         <th>Descripción</th>
@@ -30,7 +30,7 @@
       </tr>
     </ng-template>
 
-    <ng-template pTemplate="body" let-role>
+    <ng-template #body let-role>
       <tr>
         <td>
           <span class="p-column-title font-bold md:hidden">Nombre: </span>
@@ -43,7 +43,7 @@
         <td>
           <span class="p-column-title font-bold md:hidden">Usuarios Asignados: </span>
           <div>
-            <span class="px-2 py-0.5 text-xs rounded bg-surface-100 border border-surface-200 font-mono">
+            <span class="px-2.5 py-0.5 text-xs rounded-full font-mono font-bold bg-surface-700 text-white border border-surface-600">
               {{ role._count?.users ?? 0 }}
             </span>
           </div>
@@ -87,7 +87,7 @@
       </tr>
     </ng-template>
 
-    <ng-template pTemplate="emptymessage">
+    <ng-template #emptymessage>
       <tr>
         <td colspan="5" class="text-center p-4">No se encontraron roles.</td>
       </tr>
@@ -158,12 +158,12 @@
   <div class="flex flex-col gap-4 max-h-[400px] overflow-y-auto pr-2">
     @for (module of groupedPermissions(); track module.name) {
       <div class="mb-3">
-        <h3 class="font-bold text-sm border-b border-surface-200 pb-1 mb-2 text-primary-600 uppercase tracking-wider">
+        <h3 class="font-bold text-sm border-b border-surface-200 dark:border-surface-700 pb-1 mb-2 text-primary-600 dark:text-primary-400 uppercase tracking-wider">
           Módulo: {{ module.name }}
         </h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
           @for (perm of module.permissions; track perm.id) {
-            <div class="flex items-start gap-2 p-2 rounded hover:bg-surface-50">
+            <div class="flex items-start gap-2 p-2 rounded hover:bg-surface-50 dark:hover:bg-surface-800">
               <input
                 type="checkbox"
                 [id]="'perm-' + perm.id"
