@@ -1,0 +1,92 @@
+<p-toast></p-toast>
+
+<div class="min-h-screen w-full bg-surface-900 text-surface-0 flex items-center justify-center p-4 relative overflow-hidden">
+  <!-- Background Ambient Glow -->
+  <div class="absolute w-96 h-96 bg-red-500/10 rounded-full blur-3xl -top-20 -left-20 pointer-events-none"></div>
+  <div class="absolute w-96 h-96 bg-primary-500/10 rounded-full blur-3xl -bottom-20 -right-20 pointer-events-none"></div>
+
+  <div class="w-full max-w-xl bg-surface-800/90 border border-surface-700 rounded-3xl p-8 shadow-2xl backdrop-blur-xl relative z-10 space-y-6">
+    
+    <!-- Lockout Header -->
+    <div class="text-center space-y-3">
+      <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-red-500/20 text-red-400 border border-red-500/30 text-4xl shadow-inner mb-2 animate-bounce">
+        @if (status()?.status === 'TAMPER_LOCKED') {
+          <i class="pi pi-shield"></i>
+        } @else {
+          <i class="pi pi-lock"></i>
+        }
+      </div>
+
+      @if (status()?.status === 'TAMPER_LOCKED') {
+        <span class="px-3 py-1 rounded-full text-xs font-bold bg-red-500/20 text-red-400 border border-red-500/30 tracking-wider uppercase">
+          Bloqueo de Seguridad por Alteración de Hora
+        </span>
+        <h1 class="text-2xl md:text-3xl font-extrabold text-surface-0">Se Detectó una Alteración de Reloj</h1>
+        <p class="text-surface-300 text-sm max-w-md mx-auto">
+          La fecha u hora del sistema no coincide con el registro oficial. Por razones de seguridad y protección de licencia, el acceso ha sido suspendido.
+        </p>
+      } @else {
+        <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30 tracking-wider uppercase">
+          Suscripción Vencida
+        </span>
+        <h1 class="text-2xl md:text-3xl font-extrabold text-surface-0">Sistema Bloqueado por Licencia</h1>
+        <p class="text-surface-300 text-sm max-w-md mx-auto">
+          El período de 30 días de suscripción ha expirado. Por favor, comuníquese con el soporte del proveedor para obtener su clave de activación de licencia.
+        </p>
+      }
+    </div>
+
+    <!-- Activation Form Box -->
+    <div class="bg-surface-900/60 border border-surface-700 rounded-2xl p-6 space-y-4">
+      <h3 class="text-base font-bold text-surface-100 flex items-center gap-2">
+        <i class="pi pi-key text-primary-400"></i>
+        <span>Canjear Clave de Licencia</span>
+      </h3>
+
+      @if (errorMsg()) {
+        <div class="p-3 rounded-xl bg-red-500/20 border border-red-500/30 text-red-300 text-xs flex items-center gap-2">
+          <i class="pi pi-exclamation-circle text-sm shrink-0"></i>
+          <span>{{ errorMsg() }}</span>
+        </div>
+      }
+
+      <form (ngSubmit)="onSubmitKey()" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-surface-400 mb-1.5">
+            Clave de Activación (VALET-XXXX-YYYY-ZZZZ)
+          </label>
+          <input 
+            type="text"
+            [ngModel]="licenseKeyInput()"
+            (ngModelChange)="licenseKeyInput.set($event)"
+            name="licenseKey"
+            placeholder="VALET-8K9M-2P4Q-7W3X"
+            class="w-full bg-surface-950 border border-surface-700 text-surface-0 font-mono text-center tracking-widest uppercase text-base rounded-xl p-3.5 focus:border-primary-500 focus:outline-none transition-all placeholder:text-surface-600"
+          />
+        </div>
+
+        <button 
+          type="submit" 
+          [disabled]="loading() || !licenseKeyInput()"
+          class="w-full py-3.5 rounded-xl bg-primary-600 hover:bg-primary-500 text-white font-bold text-sm transition-all shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+          @if (loading()) {
+            <i class="pi pi-spin pi-spinner"></i>
+            <span>Verificando Clave...</span>
+          } @else {
+            <i class="pi pi-check-circle"></i>
+            <span>Activar y Desbloquear Sistema</span>
+          }
+        </button>
+      </form>
+    </div>
+
+    <!-- Support Help Footer -->
+    <div class="text-center pt-2 text-xs text-surface-400 space-y-1">
+      <p>¿Necesita soporte o renovar su contrato?</p>
+      <p class="font-mono text-surface-300">
+        Contacto de Proveedor: <strong class="text-primary-400">jvasquez978&#64;gmail.com</strong>
+      </p>
+    </div>
+
+  </div>
+</div>
