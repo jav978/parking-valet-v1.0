@@ -1,0 +1,21 @@
+{
+  "projectId": "4dbaf0b4-bbdf-4ba0-afe4-256fe3f71e79",
+  "type": "frontend",
+  "name": "Valet Parking Ticket creation and listing view",
+  "description": "Verify navigating to the tickets view renders active parking tickets and allows opening the new ticket creation modal.",
+  "priority": "p1",
+  "planSteps": [
+    {
+      "type": "action",
+      "description": "Navigate to /tickets"
+    },
+    {
+      "type": "action",
+      "description": "Click on the 'Nuevo Ticket' or new ticket action button"
+    },
+    {
+      "type": "assertion",
+      "description": "Verify the ticket entry form/modal opens showing fields for license plate (patente), vehicle model, and parking spot selection"
+    }
+  ]
+}

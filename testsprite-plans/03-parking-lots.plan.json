@@ -1,0 +1,17 @@
+{
+  "projectId": "4dbaf0b4-bbdf-4ba0-afe4-256fe3f71e79",
+  "type": "frontend",
+  "name": "Parking lots and spot occupancy overview",
+  "description": "Verify navigating to the estacionamiento view displays parking zones, spot statuses, and occupancy statistics.",
+  "priority": "p1",
+  "planSteps": [
+    {
+      "type": "action",
+      "description": "Navigate to /estacionamiento"
+    },
+    {
+      "type": "assertion",
+      "description": "Verify the parking lot layout grid is visible showing available and occupied spots with status indicators"
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "projectId": "4dbaf0b4-bbdf-4ba0-afe4-256fe3f71e79",
+  "type": "frontend",
+  "name": "Admin authentication and dashboard redirect",
+  "description": "Verify that logging in with valid admin credentials redirects the user to the dashboard and renders the navigation sidebar.",
+  "priority": "p0",
+  "planSteps": [
+    {
+      "type": "action",
+      "description": "Navigate to /auth/login"
+    },
+    {
+      "type": "action",
+      "description": "Enter 'admin@parking.com' into the email input field"
+    },
+    {
+      "type": "action",
+      "description": "Enter the admin password into the password input field"
+    },
+    {
+      "type": "action",
+      "description": "Click the login button to submit the form"
+    },
+    {
+      "type": "assertion",
+      "description": "Verify that the browser redirects to /dashboard and displays the main dashboard view with key metrics and navigation menu"
+    }
+  ]
+}

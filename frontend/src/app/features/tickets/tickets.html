@@ -179,19 +179,27 @@
           <td class="text-right">
             <div class="flex items-center justify-end gap-1">
               <!-- Imprimir Ticket Térmico con QR -->
-              <button pButton type="button" icon="pi pi-print" class="p-button-text p-button-rounded p-button-secondary" pTooltip="Imprimir Ticket Térmico" (click)="printTicket(ticket)"></button>
+              <button type="button" class="p-2 rounded-lg text-surface-600 dark:text-surface-300 hover:text-primary-600 hover:bg-surface-100 dark:hover:bg-surface-800 transition-all" pTooltip="Imprimir Ticket Térmico" (click)="printTicket(ticket)">
+                <i class="pi pi-print text-base"></i>
+              </button>
               
               <!-- Ver Detalle / QR -->
-              <button pButton type="button" icon="pi pi-eye" class="p-button-text p-button-rounded p-button-secondary" pTooltip="Ver Detalles / QR" (click)="viewTicket(ticket)"></button>
+              <button type="button" class="p-2 rounded-lg text-surface-600 dark:text-surface-300 hover:text-primary-600 hover:bg-surface-100 dark:hover:bg-surface-800 transition-all" pTooltip="Ver Detalles / QR" (click)="viewTicket(ticket)">
+                <i class="pi pi-eye text-base"></i>
+              </button>
 
               <!-- Procesar Cobro y Salida -->
               @if (ticket.status === 'ACTIVE' && canCloseTicket()) {
-                <button pButton type="button" icon="pi pi-sign-out" class="p-button-text p-button-rounded p-button-success" pTooltip="Procesar Salida / Cobro" (click)="openCloseDialog(ticket)"></button>
+                <button type="button" class="p-2 rounded-lg text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 transition-all" pTooltip="Procesar Salida / Cobro" (click)="openCloseDialog(ticket)">
+                  <i class="pi pi-sign-out text-base"></i>
+                </button>
               }
 
               <!-- Cancelar -->
               @if (ticket.status === 'ACTIVE' && canCancelTicket()) {
-                <button pButton type="button" icon="pi pi-times" class="p-button-text p-button-rounded p-button-danger" pTooltip="Cancelar Ticket" (click)="cancelTicket(ticket)"></button>
+                <button type="button" class="p-2 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-all" pTooltip="Cancelar Ticket" (click)="cancelTicket(ticket)">
+                  <i class="pi pi-times text-base"></i>
+                </button>
               }
             </div>
           </td>

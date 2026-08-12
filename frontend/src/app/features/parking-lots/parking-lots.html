@@ -85,7 +85,7 @@
         <th pSortableColumn="availableSpots">Disponibles <p-sorticon field="availableSpots" /></th>
         <th>Servicios</th>
         <th pSortableColumn="isActive">Estado <p-sorticon field="isActive" /></th>
-        <th style="width: 10rem"></th>
+        <th class="text-right font-bold" style="width: 10rem">Acciones</th>
       </tr>
     </ng-template>
 
@@ -141,15 +141,21 @@
             {{ lot.isActive ? 'Activo' : 'Inactivo' }}
           </span>
         </td>
-        <td>
+        <td class="text-right">
           <span class="p-column-title font-bold md:hidden">Acciones: </span>
-          <div class="flex gap-1 justify-end">
-            <p-button icon="pi pi-eye" severity="secondary" size="small" (click)="openDetailDialog(lot)" pTooltip="Ver detalle" />
+          <div class="flex items-center justify-end gap-1">
+            <button type="button" class="p-2 rounded-lg text-cyan-600 dark:text-cyan-400 hover:bg-cyan-500/10 transition-all" pTooltip="Ver Detalle" (click)="openDetailDialog(lot)">
+              <i class="pi pi-eye text-base"></i>
+            </button>
             @if (canEdit()) {
-              <p-button icon="pi pi-pencil" severity="secondary" size="small" (click)="openEditDialog(lot)" pTooltip="Editar" />
+              <button type="button" class="p-2 rounded-lg text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 transition-all" pTooltip="Editar Estacionamiento" (click)="openEditDialog(lot)">
+                <i class="pi pi-pencil text-base"></i>
+              </button>
             }
             @if (canDelete()) {
-              <p-button icon="pi pi-trash" severity="danger" size="small" (click)="confirmDelete(lot)" pTooltip="Eliminar" />
+              <button type="button" class="p-2 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-all" pTooltip="Eliminar Estacionamiento" (click)="confirmDelete(lot)">
+                <i class="pi pi-trash text-base"></i>
+              </button>
             }
           </div>
         </td>

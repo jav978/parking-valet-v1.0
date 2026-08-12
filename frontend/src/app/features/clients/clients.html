@@ -41,7 +41,7 @@
         <th>Contacto</th>
         <th pSortableColumn="clientType">Tipo <p-sorticon field="clientType" /></th>
         <th pSortableColumn="isActive">Estado <p-sorticon field="isActive" /></th>
-        <th style="width: 10rem"></th>
+        <th class="text-right font-bold" style="width: 10rem">Acciones</th>
       </tr>
     </ng-template>
 
@@ -84,15 +84,18 @@
             {{ client.isActive ? 'Activo' : 'Inactivo' }}
           </span>
         </td>
-        <td>
+        <td class="text-right">
           <span class="p-column-title font-bold md:hidden">Acciones: </span>
-          <div class="flex gap-1 justify-end md:justify-start">
-            <p-button icon="pi pi-car" severity="info" size="small"
-              (click)="openDetailDialog(client)" />
-            <p-button icon="pi pi-pencil" severity="secondary" size="small"
-              (click)="openEditDialog(client)" />
-            <p-button icon="pi pi-trash" severity="danger" size="small"
-              (click)="confirmDelete(client)" />
+          <div class="flex items-center justify-end gap-1">
+            <button type="button" class="p-2 rounded-lg text-cyan-600 dark:text-cyan-400 hover:bg-cyan-500/10 transition-all" pTooltip="Ver Vehículos del Cliente" (click)="openDetailDialog(client)">
+              <i class="pi pi-car text-base"></i>
+            </button>
+            <button type="button" class="p-2 rounded-lg text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 transition-all" pTooltip="Editar Cliente" (click)="openEditDialog(client)">
+              <i class="pi pi-pencil text-base"></i>
+            </button>
+            <button type="button" class="p-2 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-all" pTooltip="Eliminar Cliente" (click)="confirmDelete(client)">
+              <i class="pi pi-trash text-base"></i>
+            </button>
           </div>
         </td>
       </tr>
