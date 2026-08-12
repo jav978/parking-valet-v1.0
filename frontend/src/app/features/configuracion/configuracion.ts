@@ -1,5 +1,6 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
@@ -49,7 +50,7 @@ export class Configuracion implements OnInit {
   private toast = inject(MessageService);
   private confirmationService = inject(ConfirmationService);
 
-  activeTab = signal<'general' | 'operacion' | 'tasas' | 'impresoras'>('general');
+  activeTab = signal<'general' | 'operacion' | 'tasas' | 'impresoras' | 'licencia'>('general');
   loading = signal(false);
   saving = signal(false);
 
@@ -93,12 +94,19 @@ export class Configuracion implements OnInit {
     { label: '58 mm (Compacto)', value: 'MM_58' },
   ];
 
+  private route = inject(ActivatedRoute);
+
   ngOnInit(): void {
+    this.route.queryParams.subscribe(params => {
+      if (params['tab']) {
+        this.activeTab.set(params['tab'] as any);
+      }
+    });
     this.loadSettings();
     this.loadPrinters();
   }
 
-  setTab(tab: 'general' | 'operacion' | 'tasas' | 'impresoras'): void {
+  setTab(tab: 'general' | 'operacion' | 'tasas' | 'impresoras' | 'licencia'): void {
     this.activeTab.set(tab);
   }
 
