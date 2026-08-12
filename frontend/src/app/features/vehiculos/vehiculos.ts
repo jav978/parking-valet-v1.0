@@ -13,6 +13,7 @@ import { MessageModule } from 'primeng/message';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { TagModule } from 'primeng/tag';
+import { TooltipModule } from 'primeng/tooltip';
 import { MessageService, ConfirmationService, SharedModule } from 'primeng/api';
 import { VehicleService } from '../../core/services/vehicle.service';
 import { Vehicle, CreateVehicleRequest, UpdateVehicleRequest, VehicleFilterParams } from '../../core/interfaces/vehicle';
@@ -26,7 +27,7 @@ import { catchError, of } from 'rxjs';
     CommonModule, FormsModule, TableModule, DialogModule, ButtonModule,
     InputTextModule, InputNumberModule, SelectModule, IconFieldModule,
     InputIconModule, MessageModule, ToastModule, ConfirmDialogModule, TagModule,
-    SharedModule
+    TooltipModule, SharedModule
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './vehiculos.html',
