@@ -1,0 +1,11 @@
+@media print {
+  .reports-page {
+    background-color: white !important;
+    color: black !important;
+    padding: 0 !important;
+  }
+
+  button, select, input {
+    display: none !important;
+  }
+}
