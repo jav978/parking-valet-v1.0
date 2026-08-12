@@ -1,5 +1,5 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -19,6 +19,7 @@ import { catchError, of } from 'rxjs';
 
 import { SettingService, PrinterConfigItem } from '../../core/services/setting.service';
 import { ExchangeRateService } from '../../core/services/exchange-rate.service';
+import { LicenseService, LicenseStatusResponse } from '../../core/services/license.service';
 
 @Component({
   selector: 'app-configuracion',
@@ -38,7 +39,8 @@ import { ExchangeRateService } from '../../core/services/exchange-rate.service';
     ToastModule,
     MessageModule,
     ConfirmDialogModule,
-    TooltipModule
+    TooltipModule,
+    DatePipe
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './configuracion.html',
@@ -53,6 +55,13 @@ export class Configuracion implements OnInit {
   activeTab = signal<'general' | 'operacion' | 'tasas' | 'impresoras' | 'licencia'>('general');
   loading = signal(false);
   saving = signal(false);
+
+  // Licencia
+  private licenseService = inject(LicenseService);
+  licenseStatus = signal<LicenseStatusResponse | null>(null);
+  licenseKey = '';
+  licenseLoading = signal(false);
+  licenseActivating = signal(false);
 
   // Formulario General / Empresa
   companyForm = {
@@ -104,6 +113,35 @@ export class Configuracion implements OnInit {
     });
     this.loadSettings();
     this.loadPrinters();
+    this.loadLicenseInfo();
+  }
+
+  loadLicenseInfo(): void {
+    this.licenseLoading.set(true);
+    this.licenseService.getStatus().subscribe({
+      next: (status) => {
+        this.licenseStatus.set(status);
+        this.licenseLoading.set(false);
+      },
+      error: () => this.licenseLoading.set(false),
+    });
+  }
+
+  activateLicenseKey(): void {
+    if (!this.licenseKey.trim()) return;
+    this.licenseActivating.set(true);
+    this.licenseService.activateLicense(this.licenseKey).subscribe({
+      next: (res) => {
+        this.toast.add({ severity: 'success', summary: '¡Éxito!', detail: res.message || 'Licencia activada correctamente.' });
+        this.licenseKey = '';
+        this.loadLicenseInfo();
+        this.licenseActivating.set(false);
+      },
+      error: (err) => {
+        this.toast.add({ severity: 'error', summary: 'Error', detail: err?.error?.message || 'Clave de licencia inválida.' });
+        this.licenseActivating.set(false);
+      },
+    });
   }
 
   setTab(tab: 'general' | 'operacion' | 'tasas' | 'impresoras' | 'licencia'): void {

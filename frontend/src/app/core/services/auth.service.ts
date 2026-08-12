@@ -88,11 +88,11 @@ export class AuthService {
   }
 
   getAccessToken(): string | null {
-    return localStorage.getItem(this.TOKEN_KEY);
+    return sessionStorage.getItem(this.TOKEN_KEY);
   }
 
   getRefreshToken(): string | null {
-    return localStorage.getItem(this.REFRESH_KEY);
+    return sessionStorage.getItem(this.REFRESH_KEY);
   }
 
   hasPermission(permission: string): boolean {
@@ -104,22 +104,29 @@ export class AuthService {
   }
 
   private setSession(data: LoginResponse): void {
-    localStorage.setItem(this.TOKEN_KEY, data.accessToken);
-    localStorage.setItem(this.REFRESH_KEY, data.refreshToken);
+    sessionStorage.setItem(this.TOKEN_KEY, data.accessToken);
+    sessionStorage.setItem(this.REFRESH_KEY, data.refreshToken);
     this.userSignal.set(data.user);
   }
 
   private clearSession(): void {
-    localStorage.removeItem(this.TOKEN_KEY);
-    localStorage.removeItem(this.REFRESH_KEY);
+    sessionStorage.removeItem(this.TOKEN_KEY);
+    sessionStorage.removeItem(this.REFRESH_KEY);
     this.userSignal.set(null);
   }
 
   private getStoredUser(): UserProfile | null {
-    const token = localStorage.getItem(this.TOKEN_KEY);
+    const token = sessionStorage.getItem(this.TOKEN_KEY);
     if (!token) return null;
     try {
       const payload = JSON.parse(this.decodeJwtPayload(token));
+      // Verificar que el token no haya expirado
+      const nowSeconds = Math.floor(Date.now() / 1000);
+      if (payload.exp && payload.exp < nowSeconds) {
+        sessionStorage.removeItem(this.TOKEN_KEY);
+        sessionStorage.removeItem(this.REFRESH_KEY);
+        return null;
+      }
       return {
         id: payload.sub,
         email: payload.email,

@@ -758,3 +758,30 @@ model TicketPhoto {
   @@index([ticketId])
   @@map("ticket_photos")
 }
+
+// ─── LICENSE KEYS (Software Subscription Control) ────────────
+
+enum LicenseKeyStatus {
+  UNUSED
+  ACTIVE
+  EXPIRED
+}
+
+model LicenseKey {
+  id          String           @id @default(uuid()) @db.Uuid
+  keyHash     String           @unique @map("key_hash")
+  maskedKey   String           @map("masked_key")
+  durationDays Int             @default(30) @map("duration_days")
+  status      LicenseKeyStatus @default(UNUSED)
+  clientEmail String?          @map("client_email")
+  activatedAt DateTime?        @map("activated_at")
+  expiresAt   DateTime?        @map("expires_at")
+  createdById String?          @map("created_by") @db.Uuid
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+
+  @@index([keyHash])
+  @@index([status])
+  @@index([createdAt])
+  @@map("license_keys")
+}

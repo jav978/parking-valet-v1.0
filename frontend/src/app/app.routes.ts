@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard, loginGuard } from './core/guards/auth.guard';
+import { subscriptionGuard } from './core/guards/subscription.guard';
 
 export const routes: Routes = [
   {
@@ -14,8 +15,14 @@ export const routes: Routes = [
     ],
   },
   {
-    path: '',
+    // Pantalla de bloqueo por licencia vencida (accesible sin suscripción activa)
+    path: 'licencia-vencida',
     canActivate: [authGuard],
+    loadComponent: () => import('./features/licencia-vencida/licencia-vencida').then((m) => m.LicenciaVencida),
+  },
+  {
+    path: '',
+    canActivate: [authGuard, subscriptionGuard],
     loadComponent: () => import('./layout/layout').then((m) => m.Layout),
     children: [
       {
@@ -77,5 +84,6 @@ export const routes: Routes = [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
     ],
   },
-  { path: '**', redirectTo: 'dashboard' },
+  // Cualquier ruta desconocida → login (no dashboard, para evitar evasión)
+  { path: '**', redirectTo: '/auth/login' },
 ];

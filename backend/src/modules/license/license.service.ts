@@ -40,8 +40,8 @@ export class LicenseService {
     return crypto.createHash('sha256').update(normalized).digest('hex');
   }
 
-  private get licenseKeyModel(): any {
-    return (this.prisma as any).licenseKey;
+  private get licenseKeyModel() {
+    return this.prisma.licenseKey;
   }
 
   /**

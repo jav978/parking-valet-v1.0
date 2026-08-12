@@ -333,42 +333,117 @@
 <!-- ─── PESTAÑA LICENCIA & SUSCRIPCIÓN ───────────────────────────────── -->
 @if (activeTab() === 'licencia') {
   <div class="bg-surface-0 dark:bg-surface-900 p-6 rounded-2xl border border-surface-200 dark:border-surface-800 shadow-sm flex flex-col gap-6">
-    <h2 class="text-lg font-bold text-surface-900 dark:text-surface-0 m-0 border-b border-surface-200 dark:border-surface-800 pb-3 flex items-center gap-2">
-      <i class="pi pi-key text-primary-500"></i> Licencia &amp; Suscripción
-    </h2>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-      <div class="flex flex-col gap-1.5">
-        <label class="font-semibold text-sm text-surface-700 dark:text-surface-300">Estado de la Licencia</label>
-        <div class="flex items-center gap-2 p-3 rounded-xl border border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800">
-          <i class="pi pi-check-circle text-green-500 text-xl"></i>
-          <span class="font-semibold text-green-500">Activa</span>
-        </div>
-      </div>
-
-      <div class="flex flex-col gap-1.5">
-        <label class="font-semibold text-sm text-surface-700 dark:text-surface-300">Días Restantes</label>
-        <div class="flex items-center gap-2 p-3 rounded-xl border border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800">
-          <i class="pi pi-clock text-yellow-500 text-xl"></i>
-          <span class="font-semibold text-surface-700 dark:text-surface-300">30 días</span>
-        </div>
-      </div>
-
-      <div class="flex flex-col gap-1.5">
-        <label class="font-semibold text-sm text-surface-700 dark:text-surface-300">Activar Nueva Clave de Licencia</label>
-        <div class="flex gap-2">
-          <input pInputText placeholder="XXXX-XXXX-XXXX-XXXX" class="flex-1" />
-          <p-button label="Activar" icon="pi pi-key" />
-        </div>
-      </div>
-
-      <div class="flex flex-col gap-1.5">
-        <label class="font-semibold text-sm text-surface-700 dark:text-surface-300">Contacto de Soporte</label>
-        <div class="flex items-center gap-2 p-3 rounded-xl border border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800">
-          <i class="pi pi-envelope text-primary-500 text-xl"></i>
-          <span class="text-surface-700 dark:text-surface-300">soporte@parkingvalet.com</span>
-        </div>
-      </div>
+    <div class="flex items-center justify-between border-b border-surface-200 dark:border-surface-800 pb-3">
+      <h2 class="text-lg font-bold text-surface-900 dark:text-surface-0 m-0 flex items-center gap-2">
+        <i class="pi pi-key text-primary-500"></i> Licencia &amp; Suscripción
+      </h2>
+      <p-button icon="pi pi-refresh" [text]="true" size="small" pTooltip="Actualizar estado" (onClick)="loadLicenseInfo()" [loading]="licenseLoading()" />
     </div>
+
+    @if (licenseLoading() && !licenseStatus()) {
+      <div class="flex items-center gap-2 text-surface-500"><i class="pi pi-spin pi-spinner"></i> Cargando estado de la licencia...</div>
+    }
+
+    @if (licenseStatus(); as lic) {
+      <!-- Alerta de estado crítico -->
+      @if (lic.status === 'TAMPER_LOCKED') {
+        <div class="flex items-start gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/30">
+          <i class="pi pi-shield text-red-500 text-xl mt-0.5"></i>
+          <div>
+            <p class="font-bold text-red-500 m-0">¡ALERTA DE SEGURIDAD - RELOJ ALTERADO!</p>
+            <p class="text-sm text-red-400 mt-1 m-0">{{ lic.message }}</p>
+          </div>
+        </div>
+      }
+      @if (lic.status === 'WARNING') {
+        <div class="flex items-start gap-3 p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/30">
+          <i class="pi pi-exclamation-triangle text-yellow-500 text-xl mt-0.5"></i>
+          <div>
+            <p class="font-bold text-yellow-500 m-0">Licencia por vencer</p>
+            <p class="text-sm text-yellow-400 mt-1 m-0">{{ lic.message }}</p>
+          </div>
+        </div>
+      }
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <!-- Estado -->
+        <div class="flex flex-col gap-1.5">
+          <label class="font-semibold text-sm text-surface-700 dark:text-surface-300">Estado de la Licencia</label>
+          <div class="flex items-center gap-2 p-3 rounded-xl border bg-surface-50 dark:bg-surface-800"
+               [class]="lic.status === 'ACTIVE' ? 'border-green-500/30' : lic.status === 'WARNING' ? 'border-yellow-500/30' : 'border-red-500/30'">
+            <i class="text-xl"
+               [class]="lic.status === 'ACTIVE' ? 'pi pi-check-circle text-green-500' : lic.status === 'WARNING' ? 'pi pi-exclamation-circle text-yellow-500' : 'pi pi-times-circle text-red-500'"></i>
+            <span class="font-bold"
+                  [class]="lic.status === 'ACTIVE' ? 'text-green-500' : lic.status === 'WARNING' ? 'text-yellow-500' : 'text-red-500'">
+              {{ lic.status === 'ACTIVE' ? 'Activa' : lic.status === 'WARNING' ? 'Por Vencer' : lic.status === 'EXPIRED' ? 'Vencida' : lic.status === 'INACTIVE' ? 'Sin Restricción' : 'Bloqueada' }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Días restantes -->
+        <div class="flex flex-col gap-1.5">
+          <label class="font-semibold text-sm text-surface-700 dark:text-surface-300">Días Restantes</label>
+          <div class="flex items-center gap-2 p-3 rounded-xl border border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800">
+            <i class="pi pi-clock text-primary-500 text-xl"></i>
+            <span class="font-bold text-surface-700 dark:text-surface-300">
+              {{ lic.isSubscriptionActive ? (lic.daysRemaining + ' día(s)') : 'Sin límite de tiempo' }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Fecha de vencimiento -->
+        @if (lic.expiresAt) {
+          <div class="flex flex-col gap-1.5">
+            <label class="font-semibold text-sm text-surface-700 dark:text-surface-300">Vence el</label>
+            <div class="flex items-center gap-2 p-3 rounded-xl border border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800">
+              <i class="pi pi-calendar text-primary-500 text-xl"></i>
+              <span class="text-surface-700 dark:text-surface-300">{{ lic.expiresAt | date:'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+          </div>
+        }
+
+        <!-- Clave activa enmascarada -->
+        @if (lic.maskedKey) {
+          <div class="flex flex-col gap-1.5">
+            <label class="font-semibold text-sm text-surface-700 dark:text-surface-300">Clave Activa (enmascarada)</label>
+            <div class="flex items-center gap-2 p-3 rounded-xl border border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800">
+              <i class="pi pi-key text-primary-500 text-xl"></i>
+              <span class="font-mono text-surface-700 dark:text-surface-300">{{ lic.maskedKey }}</span>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Activar nueva clave -->
+      <div class="border-t border-surface-200 dark:border-surface-800 pt-5">
+        <h3 class="font-bold text-surface-800 dark:text-surface-100 mb-3 flex items-center gap-2">
+          <i class="pi pi-plus-circle text-primary-500"></i> Activar Nueva Clave de Licencia
+        </h3>
+        <div class="flex gap-2 max-w-xl">
+          <input pInputText
+                 [(ngModel)]="licenseKey"
+                 placeholder="VALET-XXXX-YYYY-ZZZZ"
+                 class="flex-1 font-mono"
+                 style="text-transform: uppercase;"
+                 (input)="licenseKey = licenseKey.toUpperCase()" />
+          <p-button
+            label="Activar"
+            icon="pi pi-key"
+            [loading]="licenseActivating()"
+            [disabled]="!licenseKey.trim()"
+            (onClick)="activateLicenseKey()" />
+        </div>
+        <p class="text-xs text-surface-500 mt-2">Ingrese la clave proporcionada por el proveedor con el formato VALET-XXXX-YYYY-ZZZZ</p>
+      </div>
+
+      <!-- Soporte -->
+      <div class="flex items-center gap-2 p-3 rounded-xl border border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800 max-w-md">
+        <i class="pi pi-envelope text-primary-500 text-xl"></i>
+        <div>
+          <p class="text-xs text-surface-500 m-0">¿Necesita renovar? Contacte al proveedor:</p>
+          <span class="font-semibold text-surface-700 dark:text-surface-300">soporte@parkingvalet.com</span>
+        </div>
+      </div>
+    }
   </div>
 }
