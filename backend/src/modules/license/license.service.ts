@@ -40,6 +40,10 @@ export class LicenseService {
     return crypto.createHash('sha256').update(normalized).digest('hex');
   }
 
+  private get licenseKeyModel(): any {
+    return (this.prisma as any).licenseKey;
+  }
+
   /**
    * Retrieves and calculates current license status with Anti-Clock Rollback verification
    */
@@ -136,7 +140,7 @@ export class LicenseService {
     const keyHash = this.hashKey(plainKey);
     const maskedKey = `${plainKey.slice(0, 10)}****-${plainKey.slice(15)}`;
 
-    const licenseKey = await this.prisma.licenseKey.create({
+    const licenseKey = await this.licenseKeyModel.create({
       data: {
         keyHash,
         maskedKey,
@@ -166,7 +170,7 @@ export class LicenseService {
   async activateLicenseKey(dto: ActivateLicenseDto, userId?: string) {
     const keyHash = this.hashKey(dto.licenseKey);
 
-    const license = await this.prisma.licenseKey.findUnique({
+    const license = await this.licenseKeyModel.findUnique({
       where: { keyHash },
     });
 
@@ -183,7 +187,7 @@ export class LicenseService {
     const expiresAt = new Date(now.getTime() + durationMs);
 
     // Update license record
-    await this.prisma.licenseKey.update({
+    await this.licenseKeyModel.update({
       where: { id: license.id },
       data: {
         status: 'ACTIVE',
@@ -270,7 +274,7 @@ export class LicenseService {
    * Lists generated license keys for vendor audit
    */
   async listLicenseKeys() {
-    return this.prisma.licenseKey.findMany({
+    return this.licenseKeyModel.findMany({
       orderBy: { createdAt: 'desc' },
       select: {
         id: true,
