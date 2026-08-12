@@ -1,0 +1,202 @@
+<div class="p-4 md:p-6 space-y-6">
+  <!-- Top Banner / Header -->
+  <div class="bg-gradient-to-r from-primary-600 to-primary-800 dark:from-surface-900 dark:to-surface-800 text-white rounded-2xl p-6 md:p-8 shadow-xl border border-primary-500/20 relative overflow-hidden">
+    <div class="absolute -right-6 -bottom-6 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
+      <div class="space-y-2">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-xs font-semibold backdrop-blur-md border border-white/20">
+          <i class="pi pi-shield text-xs"></i>
+          <span>Marco Regulatorio & Políticas de Uso</span>
+        </div>
+        <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">Normativa y Términos del Servicio</h1>
+        <p class="text-primary-100 dark:text-surface-300 text-sm max-w-2xl">
+          Disposiciones obligatorias para el uso del estacionamiento, custodia de vehículos, procedimiento por pérdida de ticket y responsabilidades del personal operador.
+        </p>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button 
+          type="button" 
+          (click)="printNormativa()"
+          class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-surface-900 font-semibold text-sm hover:bg-surface-100 transition-all shadow-md active:scale-95">
+          <i class="pi pi-print"></i>
+          <span>Imprimir Normativa</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary Metric Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div class="bg-surface-0 dark:bg-surface-900 border border-surface-200 dark:border-surface-800 rounded-2xl p-4 shadow-sm flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xl shrink-0">
+        <i class="pi pi-car"></i>
+      </div>
+      <div>
+        <span class="text-xs font-medium text-surface-500 dark:text-surface-400 block">Uso del Recinto</span>
+        <span class="text-sm font-bold text-surface-900 dark:text-surface-0">Máx. 10 km/h</span>
+      </div>
+    </div>
+
+    <div class="bg-surface-0 dark:bg-surface-900 border border-surface-200 dark:border-surface-800 rounded-2xl p-4 shadow-sm flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xl shrink-0">
+        <i class="pi pi-ticket"></i>
+      </div>
+      <div>
+        <span class="text-xs font-medium text-surface-500 dark:text-surface-400 block">Pérdida de Ticket</span>
+        <span class="text-sm font-bold text-surface-900 dark:text-surface-0">Cédula + Título</span>
+      </div>
+    </div>
+
+    <div class="bg-surface-0 dark:bg-surface-900 border border-surface-200 dark:border-surface-800 rounded-2xl p-4 shadow-sm flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xl shrink-0">
+        <i class="pi pi-shield"></i>
+      </div>
+      <div>
+        <span class="text-xs font-medium text-surface-500 dark:text-surface-400 block">Inspección Visual</span>
+        <span class="text-sm font-bold text-surface-900 dark:text-surface-0">Previa al Retiro</span>
+      </div>
+    </div>
+
+    <div class="bg-surface-0 dark:bg-surface-900 border border-surface-200 dark:border-surface-800 rounded-2xl p-4 shadow-sm flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xl shrink-0">
+        <i class="pi pi-credit-card"></i>
+      </div>
+      <div>
+        <span class="text-xs font-medium text-surface-500 dark:text-surface-400 block">Cobro Digital</span>
+        <span class="text-sm font-bold text-surface-900 dark:text-surface-0">Asentado en Sistema</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Chapters Content -->
+  <div class="space-y-6">
+
+    <!-- Capítulo 1 -->
+    <div class="bg-surface-0 dark:bg-surface-900 border border-surface-200 dark:border-surface-800 rounded-2xl p-6 shadow-sm space-y-4">
+      <div class="flex items-center gap-3 border-b border-surface-100 dark:border-surface-800 pb-3">
+        <div class="w-8 h-8 rounded-lg bg-primary-500/10 text-primary-600 dark:text-primary-400 font-bold flex items-center justify-center text-sm">
+          1
+        </div>
+        <h2 class="text-lg font-bold text-surface-900 dark:text-surface-0">Capítulo I: Condiciones Generales del Servicio</h2>
+      </div>
+
+      <div class="space-y-3 text-sm text-surface-700 dark:text-surface-300 leading-relaxed">
+        <p>
+          <strong class="text-surface-900 dark:text-surface-100">1.1. Aceptación del Servicio:</strong> El ingreso de cualquier vehículo a las instalaciones del estacionamiento o la entrega de sus llaves al personal de Valet Parking constituye la aceptación plena e incondicional de los presentes términos y condiciones generales.
+        </p>
+        <p>
+          <strong class="text-surface-900 dark:text-surface-100">1.2. Horarios Operativos:</strong> Las tarifas y custodia aplican dentro del horario oficial estipulado. Los vehículos que permanezcan en las instalaciones fuera de horario estarán sujetos a cargos adicionales de pernocta o custodia nocturna segun la tarifa aprobada.
+        </p>
+        <p>
+          <strong class="text-surface-900 dark:text-surface-100">1.3. Límite de Velocidad:</strong> Se prohíbe exceder el límite de velocidad interna establecido en <strong>10 km/h</strong>. Todo conductor debe mantener la distancia de seguridad entre vehículos.
+        </p>
+      </div>
+    </div>
+
+    <!-- Capítulo 2 -->
+    <div class="bg-surface-0 dark:bg-surface-900 border border-surface-200 dark:border-surface-800 rounded-2xl p-6 shadow-sm space-y-4">
+      <div class="flex items-center gap-3 border-b border-surface-100 dark:border-surface-800 pb-3">
+        <div class="w-8 h-8 rounded-lg bg-primary-500/10 text-primary-600 dark:text-primary-400 font-bold flex items-center justify-center text-sm">
+          2
+        </div>
+        <h2 class="text-lg font-bold text-surface-900 dark:text-surface-0">Capítulo II: Normas para Clientes y Usuarios del Estacionamiento</h2>
+      </div>
+
+      <div class="space-y-3 text-sm text-surface-700 dark:text-surface-300 leading-relaxed">
+        <p>
+          <strong class="text-surface-900 dark:text-surface-100">2.1. Custodia del Ticket:</strong> El cliente debe conservar el ticket impreso o comprobante digital emitido al ingresar. Este documento constituye el único comprobante válido para autorizar el retiro del vehículo.
+        </p>
+        <p>
+          <strong class="text-surface-900 dark:text-surface-100">2.2. Declaración de Objetos de Valor:</strong>
+          La empresa únicamente responderá por las partes y accesorios fijos del vehículo. Si el cliente requiere dejar objetos personales de alto valor dentro del auto, deberá declararlos formalmente en la recepción antes de su ingreso para verificación.
+        </p>
+        <p>
+          <strong class="text-surface-900 dark:text-surface-100">2.3. Delimitación de Puestos:</strong> El cliente debe ubicar su vehículo respetando las líneas demarcatorias. En el servicio de Valet Parking, las llaves permanecerán bajo custodia del personal autorizado en el tablero de llaves seguro.
+        </p>
+      </div>
+    </div>
+
+    <!-- Capítulo 3 (Pérdida de Ticket) -->
+    <div class="bg-surface-0 dark:bg-surface-900 border border-amber-500/30 dark:border-amber-500/20 rounded-2xl p-6 shadow-sm space-y-4 relative overflow-hidden">
+      <div class="absolute top-0 right-0 w-2 h-full bg-amber-500"></div>
+
+      <div class="flex items-center gap-3 border-b border-surface-100 dark:border-surface-800 pb-3">
+        <div class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold flex items-center justify-center text-sm">
+          3
+        </div>
+        <h2 class="text-lg font-bold text-surface-900 dark:text-surface-0 flex items-center gap-2">
+          <span>Capítulo III: Procedimiento y Penalidad por Pérdida de Ticket</span>
+          <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20">Importante</span>
+        </h2>
+      </div>
+
+      <div class="space-y-3 text-sm text-surface-700 dark:text-surface-300 leading-relaxed">
+        <p>
+          <strong class="text-surface-900 dark:text-surface-100">3.1. Notificación Obligatoria:</strong> En caso de pérdida, extravío o deterioro del ticket de entrada, el usuario debe informar de inmediato a la administración o al operador de caja antes de intentar el retiro del vehículo.
+        </p>
+        <p>
+          <strong class="text-surface-900 dark:text-surface-100">3.2. Requisitos de Verificación de Propiedad:</strong> Para autorizar la entrega de un vehículo en ausencia de ticket, la persona solicitante debe presentar obligatoriamente:
+        </p>
+        <ul class="list-disc pl-6 space-y-1 text-surface-600 dark:text-surface-400">
+          <li>Cédula de Identidad o Documento Oficial vigente de quien retira.</li>
+          <li>Título de Propiedad o Carnet de Circulación del vehículo a su nombre.</li>
+          <li>Firma del <em>Acta de Retiro y Verificación por Pérdida de Ticket</em>.</li>
+        </ul>
+        <p>
+          <strong class="text-surface-900 dark:text-surface-100">3.3. Penalidad Económica:</strong> El extravío del ticket conlleva el pago del <strong>Recargo Administrativo por Ticket Perdido</strong> (según la tarifa vigente en el sistema) sumado al cobro correspondiente al tiempo de estadía transcurrido desde la hora registrada en la base de datos.
+        </p>
+      </div>
+    </div>
+
+    <!-- Capítulo 4 -->
+    <div class="bg-surface-0 dark:bg-surface-900 border border-surface-200 dark:border-surface-800 rounded-2xl p-6 shadow-sm space-y-4">
+      <div class="flex items-center gap-3 border-b border-surface-100 dark:border-surface-800 pb-3">
+        <div class="w-8 h-8 rounded-lg bg-primary-500/10 text-primary-600 dark:text-primary-400 font-bold flex items-center justify-center text-sm">
+          4
+        </div>
+        <h2 class="text-lg font-bold text-surface-900 dark:text-surface-0">Capítulo IV: Garantías y Limitaciones de Responsabilidad</h2>
+      </div>
+
+      <div class="space-y-3 text-sm text-surface-700 dark:text-surface-300 leading-relaxed">
+        <p>
+          <strong class="text-surface-900 dark:text-surface-100">4.1. Cobertura de Responsabilidad:</strong> La empresa responde por los daños directos imputables al personal de maniobra durante la recepción, traslado y parqueo del vehículo, conforme a la inspección de entrada realizada.
+        </p>
+        <p>
+          <strong class="text-surface-900 dark:text-surface-100">4.2. Exclusiones de Garantía:</strong> No se asumirá responsabilidad por:
+        </p>
+        <ul class="list-disc pl-6 space-y-1 text-surface-600 dark:text-surface-400">
+          <li>Fallas mecánicas, neumáticas, eléctricas o desgasas de piezas previas al servicio.</li>
+          <li>Eventos de fuerza mayor, tormentas, temblores o alteración del orden público.</li>
+          <li>Objetos o valores no declarados e inspeccionados en el inventario inicial.</li>
+        </ul>
+        <p>
+          <strong class="text-surface-900 dark:text-surface-100">4.3. Reclamación Previa a la Salida:</strong> Toda revisión o reclamo sobre el estado del vehículo debe realizarse en las instalaciones antes de traspasar las barreras de salida. El retiro del vehículo sin observación implica la conformidad total del cliente.
+        </p>
+      </div>
+    </div>
+
+    <!-- Capítulo 5 (Normas de Sistema para Operadores) -->
+    <div class="bg-surface-0 dark:bg-surface-900 border border-surface-200 dark:border-surface-800 rounded-2xl p-6 shadow-sm space-y-4">
+      <div class="flex items-center gap-3 border-b border-surface-100 dark:border-surface-800 pb-3">
+        <div class="w-8 h-8 rounded-lg bg-primary-500/10 text-primary-600 dark:text-primary-400 font-bold flex items-center justify-center text-sm">
+          5
+        </div>
+        <h2 class="text-lg font-bold text-surface-900 dark:text-surface-0">Capítulo V: Normas y Responsabilidades para el Personal Operador</h2>
+      </div>
+
+      <div class="space-y-3 text-sm text-surface-700 dark:text-surface-300 leading-relaxed">
+        <p>
+          <strong class="text-surface-900 dark:text-surface-100">5.1. Registro en Software Obligatorio:</strong> Todo ticket, cobro, descuento, anulación o egreso de vehículo debe registrarse estrictamente a través del sistema informático de Valet Parking. Queda terminantemente prohibido el cobro o entrega manual fuera del sistema.
+        </p>
+        <p>
+          <strong class="text-surface-900 dark:text-surface-100">5.2. Arqueo y Custodia de Caja:</strong> El operador de caja debe validar su saldo inicial al aperturar turno y ejecutar el cuadre de valores en el cierre de caja. Cualquier inconsistencia en montos deberá justificarse de inmediato ante la administración.
+        </p>
+        <p>
+          <strong class="text-surface-900 dark:text-surface-100">5.3. Confidencialidad:</strong> Los datos de los clientes (cédula, correo, teléfono, matrícula) registrados en el software están protegidos por políticas de privacidad y no podrán ser compartidos con terceros.
+        </p>
+      </div>
+    </div>
+
+  </div>
+</div>
