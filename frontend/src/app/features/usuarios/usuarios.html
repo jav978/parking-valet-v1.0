@@ -77,7 +77,7 @@
         <th>Teléfono</th>
         <th>Rol</th>
         <th pSortableColumn="isActive">Estado <p-sorticon field="isActive" /></th>
-        <th style="width: 8rem"></th>
+        <th class="text-right font-bold" style="width: 8rem">Acciones</th>
       </tr>
     </ng-template>
 
@@ -111,22 +111,15 @@
             </span>
           </div>
         </td>
-        <td>
-          <div class="flex justify-end gap-2">
-            <p-button
-              icon="pi pi-pencil"
-              severity="secondary"
-              [text]="true"
-              [rounded]="true"
-              (onClick)="openEditDialog(user)"
-            />
-            <p-button
-              icon="pi pi-trash"
-              severity="danger"
-              [text]="true"
-              [rounded]="true"
-              (onClick)="deleteUser(user)"
-            />
+        <td class="text-right">
+          <span class="p-column-title font-bold md:hidden">Acciones: </span>
+          <div class="flex items-center justify-end gap-1">
+            <button type="button" class="p-2 rounded-lg text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 transition-all" pTooltip="Editar Usuario" tooltipPosition="top" (click)="openEditDialog(user)">
+              <i class="pi pi-pencil text-base"></i>
+            </button>
+            <button type="button" class="p-2 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-all" pTooltip="Eliminar Usuario" tooltipPosition="top" (click)="deleteUser(user)">
+              <i class="pi pi-trash text-base"></i>
+            </button>
           </div>
         </td>
       </tr>

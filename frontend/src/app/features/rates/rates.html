@@ -258,17 +258,17 @@
           <td class="text-right">
             <div class="flex items-center justify-end gap-1">
               <!-- Probar / Simular -->
-              <button type="button" class="p-2 rounded-lg text-surface-600 dark:text-surface-300 hover:text-primary-600 hover:bg-surface-100 dark:hover:bg-surface-800 transition-all" pTooltip="Simular Cobro Multi-moneda" (click)="openSimulator(rate)">
+              <button type="button" class="p-2 rounded-lg text-surface-600 dark:text-surface-300 hover:text-primary-600 hover:bg-surface-100 dark:hover:bg-surface-800 transition-all" pTooltip="Simular Cobro Multi-moneda" tooltipPosition="top" (click)="openSimulator(rate)">
                 <i class="pi pi-calculator text-base"></i>
               </button>
               
               <!-- Editar -->
-              <button type="button" class="p-2 rounded-lg text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 transition-all" pTooltip="Editar Tarifa" (click)="openEditDialog(rate)">
+              <button type="button" class="p-2 rounded-lg text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 transition-all" pTooltip="Editar Tarifa" tooltipPosition="top" (click)="openEditDialog(rate)">
                 <i class="pi pi-pencil text-base"></i>
               </button>
 
               <!-- Eliminar -->
-              <button type="button" class="p-2 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-all" pTooltip="Eliminar Tarifa" (click)="confirmDelete(rate)">
+              <button type="button" class="p-2 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-all" pTooltip="Eliminar Tarifa" tooltipPosition="top" (click)="confirmDelete(rate)">
                 <i class="pi pi-trash text-base"></i>
               </button>
             </div>

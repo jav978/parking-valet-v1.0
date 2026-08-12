@@ -12,6 +12,7 @@ import { DialogModule } from 'primeng/dialog';
 import { ToastModule } from 'primeng/toast';
 import { MessageModule } from 'primeng/message';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { TooltipModule } from 'primeng/tooltip';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { catchError, of } from 'rxjs';
 
@@ -36,6 +37,7 @@ import { ExchangeRateService } from '../../core/services/exchange-rate.service';
     ToastModule,
     MessageModule,
     ConfirmDialogModule,
+    TooltipModule
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './configuracion.html',

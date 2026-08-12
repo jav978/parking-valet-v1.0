@@ -179,25 +179,25 @@
           <td class="text-right">
             <div class="flex items-center justify-end gap-1">
               <!-- Imprimir Ticket Térmico con QR -->
-              <button type="button" class="p-2 rounded-lg text-surface-600 dark:text-surface-300 hover:text-primary-600 hover:bg-surface-100 dark:hover:bg-surface-800 transition-all" pTooltip="Imprimir Ticket Térmico" (click)="printTicket(ticket)">
+              <button type="button" class="p-2 rounded-lg text-surface-600 dark:text-surface-300 hover:text-primary-600 hover:bg-surface-100 dark:hover:bg-surface-800 transition-all" pTooltip="Imprimir Ticket Térmico" tooltipPosition="top" (click)="printTicket(ticket)">
                 <i class="pi pi-print text-base"></i>
               </button>
               
               <!-- Ver Detalle / QR -->
-              <button type="button" class="p-2 rounded-lg text-surface-600 dark:text-surface-300 hover:text-primary-600 hover:bg-surface-100 dark:hover:bg-surface-800 transition-all" pTooltip="Ver Detalles / QR" (click)="viewTicket(ticket)">
+              <button type="button" class="p-2 rounded-lg text-surface-600 dark:text-surface-300 hover:text-primary-600 hover:bg-surface-100 dark:hover:bg-surface-800 transition-all" pTooltip="Ver Detalles / QR" tooltipPosition="top" (click)="viewTicket(ticket)">
                 <i class="pi pi-eye text-base"></i>
               </button>
 
               <!-- Procesar Cobro y Salida -->
               @if (ticket.status === 'ACTIVE' && canCloseTicket()) {
-                <button type="button" class="p-2 rounded-lg text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 transition-all" pTooltip="Procesar Salida / Cobro" (click)="openCloseDialog(ticket)">
+                <button type="button" class="p-2 rounded-lg text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 transition-all" pTooltip="Procesar Salida / Cobro" tooltipPosition="top" (click)="openCloseDialog(ticket)">
                   <i class="pi pi-sign-out text-base"></i>
                 </button>
               }
 
               <!-- Cancelar -->
               @if (ticket.status === 'ACTIVE' && canCancelTicket()) {
-                <button type="button" class="p-2 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-all" pTooltip="Cancelar Ticket" (click)="cancelTicket(ticket)">
+                <button type="button" class="p-2 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-all" pTooltip="Cancelar Ticket" tooltipPosition="top" (click)="cancelTicket(ticket)">
                   <i class="pi pi-times text-base"></i>
                 </button>
               }

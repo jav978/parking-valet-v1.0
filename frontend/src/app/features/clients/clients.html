@@ -87,13 +87,13 @@
         <td class="text-right">
           <span class="p-column-title font-bold md:hidden">Acciones: </span>
           <div class="flex items-center justify-end gap-1">
-            <button type="button" class="p-2 rounded-lg text-cyan-600 dark:text-cyan-400 hover:bg-cyan-500/10 transition-all" pTooltip="Ver Vehículos del Cliente" (click)="openDetailDialog(client)">
+            <button type="button" class="p-2 rounded-lg text-cyan-600 dark:text-cyan-400 hover:bg-cyan-500/10 transition-all" pTooltip="Ver Vehículos del Cliente" tooltipPosition="top" (click)="openDetailDialog(client)">
               <i class="pi pi-car text-base"></i>
             </button>
-            <button type="button" class="p-2 rounded-lg text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 transition-all" pTooltip="Editar Cliente" (click)="openEditDialog(client)">
+            <button type="button" class="p-2 rounded-lg text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 transition-all" pTooltip="Editar Cliente" tooltipPosition="top" (click)="openEditDialog(client)">
               <i class="pi pi-pencil text-base"></i>
             </button>
-            <button type="button" class="p-2 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-all" pTooltip="Eliminar Cliente" (click)="confirmDelete(client)">
+            <button type="button" class="p-2 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-all" pTooltip="Eliminar Cliente" tooltipPosition="top" (click)="confirmDelete(client)">
               <i class="pi pi-trash text-base"></i>
             </button>
           </div>

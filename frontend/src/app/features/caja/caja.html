@@ -306,13 +306,13 @@
           <td class="text-right">
             <div class="flex items-center justify-end gap-1">
               <!-- Detalle de Arqueo -->
-              <button type="button" class="p-2 rounded-lg text-surface-600 dark:text-surface-300 hover:text-primary-600 hover:bg-surface-100 dark:hover:bg-surface-800 transition-all" pTooltip="Ver Arqueo / Detalles" (click)="openDetailDialog(reg)">
+              <button type="button" class="p-2 rounded-lg text-surface-600 dark:text-surface-300 hover:text-primary-600 hover:bg-surface-100 dark:hover:bg-surface-800 transition-all" pTooltip="Ver Arqueo / Detalles" tooltipPosition="top" (click)="openDetailDialog(reg)">
                 <i class="pi pi-eye text-base"></i>
               </button>
               
               <!-- Cerrar si está abierta -->
               @if (reg.status === 'OPEN') {
-                <button type="button" class="p-2 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-all" pTooltip="Cerrar Caja (Arqueo)" (click)="openCloseDialog(reg)">
+                <button type="button" class="p-2 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-all" pTooltip="Cerrar Caja (Arqueo)" tooltipPosition="top" (click)="openCloseDialog(reg)">
                   <i class="pi pi-lock text-base"></i>
                 </button>
               }
