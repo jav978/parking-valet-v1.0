@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, effect, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { MenuItem } from 'primeng/api';
@@ -29,7 +29,7 @@ import { AuthService } from '../core/services/auth.service';
                       <ul class="submenu">
                         @for (sub of child.items; track sub.label) {
                           <li>
-                            <a [routerLink]="sub.routerLink" class="menu-item" [class.active]="isActive(sub)">
+                            <a [routerLink]="sub.routerLink" [queryParams]="sub.queryParams" class="menu-item" [class.active]="isActive(sub)">
                               <i [class]="sub.icon || 'pi pi-fw pi-circle'"></i>
                               <span>{{ sub.label }}</span>
                             </a>
@@ -40,7 +40,7 @@ import { AuthService } from '../core/services/auth.service';
                   </li>
                 } @else {
                   <li>
-                    <a [routerLink]="child.routerLink" class="menu-item" [class.active]="isActive(child)">
+                    <a [routerLink]="child.routerLink" [queryParams]="child.queryParams" class="menu-item" [class.active]="isActive(child)">
                       <i [class]="child.icon || 'pi pi-fw pi-circle'"></i>
                       <span>{{ child.label }}</span>
                     </a>
@@ -67,6 +67,11 @@ export class AppMenu {
         this.currentPath = event.url as string;
       }
     });
+
+    effect(() => {
+      // Reconstruir el menú cada vez que el usuario cambia (señal reactiva)
+      this.buildMenu();
+    });
   }
 
   model: any[] = [];
@@ -79,7 +84,9 @@ export class AppMenu {
     const user = this.authService.user();
     const hasPerm = (perm: string) => {
       if (!user) return true;
-      const role = (user.role as any)?.name ? (user.role as any).name.toUpperCase() : (typeof user.role === 'string' ? user.role.toUpperCase() : '');
+      const role = (user.role as any)?.name
+        ? (user.role as any).name.toUpperCase()
+        : (typeof user.role === 'string' ? user.role.toUpperCase() : '');
       if (role === 'ADMIN' || role === 'SUPERVISOR' || role === 'CAJERO' || role.includes('ADMIN')) return true;
       return user.permissions ? user.permissions.includes(perm) : true;
     };
@@ -114,6 +121,13 @@ export class AppMenu {
           ...(hasPerm('users.list') ? [{ label: 'Usuarios', icon: 'pi pi-fw pi-users', routerLink: ['/usuarios'] }] : []),
           ...(hasPerm('roles.list') ? [{ label: 'Roles', icon: 'pi pi-fw pi-shield', routerLink: ['/roles'] }] : []),
           ...(hasPerm('settings.list') ? [{ label: 'Configuración', icon: 'pi pi-fw pi-wrench', routerLink: ['/configuracion'] }] : []),
+          ...(hasPerm('settings.list') ? [{ label: 'Licencia & Suscripción', icon: 'pi pi-fw pi-key', routerLink: ['/configuracion'], queryParams: { tab: 'licencia' } }] : []),
+        ]
+      },
+      {
+        label: 'INFORMACIÓN',
+        items: [
+          { label: 'Normativa y Términos', icon: 'pi pi-fw pi-book', routerLink: ['/normativa'] }
         ]
       }
     ];
