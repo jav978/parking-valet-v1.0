@@ -217,8 +217,8 @@ async function main() {
   // Operator: tickets entry/exit only
   await assignPermissions(operatorRole.id, [
     'auth.login', 'auth.logout', 'auth.profile',
-    'clients.list', 'clients.read',
-    'vehicles.list', 'vehicles.read',
+    'clients.list', 'clients.create', 'clients.read',
+    'vehicles.list', 'vehicles.create', 'vehicles.read',
     'parking-spots.list',
     'tickets.list', 'tickets.create', 'tickets.read', 'tickets.close', 'tickets.reprint',
     'payments.create',

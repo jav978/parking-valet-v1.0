@@ -31,7 +31,7 @@ export class ClientsController {
   constructor(private readonly clientsService: ClientsService) {}
 
   @Post()
-  @Roles(ROLES.ADMIN, ROLES.SUPERVISOR)
+  @Roles(ROLES.ADMIN, ROLES.SUPERVISOR, ROLES.CASHIER, ROLES.OPERATOR)
   @Permissions(PERMISSIONS.CLIENTS_CREATE)
   @HttpCode(HttpStatus.CREATED)
   async create(@Body() dto: CreateClientDto, @CurrentUser('sub') userId: string) {
@@ -39,21 +39,19 @@ export class ClientsController {
   }
 
   @Get()
-  @Roles(ROLES.ADMIN, ROLES.SUPERVISOR)
   @Permissions(PERMISSIONS.CLIENTS_LIST)
   async findAll(@Query() filter: ClientFilterDto) {
     return this.clientsService.findAll(filter);
   }
 
   @Get(':id')
-  @Roles(ROLES.ADMIN, ROLES.SUPERVISOR)
   @Permissions(PERMISSIONS.CLIENTS_READ)
   async findOne(@Param('id', UuidValidationPipe) id: string) {
     return this.clientsService.findOne(id);
   }
 
   @Patch(':id')
-  @Roles(ROLES.ADMIN, ROLES.SUPERVISOR)
+  @Roles(ROLES.ADMIN, ROLES.SUPERVISOR, ROLES.CASHIER)
   @Permissions(PERMISSIONS.CLIENTS_UPDATE)
   async update(
     @Param('id', UuidValidationPipe) id: string,
