@@ -30,7 +30,7 @@
       <div class="lg:col-span-3">
         <p-iconfield iconPosition="left" class="w-full">
           <p-inputicon styleClass="pi pi-search"></p-inputicon>
-          <input pInputText type="text" placeholder="🔍 Buscar por N° Ticket, Placa de Vehículo o Cédula/Documento del cliente..." [ngModel]="search()" (ngModelChange)="search.set($event); page = 1; loadTickets()" class="w-full" />
+          <input pInputText type="text" placeholder="🔍 Buscar por N° Ticket, Placa de Vehículo o Cédula/Documento del cliente..." [ngModel]="search() || ''" (ngModelChange)="search.set($event ?? ''); page = 1; loadTickets()" class="w-full" />
         </p-iconfield>
       </div>
 

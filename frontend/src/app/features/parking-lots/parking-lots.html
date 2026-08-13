@@ -64,7 +64,7 @@
     <p-iconfield>
       <p-inputicon styleClass="pi pi-search" />
       <input pInputText type="text" placeholder="Buscar por nombre, código o ciudad..."
-        [ngModel]="search()" (ngModelChange)="search.set($event); loadParkingLots()" class="w-full md:w-80" />
+        [ngModel]="search() || ''" (ngModelChange)="search.set($event ?? ''); loadParkingLots()" class="w-full md:w-80" />
     </p-iconfield>
 
     <p-select [options]="statusFilterOptions" optionLabel="label" optionValue="value" placeholder="Estado"

@@ -199,7 +199,7 @@
       <div class="lg:col-span-3">
         <p-iconfield iconPosition="left" class="w-full">
           <p-inputicon styleClass="pi pi-search"></p-inputicon>
-          <input pInputText type="text" placeholder="Buscar por nombre de caja, estacionamiento u operador..." [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)" class="w-full" />
+          <input pInputText type="text" placeholder="Buscar por nombre de caja, estacionamiento u operador..." [ngModel]="searchTerm() || ''" (ngModelChange)="searchTerm.set($event ?? '')" class="w-full" />
         </p-iconfield>
       </div>
 

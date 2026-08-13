@@ -171,8 +171,7 @@
   .p-datatable-header,
   .p-datatable-thead > tr > th,
   .p-datatable-tbody > tr,
-  .p-datatable-footer,
-  .p-paginator {
+  .p-datatable-footer {
     background: transparent;
   }
   
@@ -195,7 +194,101 @@
   }
 }
 
+/* ─── PrimeNG Paginator Component Harmonization ─────────── */
+.p-paginator {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-wrap: wrap !important;
+  gap: 0.375rem !important;
+  padding: 0.875rem 1.25rem !important;
+  border-top: 1px solid #e2e8f0 !important;
+  background-color: transparent !important;
+  color: #64748b !important;
+
+  .p-paginator-first,
+  .p-paginator-prev,
+  .p-paginator-next,
+  .p-paginator-last,
+  .p-paginator-page {
+    min-width: 2.25rem !important;
+    height: 2.25rem !important;
+    padding: 0 0.5rem !important;
+    border-radius: 0.5rem !important;
+    border: 1px solid transparent !important;
+    background: transparent !important;
+    color: #475569 !important;
+    font-weight: 600 !important;
+    font-size: 0.875rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.15s ease !important;
+    cursor: pointer !important;
+
+    &:hover:not(.p-disabled):not(.p-highlight):not(.p-paginator-page-selected) {
+      background-color: #f1f5f9 !important;
+      color: #0f172a !important;
+    }
+
+    &.p-highlight,
+    &.p-paginator-page-selected {
+      background-color: #10b981 !important;
+      color: #ffffff !important;
+      font-weight: 700 !important;
+      box-shadow: 0 1px 3px rgba(16, 185, 129, 0.3) !important;
+    }
+
+    &.p-disabled {
+      opacity: 0.4 !important;
+      cursor: not-allowed !important;
+    }
+  }
+
+  .p-select,
+  .p-dropdown {
+    height: 2.25rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    border-radius: 0.5rem !important;
+    border: 1px solid #cbd5e1 !important;
+    background-color: #ffffff !important;
+    font-size: 0.875rem !important;
+  }
+}
+
 :where(.p-dark, .dark) {
+  .p-paginator {
+    border-top-color: #334155 !important;
+    color: #94a3b8 !important;
+
+    .p-paginator-first,
+    .p-paginator-prev,
+    .p-paginator-next,
+    .p-paginator-last,
+    .p-paginator-page {
+      color: #cbd5e1 !important;
+
+      &:hover:not(.p-disabled):not(.p-highlight):not(.p-paginator-page-selected) {
+        background-color: #334155 !important;
+        color: #f8fafc !important;
+      }
+
+      &.p-highlight,
+      &.p-paginator-page-selected {
+        background-color: #10b981 !important;
+        color: #ffffff !important;
+      }
+    }
+
+    .p-select,
+    .p-dropdown {
+      background-color: #0f172a !important;
+      color: #f8fafc !important;
+      border-color: #334155 !important;
+    }
+  }
+
   .p-datatable {
     .p-datatable-thead > tr > th {
       color: #94a3b8 !important;

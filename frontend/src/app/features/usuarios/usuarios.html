@@ -25,8 +25,8 @@
         pInputText
         type="text"
         placeholder="Buscar por nombre, email..."
-        [ngModel]="search()"
-        (ngModelChange)="search.set($event); loadUsers()"
+        [ngModel]="search() || ''"
+        (ngModelChange)="search.set($event ?? ''); loadUsers()"
         class="w-full md:w-80"
       />
     </p-iconfield>
