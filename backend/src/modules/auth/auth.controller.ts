@@ -57,7 +57,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async logout(@CurrentUser() user: { sub: string; jti?: string }) {
-    await this.authService.logout(user.jti || user.sub);
+    await this.authService.logout(user.jti || '', user.sub);
     return { message: 'Logged out successfully' };
   }
 

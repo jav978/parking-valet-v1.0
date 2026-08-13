@@ -30,13 +30,18 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
 
     const user = await this.prisma.user.findUnique({
       where: { id: payload.sub },
-      select: { id: true, isActive: true },
+      select: { id: true, isActive: true, activeSessionToken: true },
     });
 
     if (!user || !user.isActive) {
       throw new UnauthorizedException('User is inactive or deleted');
     }
 
+    if (payload.sessionToken && user.activeSessionToken && payload.sessionToken !== user.activeSessionToken) {
+      throw new UnauthorizedException('SESSION_EXPIRED: Tu sesión ha sido cerrada porque se inició sesión en otro dispositivo.');
+    }
+
     return payload;
   }
 }
+

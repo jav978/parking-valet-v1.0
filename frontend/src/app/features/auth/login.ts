@@ -6,12 +6,13 @@ import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
 import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
+import { DialogModule } from 'primeng/dialog';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, FluidModule, InputTextModule, PasswordModule, ButtonModule, MessageModule],
+  imports: [ReactiveFormsModule, RouterLink, FluidModule, InputTextModule, PasswordModule, ButtonModule, MessageModule, DialogModule],
   templateUrl: './login.html',
   styleUrl: './login.scss'
 })
@@ -22,24 +23,37 @@ export class Login {
 
   loading = signal(false);
   error = signal<string | null>(null);
+  showActiveSessionDialog = signal(false);
 
   form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]]
   });
 
-  onSubmit(): void {
+  onSubmit(forceLogin = false): void {
     if (this.form.invalid) return;
 
     this.loading.set(true);
     this.error.set(null);
 
-    this.authService.login(this.form.getRawValue()).subscribe({
+    const payload = { ...this.form.getRawValue(), forceLogin };
+
+    this.authService.login(payload).subscribe({
       next: () => this.router.navigate(['/dashboard']),
       error: (err) => {
         this.loading.set(false);
-        this.error.set(err.error?.message || 'Error al iniciar sesión. Verifica tus credenciales.');
+        const errorMsg = err.error?.message || '';
+        if (err.status === 409 || errorMsg.includes('ACTIVE_SESSION_EXISTS')) {
+          this.showActiveSessionDialog.set(true);
+        } else {
+          this.error.set(errorMsg || 'Error al iniciar sesión. Verifica tus credenciales.');
+        }
       }
     });
+  }
+
+  confirmForceLogin(): void {
+    this.showActiveSessionDialog.set(false);
+    this.onSubmit(true);
   }
 }

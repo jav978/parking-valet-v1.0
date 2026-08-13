@@ -49,17 +49,32 @@ export class AuthService {
         throw new UnauthorizedException('Invalid credentials');
       }
 
+      if (user.activeSessionToken && !dto.forceLogin) {
+        throw new ConflictException('ACTIVE_SESSION_EXISTS: Existe una sesión activa para esta cuenta.');
+      }
+
+      const sessionToken = randomUUID();
       const permissions = user.role?.rolePermissions?.map((rp) => rp.permission?.code).filter(Boolean) as string[] || [];
 
       await this.prisma.user.update({
         where: { id: user.id },
-        data: { lastLoginAt: new Date() },
+        data: {
+          lastLoginAt: new Date(),
+          activeSessionToken: sessionToken,
+        },
       });
 
-      return this.generateAuthResponse(user.id, user.email, user.role?.name || 'USER', permissions, {
-        firstName: user.firstName,
-        lastName: user.lastName,
-      });
+      return this.generateAuthResponse(
+        user.id,
+        user.email,
+        user.role?.name || 'USER',
+        permissions,
+        {
+          firstName: user.firstName,
+          lastName: user.lastName,
+        },
+        sessionToken,
+      );
     } catch (error) {
       console.error('Error during auth login:', error);
       if (error instanceof HttpException) {
@@ -84,6 +99,7 @@ export class AuthService {
       const passwordHash = await bcrypt.hash(dto.password, 10);
       const roleId = await this.getDefaultRoleId();
 
+      const sessionToken = randomUUID();
       const user = await this.prisma.user.create({
         data: {
           email: dto.email,
@@ -92,6 +108,7 @@ export class AuthService {
           lastName: dto.lastName,
           phone: dto.phone,
           roleId,
+          activeSessionToken: sessionToken,
         },
         include: {
           role: {
@@ -106,10 +123,17 @@ export class AuthService {
 
       const permissions = user.role?.rolePermissions?.map((rp) => rp.permission?.code).filter(Boolean) as string[] || [];
 
-      return this.generateAuthResponse(user.id, user.email, user.role?.name || 'OPERATOR', permissions, {
-        firstName: user.firstName,
-        lastName: user.lastName,
-      });
+      return this.generateAuthResponse(
+        user.id,
+        user.email,
+        user.role?.name || 'OPERATOR',
+        permissions,
+        {
+          firstName: user.firstName,
+          lastName: user.lastName,
+        },
+        sessionToken,
+      );
     } catch (error) {
       console.error('Error during auth register:', error);
       if (error instanceof HttpException) {
@@ -160,24 +184,38 @@ export class AuthService {
 
     const permissions = user.role.rolePermissions.map((rp) => rp.permission.code);
 
-    return this.generateAuthResponse(user.id, user.email, user.role.name, permissions, {
-      firstName: user.firstName,
-      lastName: user.lastName,
-    });
+    return this.generateAuthResponse(
+      user.id,
+      user.email,
+      user.role.name,
+      permissions,
+      {
+        firstName: user.firstName,
+        lastName: user.lastName,
+      },
+      user.activeSessionToken ?? undefined,
+    );
   }
 
-  async logout(tokenJti: string): Promise<void> {
-    if (!tokenJti) return;
+  async logout(tokenJti: string, userId?: string): Promise<void> {
+    if (tokenJti) {
+      const refreshExpiration = this.configService.get<string>('JWT_REFRESH_EXPIRATION', '7d');
+      const expiresInSeconds = this.parseExpirationToSeconds(refreshExpiration);
 
-    const refreshExpiration = this.configService.get<string>('JWT_REFRESH_EXPIRATION', '7d');
-    const expiresInSeconds = this.parseExpirationToSeconds(refreshExpiration);
+      await this.prisma.blacklistedToken.create({
+        data: {
+          tokenJti,
+          expiresAt: new Date(Date.now() + expiresInSeconds * 1000),
+        },
+      }).catch(() => {});
+    }
 
-    await this.prisma.blacklistedToken.create({
-      data: {
-        tokenJti,
-        expiresAt: new Date(Date.now() + expiresInSeconds * 1000),
-      },
-    });
+    if (userId) {
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { activeSessionToken: null },
+      }).catch(() => {});
+    }
   }
 
   async changePassword(userId: string, dto: ChangePasswordDto): Promise<void> {
@@ -237,12 +275,14 @@ export class AuthService {
     role: string,
     permissions: string[],
     profile: { firstName: string; lastName: string },
+    sessionToken?: string,
   ): Promise<AuthResponse> {
     const payload: JwtPayload = {
       sub: userId,
       email,
       role,
       permissions,
+      sessionToken,
     };
 
     const jwtSecret = this.configService.get<string>('JWT_SECRET', 'super-secret-jwt-key-parking-valet-2026');

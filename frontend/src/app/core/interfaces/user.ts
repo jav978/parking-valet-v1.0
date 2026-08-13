@@ -30,6 +30,7 @@ export interface Permission {
 export interface LoginRequest {
   email: string;
   password: string;
+  forceLogin?: boolean;
 }
 
 export interface RegisterRequest {

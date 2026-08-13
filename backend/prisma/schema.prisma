@@ -189,6 +189,7 @@ model User {
   isActive     Boolean   @default(true) @map("is_active")
   roleId       String    @map("role_id") @db.Uuid
   lastLoginAt  DateTime? @map("last_login_at")
+  activeSessionToken String? @map("active_session_token")
   createdById  String?   @map("created_by") @db.Uuid
   updatedById  String?   @map("updated_by") @db.Uuid
   createdAt    DateTime  @default(now()) @map("created_at")

@@ -3,6 +3,7 @@ export interface JwtPayload {
   email: string;
   role: string;
   permissions: string[];
+  sessionToken?: string;
   jti?: string;
   iat?: number;
   exp?: number;
