@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "outputDirectory": "frontend/dist/frontend/browser",
+  "buildCommand": "cd frontend && npm install && npm run build",
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://parking-valet-v1-0.onrender.com/api/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
