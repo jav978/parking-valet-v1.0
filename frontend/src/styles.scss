@@ -4,6 +4,39 @@
 
 @plugin "tailwindcss-primeui";
 
+/* ─── Global Zero-Delay PrimeNG & Theme Variable Override ─── */
+:root {
+  --p-transition-duration: 0s !important;
+}
+
+/* Eliminate background, color, and border transition delays across PrimeNG components for 100% instant 0ms theme switching */
+.p-component,
+.p-select,
+.p-select-label,
+.p-select-dropdown,
+.p-select-overlay,
+.p-select-option,
+.p-inputtext,
+.p-inputnumber-input,
+textarea.p-inputtext,
+.p-datatable,
+.p-datatable-thead > tr > th,
+.p-datatable-tbody > tr,
+.p-paginator,
+.p-paginator-first,
+.p-paginator-prev,
+.p-paginator-next,
+.p-paginator-last,
+.p-paginator-page,
+.p-dialog,
+.p-dialog-header,
+.p-dialog-content,
+.p-dialog-footer,
+.p-checkbox-box,
+.card {
+  transition: background-color 0s, color 0s, border-color 0s, box-shadow 0s !important;
+}
+
 @layer base {
   *,
   *::before,
@@ -223,7 +256,6 @@
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    transition: all 0.15s ease !important;
     cursor: pointer !important;
 
     &:hover:not(.p-disabled):not(.p-highlight):not(.p-paginator-page-selected) {
@@ -257,6 +289,44 @@
   }
 }
 
+/* ─── Form Controls & Select Harmonization (Light Mode) ──── */
+.p-inputtext, .p-select, .p-inputnumber-input, textarea.p-inputtext {
+  background-color: #ffffff;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+}
+
+.p-select .p-select-label {
+  color: #0f172a;
+}
+
+.p-select .p-select-dropdown {
+  color: #64748b;
+}
+
+.p-select-overlay, .p-dialog {
+  background-color: #ffffff;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+}
+
+.p-dialog-header, .p-dialog-content, .p-dialog-footer {
+  background-color: #ffffff;
+  color: #0f172a;
+}
+
+.p-select-option {
+  color: #0f172a;
+
+  &:hover {
+    background-color: #f1f5f9;
+  }
+  &.p-select-option-selected {
+    background-color: #e2e8f0;
+  }
+}
+
+/* ─── Dark Mode Synchronized Overrides ───────────────────── */
 :where(.p-dark, .dark) {
   .p-paginator {
     border-top-color: #334155 !important;
@@ -312,6 +382,14 @@
     border-color: #334155 !important;
   }
 
+  .p-select .p-select-label {
+    color: #f8fafc !important;
+  }
+
+  .p-select .p-select-dropdown {
+    color: #94a3b8 !important;
+  }
+
   .p-select-overlay, .p-dialog {
     background-color: #1e293b !important;
     color: #f8fafc !important;
@@ -328,6 +406,17 @@
 
     &:hover, &.p-select-option-selected {
       background-color: #334155 !important;
+      color: #ffffff !important;
+    }
+  }
+
+  .p-checkbox-box {
+    background-color: #0f172a !important;
+    border-color: #334155 !important;
+
+    &.p-checkbox-checked {
+      background-color: #10b981 !important;
+      border-color: #10b981 !important;
     }
   }
 }
