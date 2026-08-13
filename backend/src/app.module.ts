@@ -17,6 +17,7 @@ import { CashRegistersModule } from './modules/cash-registers/cash-registers.mod
 import { PaymentsModule } from './modules/payments/payments.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { SettingsModule } from './modules/settings/settings.module';
+import { LicenseModule } from './modules/license/license.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { SettingsModule } from './modules/settings/settings.module';
     PaymentsModule,
     DashboardModule,
     SettingsModule,
+    LicenseModule,
   ],
   controllers: [],
   providers: [

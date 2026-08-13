@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable, tap, map } from 'rxjs';
 
 export interface LicenseStatusResponse {
   isSubscriptionActive: boolean;
@@ -22,13 +22,15 @@ export class LicenseService {
   licenseStatus = signal<LicenseStatusResponse | null>(null);
 
   getStatus(): Observable<LicenseStatusResponse> {
-    return this.http.get<LicenseStatusResponse>(`${this.apiUrl}/status`).pipe(
+    return this.http.get<{ success: boolean; data: LicenseStatusResponse }>(`${this.apiUrl}/status`).pipe(
+      map((res) => res.data),
       tap((status) => this.licenseStatus.set(status))
     );
   }
 
   activateLicense(licenseKey: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/activate`, { licenseKey }).pipe(
+    return this.http.post<{ success: boolean; data: any }>(`${this.apiUrl}/activate`, { licenseKey }).pipe(
+      map((res) => res.data),
       tap(() => this.getStatus().subscribe())
     );
   }
