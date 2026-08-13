@@ -72,43 +72,61 @@ export class AuthService {
   }
 
   async register(dto: RegisterDto): Promise<AuthResponse> {
-    const existingUser = await this.prisma.user.findUnique({
-      where: { email: dto.email },
-    });
+    try {
+      const existingUser = await this.prisma.user.findUnique({
+        where: { email: dto.email },
+      });
 
-    if (existingUser) {
-      throw new ConflictException('Email already registered');
-    }
+      if (existingUser) {
+        throw new ConflictException('El correo electrónico ya se encuentra registrado.');
+      }
 
-    const passwordHash = await bcrypt.hash(dto.password, 10);
-    const roleId = await this.getDefaultRoleId();
+      const passwordHash = await bcrypt.hash(dto.password, 10);
+      const roleId = await this.getDefaultRoleId();
 
-    const user = await this.prisma.user.create({
-      data: {
-        email: dto.email,
-        passwordHash,
-        firstName: dto.firstName,
-        lastName: dto.lastName,
-        phone: dto.phone,
-        roleId,
-      },
-      include: {
-        role: {
-          include: {
-            rolePermissions: {
-              include: { permission: true },
+      const user = await this.prisma.user.create({
+        data: {
+          email: dto.email,
+          passwordHash,
+          firstName: dto.firstName,
+          lastName: dto.lastName,
+          phone: dto.phone,
+          roleId,
+        },
+        include: {
+          role: {
+            include: {
+              rolePermissions: {
+                include: { permission: true },
+              },
             },
           },
         },
-      },
-    });
+      });
 
-    const permissions = user.role.rolePermissions.map((rp) => rp.permission.code);
+      const permissions = user.role?.rolePermissions?.map((rp) => rp.permission?.code).filter(Boolean) as string[] || [];
 
-    return this.generateAuthResponse(user.id, user.email, user.role.name, permissions, {
-      firstName: user.firstName,
-      lastName: user.lastName,
-    });
+      return this.generateAuthResponse(user.id, user.email, user.role?.name || 'OPERATOR', permissions, {
+        firstName: user.firstName,
+        lastName: user.lastName,
+      });
+    } catch (error) {
+      console.error('Error during auth register:', error);
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new InternalServerErrorException(
+        error instanceof Error ? `Auth register error: ${error.message}` : 'Internal server error'
+      );
+    }
+  }
+
+  async forgotPassword(email: string): Promise<{ message: string }> {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+    console.log(`[AUTH] Password recovery requested for: ${email}. User exists: ${!!user}`);
+    return {
+      message: 'Si el correo electrónico está registrado en el sistema, recibirás las instrucciones para restablecer tu contraseña.',
+    };
   }
 
   async refreshTokens(userId: string, refreshToken: string): Promise<AuthResponse> {

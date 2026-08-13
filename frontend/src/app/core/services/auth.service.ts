@@ -32,12 +32,16 @@ export class AuthService {
     );
   }
 
-  register(data: { email: string; password: string; firstName: string; lastName: string }): Observable<ApiResponse<LoginResponse>> {
+  register(data: { email: string; password: string; firstName: string; lastName: string; phone?: string }): Observable<ApiResponse<LoginResponse>> {
     return this.http.post<ApiResponse<LoginResponse>>(`${this.API_URL}/register`, data).pipe(
       tap((res) => {
         this.setSession(res.data);
       })
     );
+  }
+
+  forgotPassword(email: string): Observable<ApiResponse<{ message: string }>> {
+    return this.http.post<ApiResponse<{ message: string }>>(`${this.API_URL}/forgot-password`, { email });
   }
 
   refreshToken(): Observable<ApiResponse<LoginResponse>> {
