@@ -82,20 +82,23 @@ export class AppMenu {
 
   private buildMenu(): void {
     const user = this.authService.user();
+
     const hasPerm = (perm: string) => {
-      if (!user) return true;
-      const role = (user.role as any)?.name
-        ? (user.role as any).name.toUpperCase()
-        : (typeof user.role === 'string' ? user.role.toUpperCase() : '');
-      if (role === 'ADMIN' || role === 'SUPERVISOR' || role === 'CAJERO' || role.includes('ADMIN')) return true;
-      return user.permissions ? user.permissions.includes(perm) : true;
+      if (!user) return false;
+      const role = typeof user.role === 'string'
+        ? user.role.toUpperCase()
+        : (user.role as any)?.name?.toUpperCase() || '';
+
+      if (role === 'ADMIN' || role === 'SUPERADMIN') return true;
+
+      return Array.isArray(user.permissions) && user.permissions.includes(perm);
     };
 
-    this.model = [
+    const categories = [
       {
         label: 'PRINCIPAL',
         items: [
-          { label: 'Dashboard', icon: 'pi pi-fw pi-home', routerLink: ['/dashboard'] }
+          ...(hasPerm('dashboard.view') ? [{ label: 'Dashboard', icon: 'pi pi-fw pi-home', routerLink: ['/dashboard'] }] : [])
         ]
       },
       {
@@ -131,6 +134,9 @@ export class AppMenu {
         ]
       }
     ];
+
+    // Solo mostrar categorías que contengan al menos un elemento visible
+    this.model = categories.filter(cat => cat.items && cat.items.length > 0);
   }
 
   isActive(item: any): boolean {
