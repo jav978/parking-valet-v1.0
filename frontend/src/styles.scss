@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@custom-variant dark (&:where(.p-dark, .p-dark *));
+@custom-variant dark (&:where(.p-dark, .p-dark *, .dark, .dark *));
 @import "primeicons/primeicons.css";
 
 @plugin "tailwindcss-primeui";
@@ -25,7 +25,7 @@
     color: #0f172a;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    transition: background-color 0.2s ease, color 0.2s ease;
+    transition: background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1), color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   a {
@@ -37,6 +37,7 @@
     margin: 0;
     font-family: 'Plus Jakarta Sans', sans-serif;
     color: #0f172a;
+    transition: color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   p {
@@ -48,9 +49,13 @@
   }
 }
 
-:where(.p-dark) {
+:where(.p-dark, .dark) {
   body {
     background-color: #0b0f15 !important;
+    color: #f8fafc !important;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
     color: #f8fafc !important;
   }
 }
@@ -66,10 +71,10 @@
   border-radius: 1rem;
   margin-bottom: 1.5rem;
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
-  transition: background-color 0.2s ease, border-color 0.2s ease;
+  transition: background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-:where(.p-dark) .card {
+:where(.p-dark, .dark) .card {
   background-color: #12171f !important;
   border-color: #1e293b !important;
   box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5) !important;
@@ -78,17 +83,19 @@
 /* ─── Text utilities for theme consistency ──────────────── */
 .text-color {
   color: #0f172a;
+  transition: color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-:where(.p-dark) .text-color {
+:where(.p-dark, .dark) .text-color {
   color: #f8fafc !important;
 }
 
 .text-muted-color {
   color: #64748b;
+  transition: color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-:where(.p-dark) .text-muted-color {
+:where(.p-dark, .dark) .text-muted-color {
   color: #94a3b8 !important;
 }
 
@@ -102,6 +109,7 @@
   font-size: 0.75rem;
   font-weight: 600;
   line-height: 1;
+  transition: background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1), color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 
   &.active, &.paid, &.green {
     background: #dcfce7;
@@ -129,7 +137,7 @@
   }
 }
 
-:where(.p-dark) .status-badge {
+:where(.p-dark, .dark) .status-badge {
   &.active, &.paid, &.green {
     background: rgba(34, 197, 94, 0.2) !important;
     color: #4ade80 !important;
@@ -172,6 +180,7 @@
   .p-datatable-footer,
   .p-paginator {
     background: transparent;
+    transition: background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1), color 0.15s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   }
   
   .p-datatable-thead > tr > th {
@@ -186,7 +195,7 @@
   .p-datatable-tbody > tr {
     border-bottom: 1px solid #f1f5f9;
     color: #0f172a;
-    transition: background-color 0.15s ease;
+    transition: background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1), color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 
     &:hover {
       background: #f8fafc;
@@ -194,7 +203,7 @@
   }
 }
 
-:where(.p-dark) {
+:where(.p-dark, .dark) {
   .p-datatable {
     .p-datatable-thead > tr > th {
       color: #94a3b8 !important;
@@ -216,21 +225,25 @@
     background-color: #0f172a !important;
     color: #f8fafc !important;
     border-color: #334155 !important;
+    transition: background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1), color 0.15s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.15s cubic-bezier(0.4, 0, 0.2, 1) !important;
   }
 
   .p-select-overlay, .p-dialog {
     background-color: #1e293b !important;
     color: #f8fafc !important;
     border-color: #334155 !important;
+    transition: background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1), color 0.15s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.15s cubic-bezier(0.4, 0, 0.2, 1) !important;
   }
 
   .p-dialog-header, .p-dialog-content, .p-dialog-footer {
     background-color: #1e293b !important;
     color: #f8fafc !important;
+    transition: background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1), color 0.15s cubic-bezier(0.4, 0, 0.2, 1) !important;
   }
 
   .p-select-option {
     color: #f8fafc !important;
+    transition: background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1), color 0.15s cubic-bezier(0.4, 0, 0.2, 1) !important;
 
     &:hover, &.p-select-option-selected {
       background-color: #334155 !important;
@@ -257,11 +270,11 @@
   background: #94a3b8;
 }
 
-:where(.p-dark) ::-webkit-scrollbar-thumb {
+:where(.p-dark, .dark) ::-webkit-scrollbar-thumb {
   background: #475569;
 }
 
-:where(.p-dark) ::-webkit-scrollbar-thumb:hover {
+:where(.p-dark, .dark) ::-webkit-scrollbar-thumb:hover {
   background: #64748b;
 }
 

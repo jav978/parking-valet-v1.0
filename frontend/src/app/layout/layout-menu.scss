@@ -10,6 +10,7 @@
     color: #64748b;
     text-transform: uppercase;
     letter-spacing: 0.06em;
+    transition: color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   > li > ul {
@@ -26,7 +27,7 @@
     color: #475569;
     border-radius: 0;
     cursor: pointer;
-    transition: background 0.15s, color 0.15s;
+    transition: background 0.15s cubic-bezier(0.4, 0, 0.2, 1), color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
     text-decoration: none;
     font-size: 0.875rem;
     font-weight: 500;
@@ -37,14 +38,14 @@
       width: 1.25rem;
       text-align: center;
       color: #94a3b8;
-      transition: color 0.15s;
+      transition: color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .submenu-chevron {
       margin-left: auto;
       font-size: 0.75rem;
       color: #94a3b8;
-      transition: transform 0.2s, color 0.15s;
+      transition: transform 0.2s ease, color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 
       &.rotated {
         transform: rotate(180deg);
@@ -102,10 +103,11 @@
     height: 1px;
     background: #e2e8f0;
     margin: 0.5rem 1.25rem;
+    transition: background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 
-:where(.p-dark) .layout-menu {
+:where(.p-dark, .dark) .layout-menu {
   .menu-category {
     color: #64748b !important;
   }
