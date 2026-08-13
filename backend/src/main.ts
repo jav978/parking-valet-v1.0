@@ -16,13 +16,13 @@ async function bootstrap(): Promise<void> {
 
   const configService = app.get(ConfigService);
   const appPrefix = configService.get<string>('APP_PREFIX', 'api');
-  const appPort = configService.get<number>('APP_PORT', 3000);
-  const corsOrigins = configService.get<string>('CORS_ORIGINS', 'http://localhost:4200');
+  const appPort = process.env.PORT ? parseInt(process.env.PORT, 10) : configService.get<number>('APP_PORT', 3000);
+  const corsOrigins = configService.get<string>('CORS_ORIGINS', '*');
 
   app.setGlobalPrefix(appPrefix);
 
   app.enableCors({
-    origin: corsOrigins.split(',').map((o) => o.trim()),
+    origin: corsOrigins === '*' ? '*' : corsOrigins.split(',').map((o) => o.trim()),
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     credentials: true,
   });
@@ -54,8 +54,8 @@ async function bootstrap(): Promise<void> {
     new AllExceptionsFilter(),
   );
 
-  await app.listen(appPort);
-  console.log(`🚀 Parking Management API running on http://localhost:${appPort}/${appPrefix}`);
+  await app.listen(appPort, '0.0.0.0');
+  console.log(`🚀 Parking Management API running on port ${appPort} with prefix /${appPrefix}`);
 }
 
 bootstrap();

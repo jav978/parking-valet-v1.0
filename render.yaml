@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: parking-valet-backend
+    runtime: node
+    region: oregon # o frankfurt, según preferencia
+    plan: free # o starter / standard
+    rootDir: backend
+    buildCommand: npm install && npx prisma generate && npm run build
+    startCommand: npx prisma migrate deploy && npm run start:prod
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: APP_PREFIX
+        value: api
+      - key: DATABASE_URL
+        fromDatabase:
+          name: parking-valet-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: JWT_EXPIRATION
+        value: 15m
+      - key: JWT_REFRESH_EXPIRATION
+        value: 7d
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: ENCRYPTION_KEY
+        value: "32-character-key-parking-valet!"
+
+databases:
+  - name: parking-valet-db
+    databaseName: parking_valet
+    user: parking_user
+    plan: free # o starter
