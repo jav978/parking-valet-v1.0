@@ -12,6 +12,7 @@ import { MessageService } from 'primeng/api';
 import { catchError, of } from 'rxjs';
 
 import { ReportsService, ReportFilter } from '../../core/services/reports.service';
+import { ReportExportService } from '../../core/services/report-export.service';
 import { ParkingLotService } from '../../core/services/parking-lot.service';
 import { ParkingLot } from '../../core/interfaces/parking-lot';
 
@@ -38,6 +39,7 @@ import { ParkingLot } from '../../core/interfaces/parking-lot';
 export class Reportes implements OnInit {
   protected Math = Math;
   private reportsService = inject(ReportsService);
+  private exportService = inject(ReportExportService);
   private parkingLotService = inject(ParkingLotService);
   private toast = inject(MessageService);
 
@@ -158,17 +160,93 @@ export class Reportes implements OnInit {
       });
   }
 
+  getActiveTabTitle(): string {
+    const titles: Record<string, string> = {
+      revenue: 'Ingresos y Recaudación',
+      vehicles: 'Flujo de Vehículos',
+      clients: 'Clientes y Abonados',
+      operators: 'Rendimiento de Operadores',
+      occupancy: 'Ocupación de Estacionamiento',
+    };
+    return titles[this.activeTab()] || 'Reporte';
+  }
+
+  getActiveTabData(): any {
+    const tab = this.activeTab();
+    if (tab === 'revenue') return this.revenueData();
+    if (tab === 'vehicles') return this.vehiclesData();
+    if (tab === 'clients') return this.clientsData();
+    if (tab === 'operators') return this.operatorsData();
+    if (tab === 'occupancy') return this.occupancyData();
+    return null;
+  }
+
+  getSelectedLotName(): string {
+    const lotId = this.selectedLotId();
+    if (!lotId) return 'Todos los Estacionamientos';
+    const lot = this.parkingLots().find((l) => l.id === lotId);
+    return lot ? lot.name : 'Estacionamiento';
+  }
+
+  exportPdf(): void {
+    const data = this.getActiveTabData();
+    if (!data) {
+      this.toast.add({ severity: 'warn', summary: 'Sin datos', detail: 'No hay información para exportar en este reporte.' });
+      return;
+    }
+
+    const filterInfo = {
+      startDate: this.startDateStr(),
+      endDate: this.endDateStr(),
+      lotName: this.getSelectedLotName(),
+      groupBy: this.groupByOption(),
+    };
+
+    try {
+      this.exportService.exportPdf(this.activeTab(), data, filterInfo);
+      this.toast.add({ severity: 'success', summary: 'PDF Generado', detail: 'Reporte en PDF descargado con membrete institucional.' });
+    } catch (e: any) {
+      this.toast.add({ severity: 'error', summary: 'Error PDF', detail: 'No se pudo generar el archivo PDF: ' + (e?.message || e) });
+    }
+  }
+
+  exportExcel(): void {
+    const data = this.getActiveTabData();
+    if (!data) {
+      this.toast.add({ severity: 'warn', summary: 'Sin datos', detail: 'No hay información para exportar en este reporte.' });
+      return;
+    }
+
+    const filterInfo = {
+      startDate: this.startDateStr(),
+      endDate: this.endDateStr(),
+      lotName: this.getSelectedLotName(),
+    };
+
+    try {
+      this.exportService.exportExcel(this.activeTab(), data, filterInfo);
+      this.toast.add({ severity: 'success', summary: 'Excel Generado', detail: 'Reporte en formato Excel (.xlsx) descargado exitosamente.' });
+    } catch (e: any) {
+      this.toast.add({ severity: 'error', summary: 'Error Excel', detail: 'No se pudo generar el archivo Excel.' });
+    }
+  }
+
   exportCsv(): void {
     const filter = this.getFilter();
     const currentTab = this.activeTab();
-    this.reportsService.exportCsv(filter, currentTab).subscribe((blob) => {
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `reporte_${currentTab}_${Date.now()}.csv`;
-      a.click();
-      window.URL.revokeObjectURL(url);
-      this.toast.add({ severity: 'success', summary: 'Exportación Lista', detail: 'Reporte CSV generado exitosamente' });
+    this.reportsService.exportCsv(filter, currentTab).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `reporte_${currentTab}_${Date.now()}.csv`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        this.toast.add({ severity: 'success', summary: 'Exportación Lista', detail: 'Reporte CSV generado exitosamente' });
+      },
+      error: () => {
+        this.toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo exportar el reporte CSV.' });
+      },
     });
   }
 

@@ -19,18 +19,32 @@
     </div>
 
     <!-- Actions -->
-    <div class="flex items-center gap-3 flex-wrap">
+    <div class="flex items-center gap-2.5 flex-wrap">
+      <button 
+        type="button"
+        (click)="exportPdf()" 
+        class="flex items-center gap-2 px-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/30 rounded-xl transition-all font-semibold text-sm shadow-sm cursor-pointer">
+        <i class="pi pi-file-pdf text-lg"></i>
+        <span>Exportar PDF</span>
+      </button>
+      <button 
+        type="button"
+        (click)="exportExcel()" 
+        class="flex items-center gap-2 px-4 py-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 rounded-xl transition-all font-semibold text-sm shadow-sm cursor-pointer">
+        <i class="pi pi-file-excel text-lg"></i>
+        <span>Exportar Excel (.xlsx)</span>
+      </button>
       <button 
         type="button"
         (click)="exportCsv()" 
-        class="flex items-center gap-2 px-4 py-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 rounded-xl transition-all font-medium text-sm shadow-sm">
-        <i class="pi pi-download"></i>
-        <span>Exportar CSV</span>
+        class="flex items-center gap-2 px-4 py-2.5 bg-surface-100 hover:bg-surface-200 dark:bg-surface-800 dark:hover:bg-surface-700 text-surface-700 dark:text-surface-200 border border-surface-300 dark:border-surface-700 rounded-xl transition-all font-medium text-sm cursor-pointer">
+        <i class="pi pi-file"></i>
+        <span>CSV</span>
       </button>
       <button 
         type="button"
         (click)="printReport()" 
-        class="flex items-center gap-2 px-4 py-2.5 bg-surface-100 hover:bg-surface-200 dark:bg-surface-800 dark:hover:bg-surface-700 text-surface-700 dark:text-surface-200 border border-surface-300 dark:border-surface-700 rounded-xl transition-all font-medium text-sm">
+        class="flex items-center gap-2 px-4 py-2.5 bg-surface-100 hover:bg-surface-200 dark:bg-surface-800 dark:hover:bg-surface-700 text-surface-700 dark:text-surface-200 border border-surface-300 dark:border-surface-700 rounded-xl transition-all font-medium text-sm cursor-pointer">
         <i class="pi pi-print"></i>
         <span>Imprimir</span>
       </button>
