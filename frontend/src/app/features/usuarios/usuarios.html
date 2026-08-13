@@ -14,7 +14,9 @@
 </div>
 
 @if (error()) {
-  <p-message severity="error" styleClass="mb-3 w-full">{{ error() }}</p-message>
+  <div class="mb-5 w-full">
+    <p-message severity="error" styleClass="w-full">{{ error() }}</p-message>
+  </div>
 }
 
 <div class="card">

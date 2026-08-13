@@ -6,11 +6,15 @@
     <h1 class="text-2xl font-bold text-color">Clientes</h1>
     <p class="text-sm text-muted-color">Gestiona la información, tipo de cliente y vehículos asociados.</p>
   </div>
-  <p-button label="Nuevo Cliente" icon="pi pi-plus" (click)="openCreateDialog()" />
+  @if (canCreate()) {
+    <p-button label="Nuevo Cliente" icon="pi pi-plus" (click)="openCreateDialog()" />
+  }
 </div>
 
 @if (error()) {
-  <p-message severity="error" styleClass="mb-3 w-full">{{ error() }}</p-message>
+  <div class="mb-5 w-full">
+    <p-message severity="error" styleClass="w-full">{{ error() }}</p-message>
+  </div>
 }
 
 <div class="card">
@@ -90,12 +94,16 @@
             <button type="button" class="p-2 rounded-lg text-cyan-600 dark:text-cyan-400 hover:bg-cyan-500/10 transition-all" pTooltip="Ver Vehículos del Cliente" tooltipPosition="top" (click)="openDetailDialog(client)">
               <i class="pi pi-car text-base"></i>
             </button>
-            <button type="button" class="p-2 rounded-lg text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 transition-all" pTooltip="Editar Cliente" tooltipPosition="top" (click)="openEditDialog(client)">
-              <i class="pi pi-pencil text-base"></i>
-            </button>
-            <button type="button" class="p-2 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-all" pTooltip="Eliminar Cliente" tooltipPosition="top" (click)="confirmDelete(client)">
-              <i class="pi pi-trash text-base"></i>
-            </button>
+            @if (canEdit()) {
+              <button type="button" class="p-2 rounded-lg text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 transition-all" pTooltip="Editar Cliente" tooltipPosition="top" (click)="openEditDialog(client)">
+                <i class="pi pi-pencil text-base"></i>
+              </button>
+            }
+            @if (canDelete()) {
+              <button type="button" class="p-2 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-all" pTooltip="Eliminar Cliente" tooltipPosition="top" (click)="confirmDelete(client)">
+                <i class="pi pi-trash text-base"></i>
+              </button>
+            }
           </div>
         </td>
       </tr>

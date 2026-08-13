@@ -48,7 +48,9 @@
   </div>
 
   @if (error()) {
-    <p-message severity="error">{{ error() }}</p-message>
+    <div class="mb-5 w-full">
+      <p-message severity="error" styleClass="w-full">{{ error() }}</p-message>
+    </div>
   }
 
   <!-- ─── TICKETS DATA TABLE ─────────────────────────────────────── -->

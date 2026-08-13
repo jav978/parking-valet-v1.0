@@ -20,12 +20,13 @@ import { ClientService } from '../../core/services/client.service';
 import { Client, CreateClientRequest, UpdateClientRequest, ClientFilterParams } from '../../core/interfaces/client';
 import { VehicleService } from '../../core/services/vehicle.service';
 import { Vehicle, CreateVehicleRequest } from '../../core/interfaces/vehicle';
+import { AuthService } from '../../core/services/auth.service';
 import { catchError, of } from 'rxjs';
 
 @Component({
   selector: 'app-clients',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule, FormsModule, TableModule, DialogModule, ButtonModule,
     InputTextModule, InputNumberModule, SelectModule, IconFieldModule,
@@ -39,10 +40,14 @@ import { catchError, of } from 'rxjs';
 export class Clients {
   private clientService = inject(ClientService);
   private vehicleService = inject(VehicleService);
+  private authService = inject(AuthService);
   private toast = inject(MessageService);
   private confirmationService = inject(ConfirmationService);
   private cdr = inject(ChangeDetectorRef);
 
+  canEdit = () => this.authService.hasPermission('clients.update');
+  canDelete = () => this.authService.hasPermission('clients.delete');
+  canCreate = () => this.authService.hasPermission('clients.create');
 
   clients = signal<Client[]>([]);
   loading = signal(false);

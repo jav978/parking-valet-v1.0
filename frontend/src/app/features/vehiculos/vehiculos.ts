@@ -17,6 +17,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { MessageService, ConfirmationService, SharedModule } from 'primeng/api';
 import { VehicleService } from '../../core/services/vehicle.service';
 import { Vehicle, CreateVehicleRequest, UpdateVehicleRequest, VehicleFilterParams } from '../../core/interfaces/vehicle';
+import { AuthService } from '../../core/services/auth.service';
 import { catchError, of } from 'rxjs';
 
 @Component({
@@ -35,9 +36,14 @@ import { catchError, of } from 'rxjs';
 })
 export class Vehiculos {
   private vehicleService = inject(VehicleService);
+  private authService = inject(AuthService);
   private toast = inject(MessageService);
   private confirmationService = inject(ConfirmationService);
   private cdr = inject(ChangeDetectorRef);
+
+  canEdit = () => this.authService.hasPermission('vehicles.update');
+  canDelete = () => this.authService.hasPermission('vehicles.delete');
+  canCreate = () => this.authService.hasPermission('vehicles.create');
 
   vehicles = signal<Vehicle[]>([]);
   loading = signal(false);

@@ -100,6 +100,12 @@ export class AuthService {
   }
 
   hasPermission(permission: string): boolean {
+    const u = this.userSignal();
+    if (!u) return false;
+    const role = typeof u.role === 'string'
+      ? u.role.toUpperCase()
+      : (u.role as any)?.name?.toUpperCase() || '';
+    if (role === 'ADMIN' || role === 'SUPERADMIN') return true;
     return this.userPermissions().includes(permission);
   }
 

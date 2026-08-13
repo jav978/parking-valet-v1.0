@@ -6,11 +6,15 @@
     <h1 class="text-2xl font-bold text-color">Vehículos</h1>
     <p class="text-sm text-muted-color">Registra y gestiona los vehículos asociados a clientes.</p>
   </div>
-  <p-button label="Nuevo Vehículo" icon="pi pi-plus" (click)="openCreateDialog()" />
+  @if (canCreate()) {
+    <p-button label="Nuevo Vehículo" icon="pi pi-plus" (click)="openCreateDialog()" />
+  }
 </div>
 
 @if (error()) {
-  <p-message severity="error" styleClass="mb-3 w-full">{{ error() }}</p-message>
+  <div class="mb-5 w-full">
+    <p-message severity="error" styleClass="w-full">{{ error() }}</p-message>
+  </div>
 }
 
 <div class="flex gap-3 mb-2 text-sm">
@@ -91,12 +95,16 @@
         <td class="text-right">
           <span class="p-column-title font-bold md:hidden">Acciones: </span>
           <div class="flex items-center justify-end gap-1">
-            <button type="button" class="p-2 rounded-lg text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 transition-all" pTooltip="Editar Vehículo" tooltipPosition="top" (click)="openEditDialog(vehicle)">
-              <i class="pi pi-pencil text-base"></i>
-            </button>
-            <button type="button" class="p-2 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-all" pTooltip="Eliminar Vehículo" tooltipPosition="top" (click)="confirmDelete(vehicle)">
-              <i class="pi pi-trash text-base"></i>
-            </button>
+            @if (canEdit()) {
+              <button type="button" class="p-2 rounded-lg text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 transition-all" pTooltip="Editar Vehículo" tooltipPosition="top" (click)="openEditDialog(vehicle)">
+                <i class="pi pi-pencil text-base"></i>
+              </button>
+            }
+            @if (canDelete()) {
+              <button type="button" class="p-2 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-all" pTooltip="Eliminar Vehículo" tooltipPosition="top" (click)="confirmDelete(vehicle)">
+                <i class="pi pi-trash text-base"></i>
+              </button>
+            }
           </div>
         </td>
       </tr>
