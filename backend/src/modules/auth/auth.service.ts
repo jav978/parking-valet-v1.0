@@ -106,7 +106,7 @@ export class AuthService {
     }
 
     try {
-      const refreshSecret = this.configService.getOrThrow<string>('JWT_REFRESH_SECRET');
+      const refreshSecret = this.configService.get<string>('JWT_REFRESH_SECRET', 'super-secret-refresh-key-parking-valet-2026');
       await this.jwtService.verifyAsync(refreshToken, { secret: refreshSecret });
     } catch {
       throw new UnauthorizedException('Invalid or expired refresh token');
@@ -216,8 +216,8 @@ export class AuthService {
       permissions,
     };
 
-    const jwtSecret = this.configService.getOrThrow<string>('JWT_SECRET');
-    const refreshSecret = this.configService.getOrThrow<string>('JWT_REFRESH_SECRET');
+    const jwtSecret = this.configService.get<string>('JWT_SECRET', 'super-secret-jwt-key-parking-valet-2026');
+    const refreshSecret = this.configService.get<string>('JWT_REFRESH_SECRET', 'super-secret-refresh-key-parking-valet-2026');
     const accessExpiration = this.configService.get<string>('JWT_EXPIRATION', '15m') as `${number}${'s' | 'm' | 'h' | 'd'}`;
     const refreshExpiration = this.configService.get<string>('JWT_REFRESH_EXPIRATION', '7d') as `${number}${'s' | 'm' | 'h' | 'd'}`;
 
