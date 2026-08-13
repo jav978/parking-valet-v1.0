@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@custom-variant dark (&:where(.p-dark, .p-dark *, .dark, .dark *));
+@variant dark (&:where(.dark, .dark *, .p-dark, .p-dark *));
 @import "primeicons/primeicons.css";
 
 @plugin "tailwindcss-primeui";
@@ -25,7 +25,6 @@
     color: #0f172a;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    transition: background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1), color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   a {
@@ -37,7 +36,6 @@
     margin: 0;
     font-family: 'Plus Jakarta Sans', sans-serif;
     color: #0f172a;
-    transition: color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   p {
@@ -71,7 +69,6 @@
   border-radius: 1rem;
   margin-bottom: 1.5rem;
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
-  transition: background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 :where(.p-dark, .dark) .card {
@@ -83,7 +80,6 @@
 /* ─── Text utilities for theme consistency ──────────────── */
 .text-color {
   color: #0f172a;
-  transition: color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 :where(.p-dark, .dark) .text-color {
@@ -92,7 +88,6 @@
 
 .text-muted-color {
   color: #64748b;
-  transition: color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 :where(.p-dark, .dark) .text-muted-color {
@@ -109,7 +104,6 @@
   font-size: 0.75rem;
   font-weight: 600;
   line-height: 1;
-  transition: background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1), color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 
   &.active, &.paid, &.green {
     background: #dcfce7;
@@ -180,7 +174,6 @@
   .p-datatable-footer,
   .p-paginator {
     background: transparent;
-    transition: background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1), color 0.15s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   }
   
   .p-datatable-thead > tr > th {
@@ -195,7 +188,6 @@
   .p-datatable-tbody > tr {
     border-bottom: 1px solid #f1f5f9;
     color: #0f172a;
-    transition: background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1), color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 
     &:hover {
       background: #f8fafc;
@@ -225,25 +217,21 @@
     background-color: #0f172a !important;
     color: #f8fafc !important;
     border-color: #334155 !important;
-    transition: background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1), color 0.15s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.15s cubic-bezier(0.4, 0, 0.2, 1) !important;
   }
 
   .p-select-overlay, .p-dialog {
     background-color: #1e293b !important;
     color: #f8fafc !important;
     border-color: #334155 !important;
-    transition: background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1), color 0.15s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.15s cubic-bezier(0.4, 0, 0.2, 1) !important;
   }
 
   .p-dialog-header, .p-dialog-content, .p-dialog-footer {
     background-color: #1e293b !important;
     color: #f8fafc !important;
-    transition: background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1), color 0.15s cubic-bezier(0.4, 0, 0.2, 1) !important;
   }
 
   .p-select-option {
     color: #f8fafc !important;
-    transition: background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1), color 0.15s cubic-bezier(0.4, 0, 0.2, 1) !important;
 
     &:hover, &.p-select-option-selected {
       background-color: #334155 !important;
