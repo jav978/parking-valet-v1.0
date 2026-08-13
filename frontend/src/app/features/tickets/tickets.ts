@@ -23,6 +23,7 @@ import { Ticket, CreateTicketRequest, CloseTicketRequest, TicketFilterParams } f
 import { ApiResponse } from '../../core/interfaces/api-response';
 import { AuthService } from '../../core/services/auth.service';
 import { ExchangeRateService } from '../../core/services/exchange-rate.service';
+import { ReportExportService } from '../../core/services/report-export.service';
 import { CameraCapture } from '../../shared/components/camera-capture/camera-capture';
 
 interface ParkingLot { id: string; name: string; code: string; taxPercentage?: number; }
@@ -48,6 +49,7 @@ export class Tickets {
   private toast = inject(MessageService);
   private authService = inject(AuthService);
   public exchangeRateService = inject(ExchangeRateService);
+  private reportExportService = inject(ReportExportService);
   private api = '/api/tickets';
 
   canCreateTicket = computed(() => this.authService.hasPermission('tickets.create') || ['ADMIN', 'SUPERVISOR', 'CASHIER', 'OPERATOR'].includes(this.authService.user()?.role ?? ''));
@@ -358,5 +360,14 @@ export class Tickets {
   paymentLabel(status: string): string {
     const map: Record<string, string> = { PENDING: 'Pendiente', PAID: 'Pagado', REFUNDED: 'Reembolsado' };
     return map[status] || status;
+  }
+
+  exportInvoice(ticket: Ticket): void {
+    try {
+      this.reportExportService.exportTicketInvoice(ticket);
+      this.toast.add({ severity: 'success', summary: 'Factura PDF', detail: 'Comprobante de factura descargado exitosamente.' });
+    } catch (e: any) {
+      this.toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo generar la factura PDF.' });
+    }
   }
 }

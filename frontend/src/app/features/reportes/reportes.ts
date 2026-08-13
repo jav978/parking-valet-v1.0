@@ -204,9 +204,30 @@ export class Reportes implements OnInit {
 
     try {
       this.exportService.exportPdf(this.activeTab(), data, filterInfo);
-      this.toast.add({ severity: 'success', summary: 'PDF Generado', detail: 'Reporte en PDF descargado con membrete institucional.' });
+      this.toast.add({ severity: 'success', summary: 'PDF Generado', detail: 'Reporte en PDF descargado con membrete institucional y QR.' });
     } catch (e: any) {
       this.toast.add({ severity: 'error', summary: 'Error PDF', detail: 'No se pudo generar el archivo PDF: ' + (e?.message || e) });
+    }
+  }
+
+  exportWord(): void {
+    const data = this.getActiveTabData();
+    if (!data) {
+      this.toast.add({ severity: 'warn', summary: 'Sin datos', detail: 'No hay información para exportar en este reporte.' });
+      return;
+    }
+
+    const filterInfo = {
+      startDate: this.startDateStr(),
+      endDate: this.endDateStr(),
+      lotName: this.getSelectedLotName(),
+    };
+
+    try {
+      this.exportService.exportDocx(this.activeTab(), data, filterInfo);
+      this.toast.add({ severity: 'success', summary: 'Word Generado', detail: 'Reporte en formato Word (.docx) descargado exitosamente.' });
+    } catch (e: any) {
+      this.toast.add({ severity: 'error', summary: 'Error Word', detail: 'No se pudo generar el archivo Word.' });
     }
   }
 

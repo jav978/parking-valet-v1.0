@@ -178,6 +178,11 @@
           <!-- Acciones -->
           <td class="text-right">
             <div class="flex items-center justify-end gap-1">
+              <!-- Factura / Comprobante PDF con Membrete y QR -->
+              <button type="button" class="p-2 rounded-lg text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 hover:bg-emerald-500/10 transition-all" pTooltip="Factura / Comprobante PDF" tooltipPosition="top" (click)="exportInvoice(ticket)">
+                <i class="pi pi-file-pdf text-base"></i>
+              </button>
+
               <!-- Imprimir Ticket Térmico con QR -->
               <button type="button" class="p-2 rounded-lg text-surface-600 dark:text-surface-300 hover:text-primary-600 hover:bg-surface-100 dark:hover:bg-surface-800 transition-all" pTooltip="Imprimir Ticket Térmico" tooltipPosition="top" (click)="printTicket(ticket)">
                 <i class="pi pi-print text-base"></i>

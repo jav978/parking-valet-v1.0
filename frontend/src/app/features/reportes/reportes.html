@@ -29,6 +29,13 @@
       </button>
       <button 
         type="button"
+        (click)="exportWord()" 
+        class="flex items-center gap-2 px-4 py-2.5 bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30 rounded-xl transition-all font-semibold text-sm shadow-sm cursor-pointer">
+        <i class="pi pi-file-word text-lg"></i>
+        <span>Exportar Word (.docx)</span>
+      </button>
+      <button 
+        type="button"
         (click)="exportExcel()" 
         class="flex items-center gap-2 px-4 py-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 rounded-xl transition-all font-semibold text-sm shadow-sm cursor-pointer">
         <i class="pi pi-file-excel text-lg"></i>
