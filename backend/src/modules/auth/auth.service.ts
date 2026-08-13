@@ -1,6 +1,7 @@
 import { randomUUID } from 'crypto';
 import {
   Injectable,
+  HttpException,
   UnauthorizedException,
   ConflictException,
   InternalServerErrorException,
@@ -25,39 +26,49 @@ export class AuthService {
   ) {}
 
   async login(dto: LoginDto): Promise<AuthResponse> {
-    const user = await this.prisma.user.findUnique({
-      where: { email: dto.email },
-      include: {
-        role: {
-          include: {
-            rolePermissions: {
-              include: { permission: true },
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { email: dto.email },
+        include: {
+          role: {
+            include: {
+              rolePermissions: {
+                include: { permission: true },
+              },
             },
           },
         },
-      },
-    });
+      });
 
-    if (!user || !user.isActive || user.deletedAt) {
-      throw new UnauthorizedException('Invalid credentials');
+      if (!user || !user.isActive || user.deletedAt) {
+        throw new UnauthorizedException('Invalid credentials');
+      }
+
+      const isPasswordValid = await bcrypt.compare(dto.password, user.passwordHash);
+      if (!isPasswordValid) {
+        throw new UnauthorizedException('Invalid credentials');
+      }
+
+      const permissions = user.role?.rolePermissions?.map((rp) => rp.permission?.code).filter(Boolean) as string[] || [];
+
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { lastLoginAt: new Date() },
+      });
+
+      return this.generateAuthResponse(user.id, user.email, user.role?.name || 'USER', permissions, {
+        firstName: user.firstName,
+        lastName: user.lastName,
+      });
+    } catch (error) {
+      console.error('Error during auth login:', error);
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new InternalServerErrorException(
+        error instanceof Error ? `Auth login error: ${error.message}` : 'Internal server error'
+      );
     }
-
-    const isPasswordValid = await bcrypt.compare(dto.password, user.passwordHash);
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
-    const permissions = user.role.rolePermissions.map((rp) => rp.permission.code);
-
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: { lastLoginAt: new Date() },
-    });
-
-    return this.generateAuthResponse(user.id, user.email, user.role.name, permissions, {
-      firstName: user.firstName,
-      lastName: user.lastName,
-    });
   }
 
   async register(dto: RegisterDto): Promise<AuthResponse> {
