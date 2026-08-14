@@ -6,13 +6,13 @@
   overflow-x: hidden;
   transition: background-color 0.3s ease, color 0.3s ease;
 
-  /* ─── Modo Claro (Light Mode) ──────────────────────────────── */
+  /* ─── Modo Claro (Light Mode Overrides) ────────────────────── */
   &.light-mode {
-    background-color: #f1f5f9;
+    background-color: #f8fafc;
     color: #0f172a;
 
     .glass-nav {
-      background: rgba(255, 255, 255, 0.88);
+      background: rgba(255, 255, 255, 0.92);
       border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 
       a {
@@ -27,19 +27,19 @@
     }
 
     .glass-card {
-      background: rgba(255, 255, 255, 0.85);
-      border: 1px solid rgba(0, 0, 0, 0.08);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
     }
 
     .mockup-window {
       background: #ffffff;
       border: 1px solid #cbd5e1;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
     }
 
     .mockup-header {
-      background: #f8fafc;
+      background: #f1f5f9;
       border-bottom: 1px solid #e2e8f0;
 
       .text-slate-400 {
@@ -47,16 +47,28 @@
       }
     }
 
-    .text-white {
+    /* Override all text colors for Light Mode */
+    .text-white, h1, h2, h3, h4, h5, h6 {
       color: #0f172a !important;
     }
 
-    .text-slate-300, .text-slate-400 {
-      color: #475569 !important;
+    .text-slate-200, .text-slate-300, .text-slate-400, span, p, li {
+      color: #334155 !important;
     }
 
-    .border-slate-800, .border-slate-800\/60, .border-slate-800\/80 {
-      border-color: #cbd5e1 !important;
+    strong {
+      color: #0f172a !important;
+    }
+
+    /* Section-specific light overrides */
+    .bg-red-950\/10 {
+      background-color: #fef2f2 !important;
+      border-color: #fecaca !important;
+    }
+
+    .bg-emerald-950\/20 {
+      background-color: #ecfdf5 !important;
+      border-color: #a7f3d0 !important;
     }
 
     .bg-slate-900, .bg-slate-900\/90, .bg-slate-800\/70, .bg-slate-800\/80 {
@@ -64,10 +76,37 @@
       border-color: #e2e8f0 !important;
     }
 
+    .bg-gradient-to-r.from-emerald-950\/80 {
+      background: linear-gradient(135deg, #ecfdf5 0%, #ffffff 50%, #f0fdf4 100%) !important;
+      border-color: #a7f3d0 !important;
+    }
+
+    .border-slate-800, .border-slate-800\/60, .border-slate-800\/80 {
+      border-color: #e2e8f0 !important;
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #059669 0%, #0d9488 50%, #2563eb 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
     .feature-card {
       &:hover {
         background-color: #ffffff;
-        box-shadow: 0 15px 30px rgba(16, 185, 129, 0.12);
+        box-shadow: 0 15px 30px rgba(16, 185, 129, 0.15);
+      }
+    }
+
+    .floating-scroll-top {
+      background: #ffffff;
+      color: #0f172a;
+      border: 1px solid #cbd5e1;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+
+      &:hover {
+        background: #10b981;
+        color: #ffffff;
       }
     }
   }
@@ -154,15 +193,15 @@
   bottom: 1.5rem;
   right: 1.5rem;
   z-index: 99;
-  width: 56px;
-  height: 56px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.75rem;
+  font-size: 1.65rem;
   box-shadow: 0 10px 25px rgba(37, 211, 102, 0.4);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
@@ -175,8 +214,8 @@
 
 .floating-scroll-top {
   position: fixed;
-  bottom: 5.5rem;
-  right: 1.5rem;
+  bottom: 5.25rem;
+  right: 1.6rem;
   z-index: 98;
   width: 44px;
   height: 44px;
