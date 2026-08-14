@@ -6,6 +6,20 @@
   overflow-x: hidden;
   transition: background-color 0.3s ease, color 0.3s ease;
 
+  /* ─── Shared Section Badge Styling ───────────────────────────── */
+  .section-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.85rem;
+    border-radius: 9999px;
+    background-color: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: #34d399;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+
   /* ─── Modo Oscuro (Dark Mode Defaults) ───────────────────────── */
   .hero-title, .section-title, .feature-title, .cta-banner-title {
     color: #ffffff;
@@ -17,6 +31,25 @@
 
   .faq-question {
     color: #ffffff;
+  }
+
+  .nav-theme-toggle {
+    background-color: rgba(30, 41, 59, 0.8);
+    border: 1px solid #334155;
+    color: #f59e0b;
+    &:hover {
+      background-color: #334155;
+    }
+  }
+
+  .nav-login-btn {
+    background-color: rgba(30, 41, 59, 0.8);
+    border: 1px solid #334155;
+    color: #ffffff;
+    &:hover {
+      background-color: #334155;
+      border-color: #475569;
+    }
   }
 
   .btn-secondary-hero {
@@ -73,10 +106,51 @@
     }
   }
 
+  /* ROI Dark Mode Defaults */
+  .roi-val {
+    color: #34d399;
+  }
+
+  .roi-result-card {
+    background: linear-gradient(145deg, rgba(15, 23, 42, 0.95) 0%, rgba(6, 78, 59, 0.4) 100%);
+    border: 1px solid rgba(16, 185, 129, 0.4);
+
+    .roi-result-label {
+      color: #94a3b8;
+    }
+    .roi-result-amount {
+      background: linear-gradient(135deg, #10b981 0%, #34d399 50%, #60a5fa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .roi-divider {
+      border-color: #1e293b;
+    }
+    .roi-result-savings {
+      color: #34d399;
+    }
+    .roi-result-subtext {
+      color: #94a3b8;
+    }
+    .roi-btn-cta {
+      background-color: #10b981;
+      color: #022c22;
+      &:hover {
+        background-color: #34d399;
+      }
+    }
+  }
+
   /* ─── Modo Claro (Light Mode Overrides) ────────────────────── */
   &.light-mode {
     background-color: #f8fafc;
     color: #0f172a;
+
+    .section-badge {
+      background-color: #ecfdf5 !important;
+      border: 1px solid #a7f3d0 !important;
+      color: #047857 !important;
+    }
 
     .hero-title, .section-title {
       color: #0f172a !important;
@@ -86,6 +160,7 @@
       color: #334155 !important;
     }
 
+    /* Header Nav Light Mode */
     .glass-nav {
       background: rgba(255, 255, 255, 0.94);
       border-bottom: 1px solid #e2e8f0;
@@ -98,6 +173,26 @@
       }
       .text-white {
         color: #0f172a !important;
+      }
+    }
+
+    .nav-theme-toggle {
+      background-color: #f1f5f9 !important;
+      border: 1px solid #cbd5e1 !important;
+      color: #4f46e5 !important;
+      &:hover {
+        background-color: #e2e8f0 !important;
+      }
+    }
+
+    .nav-login-btn {
+      background-color: #ffffff !important;
+      border: 1px solid #cbd5e1 !important;
+      color: #0f172a !important;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04) !important;
+      &:hover {
+        background-color: #f8fafc !important;
+        border-color: #059669 !important;
       }
     }
 
@@ -268,18 +363,53 @@
       border: 1px solid #e2e8f0 !important;
 
       .roi-label {
-        color: #334155 !important;
+        color: #0f172a !important;
+        font-weight: 700;
       }
 
+      .roi-val {
+        color: #059669 !important;
+      }
+
+      /* ROI Right Result Card: Elegant Premium Emerald Gradient in Light Mode */
       .roi-result-card {
-        background-color: #0f172a !important;
-        border: 1px solid #10b981 !important;
+        background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+        border: 1px solid #047857 !important;
+        box-shadow: 0 15px 35px rgba(5, 150, 105, 0.25) !important;
 
         .roi-result-label {
-          color: #94a3b8 !important;
+          color: #dcfce7 !important;
         }
+
+        .roi-result-amount {
+          color: #ffffff !important;
+          background: none !important;
+          -webkit-background-clip: unset !important;
+          -webkit-text-fill-color: #ffffff !important;
+        }
+
+        .roi-divider {
+          border-color: rgba(255, 255, 255, 0.25) !important;
+        }
+
+        .roi-result-savings {
+          color: #a7f3d0 !important;
+        }
+
         .roi-result-subtext {
-          color: #94a3b8 !important;
+          color: #dcfce7 !important;
+        }
+
+        .roi-btn-cta {
+          background-color: #ffffff !important;
+          color: #065f46 !important;
+          font-weight: 800 !important;
+          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15) !important;
+
+          &:hover {
+            background-color: #f0fdf4 !important;
+            color: #047857 !important;
+          }
         }
       }
     }

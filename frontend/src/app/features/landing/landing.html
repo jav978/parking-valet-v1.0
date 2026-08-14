@@ -30,10 +30,10 @@
         <!-- Dark / Light Mode Toggle Button -->
         <button
           (click)="toggleDarkMode()"
-          class="p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-amber-400 border border-slate-700 transition-all flex items-center justify-center"
+          class="nav-theme-toggle p-2.5 rounded-xl transition-all flex items-center justify-center"
           [title]="isDarkMode() ? 'Cambiar a Modo Claro' : 'Cambiar a Modo Oscuro'"
         >
-          <i [class]="isDarkMode() ? 'pi pi-sun text-lg text-amber-400' : 'pi pi-moon text-lg text-blue-400'"></i>
+          <i [class]="isDarkMode() ? 'pi pi-sun text-lg text-amber-400' : 'pi pi-moon text-lg text-indigo-500'"></i>
         </button>
 
         @if (isLoggedIn()) {
@@ -47,7 +47,7 @@
         } @else {
           <a
             routerLink="/auth/login"
-            class="px-5 py-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white font-medium text-sm border border-slate-700 transition-all flex items-center gap-2"
+            class="nav-login-btn px-5 py-2.5 rounded-xl font-medium text-sm transition-all flex items-center gap-2"
           >
             <i class="pi pi-sign-in text-emerald-400"></i>
             <span>Iniciar Sesión</span>
@@ -240,7 +240,7 @@
   <!-- ─── 3. Soluciones "Antes vs. Con Parking Valet v1.0" ────── -->
   <section id="soluciones" class="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-slate-800/60">
     <div class="text-center max-w-3xl mx-auto mb-16 space-y-3">
-      <span class="text-xs font-bold uppercase tracking-widest text-emerald-400">Optimización de Operaciones</span>
+      <span class="section-badge text-xs font-bold uppercase tracking-widest">Optimización de Operaciones</span>
       <h2 class="section-title text-3xl sm:text-4xl font-extrabold">¿Por qué cambiar el papel por Parking Valet v1.0?</h2>
       <p class="section-desc text-sm sm:text-base">Reemplaza métodos tradicionales propensos a pérdidas financieras por automatización inteligente.</p>
     </div>
@@ -261,53 +261,45 @@
           </li>
           <li class="flex items-start gap-3">
             <i class="pi pi-times-circle text-red-400 text-lg mt-0.5 shrink-0"></i>
-            <span>Descuadres de caja chica por cobros manuales o cálculos erróneos de tarifas.</span>
+            <span>Falta de transparencia en arqueos de caja y descuadres al manejar cobros multimoneda.</span>
           </li>
           <li class="flex items-start gap-3">
             <i class="pi pi-times-circle text-red-400 text-lg mt-0.5 shrink-0"></i>
-            <span>Demoras al ubicar llaves o vehículos por falta de registro de casilla en tiempo real.</span>
-          </li>
-          <li class="flex items-start gap-3">
-            <i class="pi pi-times-circle text-red-400 text-lg mt-0.5 shrink-0"></i>
-            <span>Incapacidad de rastrear la tasa del dólar del día para cobros en Bolívares.</span>
+            <span>Sin trazabilidad de los operadores ni control de tiempos de espera en entregas.</span>
           </li>
         </ul>
       </div>
 
-      <!-- Modern System Way Card -->
+      <!-- Modern Way Card -->
       <div class="card-modern p-8 rounded-2xl border space-y-5 glow-emerald transition-all duration-300">
         <div class="flex items-center gap-3.5">
           <div class="w-11 h-11 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xl shrink-0">
-            <i class="pi pi-check"></i>
+            <i class="pi pi-check text-emerald-400"></i>
           </div>
           <h3 class="text-xl font-bold card-title-modern">Con Parking Valet v1.0</h3>
         </div>
         <ul class="space-y-4 text-sm card-text-modern">
           <li class="flex items-start gap-3">
             <i class="pi pi-check-circle text-emerald-400 text-lg mt-0.5 shrink-0"></i>
-            <span><strong>Ticket Térmico con Código QR</strong> escaneable al instante para entrada y salida fluida.</span>
+            <span>Tickets digitales con código QR impresos en papel térmico o enviados al smartphone.</span>
           </li>
           <li class="flex items-start gap-3">
             <i class="pi pi-check-circle text-emerald-400 text-lg mt-0.5 shrink-0"></i>
-            <span><strong>Caja Chica Multimoneda (USD/VES)</strong> con tasa oficial al día y cuadre exacto por turno.</span>
+            <span>Control de caja chica con doble moneda (USD/VES), tasa de cambio en vivo y arqueo exacto.</span>
           </li>
           <li class="flex items-start gap-3">
             <i class="pi pi-check-circle text-emerald-400 text-lg mt-0.5 shrink-0"></i>
-            <span><strong>Control de Estados en Vivo</strong> (En Espera, Estacionado, Entregado) con ubicación de llave.</span>
-          </li>
-          <li class="flex items-start gap-3">
-            <i class="pi pi-check-circle text-emerald-400 text-lg mt-0.5 shrink-0"></i>
-            <span><strong>Seguridad & Sesiones Únicas</strong> evitando inicios simultáneos no autorizados por cuenta.</span>
+            <span>Auditoría de estados en tiempo real (Recibido, Estacionado, Entregado) por valet.</span>
           </li>
         </ul>
       </div>
     </div>
   </section>
 
-  <!-- ─── 4. Grid de Funcionalidades Principales ────────────── -->
+  <!-- ─── 4. Características Principales ─────────────────────── -->
   <section id="caracteristicas" class="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-slate-800/60">
     <div class="text-center max-w-3xl mx-auto mb-16 space-y-3">
-      <span class="text-xs font-bold uppercase tracking-widest text-emerald-400">Todo Incluido</span>
+      <span class="section-badge text-xs font-bold uppercase tracking-widest">Todo Incluido</span>
       <h2 class="section-title text-3xl sm:text-4xl font-extrabold">Características Diseñadas para tu Negocio</h2>
       <p class="section-desc text-sm sm:text-base">Una suite completa para el control operativo, financiero y administrativo de estacionamientos.</p>
     </div>
@@ -387,7 +379,7 @@
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
         <!-- Text & Sliders -->
         <div class="lg:col-span-7 space-y-6">
-          <span class="text-xs font-bold uppercase tracking-widest text-emerald-400">Calculadora de Impacto</span>
+          <span class="section-badge text-xs font-bold uppercase tracking-widest">Calculadora de Impacto</span>
           <h2 class="section-title text-3xl font-extrabold">Calcula el Retorno de Inversión (ROI) para tu Estacionamiento</h2>
           <p class="section-desc text-sm">Ajusta los valores de tu operación para estimar el potencial de facturación y el tiempo ahorrado en atención.</p>
 
@@ -395,7 +387,7 @@
           <div class="space-y-2">
             <div class="flex justify-between text-sm">
               <span class="roi-label font-medium">Vehículos atendidos por día:</span>
-              <span class="text-emerald-400 font-bold text-base">{{ vehiclesPerDay() }} autos</span>
+              <span class="roi-val font-bold text-base">{{ vehiclesPerDay() }} autos</span>
             </div>
             <input
               type="range"
@@ -412,7 +404,7 @@
           <div class="space-y-2 pt-2">
             <div class="flex justify-between text-sm">
               <span class="roi-label font-medium">Tarifa promedio por ticket ($):</span>
-              <span class="text-emerald-400 font-bold text-base">${{ avgRateUsd() }} USD</span>
+              <span class="roi-val font-bold text-base">${{ avgRateUsd() }} USD</span>
             </div>
             <input
               type="range"
@@ -427,17 +419,17 @@
         </div>
 
         <!-- Calculated Result Card -->
-        <div class="roi-result-card lg:col-span-5 p-6 rounded-2xl bg-slate-900/90 border border-emerald-500/40 text-center space-y-6">
+        <div class="roi-result-card lg:col-span-5 p-6 sm:p-8 rounded-2xl text-center space-y-6 shadow-xl">
           <div>
             <div class="roi-result-label text-xs uppercase font-semibold tracking-wider">Facturación Mensual Estimada</div>
-            <div class="text-4xl sm:text-5xl font-black gradient-text mt-1">
+            <div class="roi-result-amount text-4xl sm:text-5xl font-black gradient-text mt-1">
               ${{ estimatedMonthlyRevenue.toLocaleString() }} USD
             </div>
           </div>
 
-          <div class="pt-4 border-t border-slate-800">
+          <div class="pt-4 border-t roi-divider">
             <div class="roi-result-label text-xs uppercase font-semibold tracking-wider">Tiempo Operativo Ahorrado</div>
-            <div class="text-2xl font-bold text-emerald-400 mt-1">
+            <div class="roi-result-savings text-2xl font-bold mt-1">
               ~{{ estimatedSavingsMinutes }} Horas / mes
             </div>
             <p class="roi-result-subtext text-[11px] mt-1">Basado en la agilización de entrada/salida de 2.5 min por vehículo.</p>
@@ -445,7 +437,7 @@
 
           <a
             (click)="navigateToApp()"
-            class="w-full py-3.5 rounded-xl bg-emerald-500 text-slate-950 font-extrabold text-sm block hover:bg-emerald-400 transition-colors shadow-lg cursor-pointer"
+            class="roi-btn-cta w-full py-3.5 rounded-xl font-extrabold text-sm block transition-all shadow-lg cursor-pointer"
           >
             Digitalizar Mi Operación Ahora
           </a>
@@ -457,7 +449,7 @@
   <!-- ─── 6. Preguntas Frecuentes (FAQ) ──────────────────────── -->
   <section id="faq" class="py-20 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto border-t border-slate-800/60">
     <div class="text-center mb-12 space-y-3">
-      <span class="text-xs font-bold uppercase tracking-widest text-emerald-400">Resuelve tus Dudas</span>
+      <span class="section-badge text-xs font-bold uppercase tracking-widest">Resuelve tus Dudas</span>
       <h2 class="section-title text-3xl font-extrabold">Preguntas Frecuentes</h2>
     </div>
 
