@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, HostListener, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -21,6 +21,12 @@ export class Landing {
   user = this.authService.user;
   isLoggedIn = signal<boolean>(!!this.authService.getAccessToken());
 
+  // Modo Oscuro / Modo Claro (por defecto Modo Oscuro)
+  isDarkMode = signal<boolean>(true);
+
+  // Botón Volver Arriba (Scroll to Top)
+  showScrollTop = signal<boolean>(false);
+
   // Navegación móvil
   mobileMenuOpen = signal<boolean>(false);
 
@@ -38,6 +44,23 @@ export class Landing {
 
   get estimatedSavingsMinutes(): number {
     return Math.round((this.vehiclesPerDay() * 2.5 * 30) / 60); // Horas ahorradas al mes
+  }
+
+  @HostListener('window:scroll')
+  onWindowScroll(): void {
+    if (typeof window !== 'undefined') {
+      this.showScrollTop.set(window.scrollY > 300);
+    }
+  }
+
+  toggleDarkMode(): void {
+    this.isDarkMode.update((dark) => !dark);
+  }
+
+  scrollToTop(): void {
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   }
 
   toggleMobileMenu(): void {
