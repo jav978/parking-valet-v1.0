@@ -7,6 +7,18 @@
   transition: background-color 0.3s ease, color 0.3s ease;
 
   /* ─── Modo Oscuro (Dark Mode Defaults) ───────────────────────── */
+  .hero-title, .section-title, .feature-title, .cta-banner-title {
+    color: #ffffff;
+  }
+
+  .hero-desc, .section-desc, .feature-desc, .roi-label, .cta-banner-desc, .faq-answer {
+    color: #cbd5e1;
+  }
+
+  .faq-question {
+    color: #ffffff;
+  }
+
   .btn-secondary-hero {
     background-color: rgba(15, 23, 42, 0.85);
     border: 1px solid #334155;
@@ -66,6 +78,14 @@
     background-color: #f8fafc;
     color: #0f172a;
 
+    .hero-title, .section-title {
+      color: #0f172a !important;
+    }
+
+    .hero-desc, .section-desc {
+      color: #334155 !important;
+    }
+
     .glass-nav {
       background: rgba(255, 255, 255, 0.94);
       border-bottom: 1px solid #e2e8f0;
@@ -123,7 +143,6 @@
         }
       }
 
-      /* Mockup metric cards */
       .bg-slate-800\/70 {
         background-color: #f8fafc !important;
         border-color: #e2e8f0 !important;
@@ -139,7 +158,6 @@
         }
       }
 
-      /* Mockup Queue Box */
       .bg-slate-900\/90 {
         background-color: #f8fafc !important;
         border-color: #e2e8f0 !important;
@@ -154,7 +172,6 @@
         }
       }
 
-      /* Mockup Queue items */
       .bg-slate-800\/80 {
         background-color: #ffffff !important;
         border: 1px solid #e2e8f0 !important;
@@ -167,7 +184,6 @@
         }
       }
 
-      /* Mockup QR banner */
       .bg-gradient-to-r.from-emerald-950\/60,
       .bg-gradient-to-r {
         background: linear-gradient(135deg, #ecfdf5 0%, #dcfce7 100%) !important;
@@ -190,7 +206,6 @@
     .card-traditional {
       background: linear-gradient(145deg, #fff5f5 0%, #fee2e2 100%) !important;
       border: 1px solid #fca5a5 !important;
-      box-shadow: 0 12px 30px rgba(239, 68, 68, 0.12) !important;
 
       .card-title-traditional {
         color: #991b1b !important;
@@ -209,7 +224,6 @@
     .card-modern {
       background: linear-gradient(145deg, #f0fdf4 0%, #dcfce7 100%) !important;
       border: 2px solid #34d399 !important;
-      box-shadow: 0 15px 35px rgba(16, 185, 129, 0.2) !important;
 
       .card-title-modern {
         color: #065f46 !important;
@@ -225,6 +239,80 @@
         i {
           color: #059669 !important;
         }
+      }
+    }
+
+    /* Features Grid Light Mode */
+    .feature-card {
+      background-color: #ffffff !important;
+      border: 1px solid #e2e8f0 !important;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04) !important;
+
+      .feature-title {
+        color: #0f172a !important;
+      }
+      .feature-desc {
+        color: #475569 !important;
+      }
+
+      &:hover {
+        background-color: #ffffff !important;
+        border-color: #34d399 !important;
+        box-shadow: 0 15px 30px rgba(16, 185, 129, 0.15) !important;
+      }
+    }
+
+    /* ROI Calculator Light Mode */
+    .roi-card {
+      background: #ffffff !important;
+      border: 1px solid #e2e8f0 !important;
+
+      .roi-label {
+        color: #334155 !important;
+      }
+
+      .roi-result-card {
+        background-color: #0f172a !important;
+        border: 1px solid #10b981 !important;
+
+        .roi-result-label {
+          color: #94a3b8 !important;
+        }
+        .roi-result-subtext {
+          color: #94a3b8 !important;
+        }
+      }
+    }
+
+    /* FAQ accordion in Light Mode */
+    #faq {
+      .faq-button {
+        color: #0f172a !important;
+
+        .faq-question {
+          color: #0f172a !important;
+        }
+
+        &:hover {
+          background-color: #f1f5f9 !important;
+        }
+      }
+
+      .faq-answer {
+        color: #334155 !important;
+      }
+    }
+
+    /* Final CTA Banner in Light Mode */
+    .cta-banner {
+      background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 50%, #ffffff 100%) !important;
+      border: 1px solid #a7f3d0 !important;
+
+      .cta-banner-title {
+        color: #065f46 !important;
+      }
+      .cta-banner-desc {
+        color: #047857 !important;
       }
     }
 
@@ -293,19 +381,6 @@
       }
     }
 
-    /* Headings and Paragraphs text rules */
-    h1, h2, h3, h4, h5, h6 {
-      color: #0f172a;
-    }
-
-    p, li {
-      color: #334155;
-    }
-
-    strong {
-      color: #0f172a;
-    }
-
     .border-slate-800, .border-slate-800\/60, .border-slate-800\/80 {
       border-color: #e2e8f0 !important;
     }
@@ -314,45 +389,6 @@
       background: linear-gradient(135deg, #059669 0%, #0d9488 50%, #2563eb 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-    }
-
-    .feature-card {
-      h3 {
-        color: #0f172a !important;
-      }
-      p {
-        color: #475569 !important;
-      }
-      &:hover {
-        background-color: #ffffff !important;
-        box-shadow: 0 15px 30px rgba(16, 185, 129, 0.15) !important;
-      }
-    }
-
-    /* FAQ accordion in Light Mode */
-    #faq {
-      button {
-        color: #0f172a !important;
-        span {
-          color: #0f172a !important;
-        }
-        &:hover {
-          background-color: #f1f5f9 !important;
-        }
-      }
-    }
-
-    /* Final CTA Banner in Light Mode */
-    .bg-gradient-to-r.from-emerald-950\/80 {
-      background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 50%, #ffffff 100%) !important;
-      border-color: #a7f3d0 !important;
-
-      h2 {
-        color: #065f46 !important;
-      }
-      p {
-        color: #047857 !important;
-      }
     }
 
     .floating-scroll-top {
@@ -458,29 +494,33 @@
 }
 
 .floating-whatsapp {
-  width: 58px;
-  height: 58px;
+  width: 68px;
+  height: 68px;
   border-radius: 50%;
   background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
   color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.85rem;
-  box-shadow: 0 10px 25px rgba(37, 211, 102, 0.45);
+  font-size: 2.4rem;
+  box-shadow: 0 12px 30px rgba(37, 211, 102, 0.55);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   text-decoration: none;
 
+  i {
+    font-size: 2.4rem !important;
+  }
+
   &:hover {
-    transform: scale(1.12);
-    box-shadow: 0 15px 35px rgba(37, 211, 102, 0.65);
+    transform: scale(1.15);
+    box-shadow: 0 18px 40px rgba(37, 211, 102, 0.75);
   }
 }
 
 .floating-scroll-top {
-  width: 46px;
-  height: 46px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   background: rgba(15, 23, 42, 0.88);
   backdrop-filter: blur(8px);
@@ -489,7 +529,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.15rem;
+  font-size: 1.2rem;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
   transition: all 0.3s ease;
   cursor: pointer;
