@@ -246,57 +246,57 @@
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-      <!-- Traditional Way -->
-      <div class="p-8 rounded-2xl bg-red-950/10 border border-red-500/20 space-y-5">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-red-500/20 text-red-400 flex items-center justify-center font-bold text-xl">
+      <!-- Traditional Way Card -->
+      <div class="card-traditional p-8 rounded-2xl border space-y-5 transition-all duration-300">
+        <div class="flex items-center gap-3.5">
+          <div class="w-11 h-11 rounded-xl bg-red-500/20 text-red-400 flex items-center justify-center font-bold text-xl shrink-0">
             <i class="pi pi-times"></i>
           </div>
-          <h3 class="text-xl font-bold text-white">Métodos Tradicionales de Papel</h3>
+          <h3 class="text-xl font-bold card-title-traditional">Métodos Tradicionales de Papel</h3>
         </div>
-        <ul class="space-y-3.5 text-sm text-slate-300">
-          <li class="flex items-start gap-2.5">
-            <i class="pi pi-times-circle text-red-400 text-base mt-0.5"></i>
+        <ul class="space-y-4 text-sm card-text-traditional">
+          <li class="flex items-start gap-3">
+            <i class="pi pi-times-circle text-red-400 text-lg mt-0.5 shrink-0"></i>
             <span>Tickets de papel extraviados o mojados, generando conflictos con clientes por extravíos.</span>
           </li>
-          <li class="flex items-start gap-2.5">
-            <i class="pi pi-times-circle text-red-400 text-base mt-0.5"></i>
+          <li class="flex items-start gap-3">
+            <i class="pi pi-times-circle text-red-400 text-lg mt-0.5 shrink-0"></i>
             <span>Descuadres de caja chica por cobros manuales o cálculos erróneos de tarifas.</span>
           </li>
-          <li class="flex items-start gap-2.5">
-            <i class="pi pi-times-circle text-red-400 text-base mt-0.5"></i>
+          <li class="flex items-start gap-3">
+            <i class="pi pi-times-circle text-red-400 text-lg mt-0.5 shrink-0"></i>
             <span>Demoras al ubicar llaves o vehículos por falta de registro de casilla en tiempo real.</span>
           </li>
-          <li class="flex items-start gap-2.5">
-            <i class="pi pi-times-circle text-red-400 text-base mt-0.5"></i>
+          <li class="flex items-start gap-3">
+            <i class="pi pi-times-circle text-red-400 text-lg mt-0.5 shrink-0"></i>
             <span>Incapacidad de rastrear la tasa del dólar del día para cobros en Bolívares.</span>
           </li>
         </ul>
       </div>
 
-      <!-- Modern System Way -->
-      <div class="p-8 rounded-2xl bg-emerald-950/20 border border-emerald-500/30 space-y-5 glass-card glow-emerald">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xl">
+      <!-- Modern System Way Card -->
+      <div class="card-modern p-8 rounded-2xl border space-y-5 glow-emerald transition-all duration-300">
+        <div class="flex items-center gap-3.5">
+          <div class="w-11 h-11 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xl shrink-0">
             <i class="pi pi-check"></i>
           </div>
-          <h3 class="text-xl font-bold text-white">Con Parking Valet v1.0</h3>
+          <h3 class="text-xl font-bold card-title-modern">Con Parking Valet v1.0</h3>
         </div>
-        <ul class="space-y-3.5 text-sm text-slate-200">
-          <li class="flex items-start gap-2.5">
-            <i class="pi pi-check-circle text-emerald-400 text-base mt-0.5"></i>
+        <ul class="space-y-4 text-sm card-text-modern">
+          <li class="flex items-start gap-3">
+            <i class="pi pi-check-circle text-emerald-400 text-lg mt-0.5 shrink-0"></i>
             <span><strong>Ticket Térmico con Código QR</strong> escaneable al instante para entrada y salida fluida.</span>
           </li>
-          <li class="flex items-start gap-2.5">
-            <i class="pi pi-check-circle text-emerald-400 text-base mt-0.5"></i>
+          <li class="flex items-start gap-3">
+            <i class="pi pi-check-circle text-emerald-400 text-lg mt-0.5 shrink-0"></i>
             <span><strong>Caja Chica Multimoneda (USD/VES)</strong> con tasa oficial al día y cuadre exacto por turno.</span>
           </li>
-          <li class="flex items-start gap-2.5">
-            <i class="pi pi-check-circle text-emerald-400 text-base mt-0.5"></i>
+          <li class="flex items-start gap-3">
+            <i class="pi pi-check-circle text-emerald-400 text-lg mt-0.5 shrink-0"></i>
             <span><strong>Control de Estados en Vivo</strong> (En Espera, Estacionado, Entregado) con ubicación de llave.</span>
           </li>
-          <li class="flex items-start gap-2.5">
-            <i class="pi pi-check-circle text-emerald-400 text-base mt-0.5"></i>
+          <li class="flex items-start gap-3">
+            <i class="pi pi-check-circle text-emerald-400 text-lg mt-0.5 shrink-0"></i>
             <span><strong>Seguridad & Sesiones Únicas</strong> evitando inicios simultáneos no autorizados por cuenta.</span>
           </li>
         </ul>
@@ -594,25 +594,26 @@
     </div>
   </footer>
 
-  <!-- ─── Floating WhatsApp Action Button ─────────────────────── -->
-  <a
-    href="https://wa.me/584120000000?text=Hola,%20quisiera%20más%20información%20sobre%20Parking%20Valet%20v1.0"
-    target="_blank"
-    rel="noopener noreferrer"
-    class="floating-whatsapp"
-    title="Chatea con nosotros por WhatsApp"
-  >
-    <i class="pi pi-whatsapp"></i>
-  </a>
+  <!-- ─── Floating Action Buttons Container ───────────────────── -->
+  <div class="floating-actions-container">
+    @if (showScrollTop()) {
+      <button
+        (click)="scrollToTop()"
+        class="floating-scroll-top animate-fadeIn"
+        title="Volver Arriba"
+      >
+        <i class="pi pi-arrow-up"></i>
+      </button>
+    }
 
-  <!-- ─── Floating Scroll to Top Button ───────────────────────── -->
-  @if (showScrollTop()) {
-    <button
-      (click)="scrollToTop()"
-      class="floating-scroll-top animate-fadeIn"
-      title="Volver Arriba"
+    <a
+      href="https://wa.me/584120000000?text=Hola,%20quisiera%20más%20información%20sobre%20Parking%20Valet%20v1.0"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="floating-whatsapp"
+      title="Chatea con nosotros por WhatsApp"
     >
-      <i class="pi pi-arrow-up"></i>
-    </button>
-  }
+      <i class="pi pi-whatsapp"></i>
+    </a>
+  </div>
 </div>

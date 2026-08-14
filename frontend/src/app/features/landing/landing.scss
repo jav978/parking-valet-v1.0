@@ -6,6 +6,36 @@
   overflow-x: hidden;
   transition: background-color 0.3s ease, color 0.3s ease;
 
+  /* ─── Modo Oscuro (Dark Mode Defaults) ───────────────────────── */
+  .card-traditional {
+    background: linear-gradient(145deg, rgba(127, 29, 29, 0.25) 0%, rgba(15, 23, 42, 0.85) 100%);
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    box-shadow: 0 15px 35px rgba(220, 38, 38, 0.1);
+
+    .card-title-traditional {
+      color: #ffffff;
+    }
+    .card-text-traditional {
+      color: #cbd5e1;
+    }
+  }
+
+  .card-modern {
+    background: linear-gradient(145deg, rgba(6, 78, 59, 0.35) 0%, rgba(15, 23, 42, 0.9) 100%);
+    border: 1px solid rgba(16, 185, 129, 0.45);
+    box-shadow: 0 15px 40px rgba(16, 185, 129, 0.2);
+
+    .card-title-modern {
+      color: #ffffff;
+    }
+    .card-text-modern {
+      color: #e2e8f0;
+      strong {
+        color: #34d399;
+      }
+    }
+  }
+
   /* ─── Modo Claro (Light Mode Overrides) ────────────────────── */
   &.light-mode {
     background-color: #f8fafc;
@@ -27,7 +57,7 @@
     }
 
     .glass-card {
-      background: rgba(255, 255, 255, 0.9);
+      background: rgba(255, 255, 255, 0.92);
       border: 1px solid #e2e8f0;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
     }
@@ -47,7 +77,49 @@
       }
     }
 
-    /* Override all text colors for Light Mode */
+    /* Comparison Cards Light Mode */
+    .card-traditional {
+      background: linear-gradient(145deg, #fff5f5 0%, #fee2e2 100%) !important;
+      border: 1px solid #fca5a5 !important;
+      box-shadow: 0 12px 30px rgba(239, 68, 68, 0.12) !important;
+
+      .card-title-traditional {
+        color: #991b1b !important;
+      }
+      .card-text-traditional {
+        color: #450a0a !important;
+        span {
+          color: #7f1d1d !important;
+        }
+        i {
+          color: #dc2626 !important;
+        }
+      }
+    }
+
+    .card-modern {
+      background: linear-gradient(145deg, #f0fdf4 0%, #dcfce7 100%) !important;
+      border: 2px solid #34d399 !important;
+      box-shadow: 0 15px 35px rgba(16, 185, 129, 0.2) !important;
+
+      .card-title-modern {
+        color: #065f46 !important;
+      }
+      .card-text-modern {
+        color: #064e3b !important;
+        span {
+          color: #064e3b !important;
+        }
+        strong {
+          color: #047857 !important;
+        }
+        i {
+          color: #059669 !important;
+        }
+      }
+    }
+
+    /* General text overrides for Light Mode */
     .text-white, h1, h2, h3, h4, h5, h6 {
       color: #0f172a !important;
     }
@@ -58,17 +130,6 @@
 
     strong {
       color: #0f172a !important;
-    }
-
-    /* Section-specific light overrides */
-    .bg-red-950\/10 {
-      background-color: #fef2f2 !important;
-      border-color: #fecaca !important;
-    }
-
-    .bg-emerald-950\/20 {
-      background-color: #ecfdf5 !important;
-      border-color: #a7f3d0 !important;
     }
 
     .bg-slate-900, .bg-slate-900\/90, .bg-slate-800\/70, .bg-slate-800\/80 {
@@ -102,11 +163,12 @@
       background: #ffffff;
       color: #0f172a;
       border: 1px solid #cbd5e1;
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
 
       &:hover {
         background: #10b981;
         color: #ffffff;
+        border-color: #10b981;
       }
     }
   }
@@ -187,54 +249,59 @@
   accent-color: #10b981;
 }
 
-/* ─── Floating Buttons (WhatsApp & Scroll to Top) ───────────── */
-.floating-whatsapp {
+/* ─── Floating Actions Container & Buttons ─────────────────── */
+.floating-actions-container {
   position: fixed;
-  bottom: 1.5rem;
-  right: 1.5rem;
-  z-index: 99;
-  width: 52px;
-  height: 52px;
+  bottom: 1.75rem;
+  right: 1.75rem;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.floating-whatsapp {
+  width: 58px;
+  height: 58px;
   border-radius: 50%;
   background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
-  color: white;
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.65rem;
-  box-shadow: 0 10px 25px rgba(37, 211, 102, 0.4);
+  font-size: 1.85rem;
+  box-shadow: 0 10px 25px rgba(37, 211, 102, 0.45);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
+  text-decoration: none;
 
   &:hover {
-    transform: scale(1.1);
-    box-shadow: 0 15px 35px rgba(37, 211, 102, 0.6);
+    transform: scale(1.12);
+    box-shadow: 0 15px 35px rgba(37, 211, 102, 0.65);
   }
 }
 
 .floating-scroll-top {
-  position: fixed;
-  bottom: 5.25rem;
-  right: 1.6rem;
-  z-index: 98;
-  width: 44px;
-  height: 44px;
+  width: 46px;
+  height: 46px;
   border-radius: 50%;
-  background: rgba(15, 23, 42, 0.85);
+  background: rgba(15, 23, 42, 0.88);
   backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.1rem;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  font-size: 1.15rem;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
   transition: all 0.3s ease;
   cursor: pointer;
 
   &:hover {
     background: #10b981;
-    color: #070b14;
+    color: #ffffff;
+    border-color: #10b981;
     transform: translateY(-3px);
   }
 }
