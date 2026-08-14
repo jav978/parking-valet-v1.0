@@ -7,6 +7,21 @@
   transition: background-color 0.3s ease, color 0.3s ease;
 
   /* ─── Modo Oscuro (Dark Mode Defaults) ───────────────────────── */
+  .btn-secondary-hero {
+    background-color: rgba(15, 23, 42, 0.85);
+    border: 1px solid #334155;
+    color: #f1f5f9;
+
+    .icon-emerald {
+      color: #34d399;
+    }
+
+    &:hover {
+      background-color: #1e293b;
+      border-color: #475569;
+    }
+  }
+
   .card-traditional {
     background: linear-gradient(145deg, rgba(127, 29, 29, 0.25) 0%, rgba(15, 23, 42, 0.85) 100%);
     border: 1px solid rgba(239, 68, 68, 0.35);
@@ -36,14 +51,24 @@
     }
   }
 
+  .social-icon-link {
+    background-color: rgba(30, 41, 59, 0.8);
+    border: 1px solid rgba(51, 65, 85, 0.8);
+    color: #cbd5e1;
+
+    i {
+      color: #cbd5e1;
+    }
+  }
+
   /* ─── Modo Claro (Light Mode Overrides) ────────────────────── */
   &.light-mode {
     background-color: #f8fafc;
     color: #0f172a;
 
     .glass-nav {
-      background: rgba(255, 255, 255, 0.92);
-      border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+      background: rgba(255, 255, 255, 0.94);
+      border-bottom: 1px solid #e2e8f0;
 
       a {
         color: #334155;
@@ -57,23 +82,107 @@
     }
 
     .glass-card {
-      background: rgba(255, 255, 255, 0.92);
-      border: 1px solid #e2e8f0;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+      background: #ffffff !important;
+      border: 1px solid #e2e8f0 !important;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04) !important;
     }
 
+    /* Hero Secondary Button */
+    .btn-secondary-hero {
+      background-color: #ffffff !important;
+      border: 1px solid #cbd5e1 !important;
+      color: #0f172a !important;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06) !important;
+
+      span {
+        color: #0f172a !important;
+      }
+
+      .icon-emerald {
+        color: #059669 !important;
+      }
+
+      &:hover {
+        background-color: #f1f5f9 !important;
+        border-color: #94a3b8 !important;
+      }
+    }
+
+    /* Mockup Window Light Mode */
     .mockup-window {
-      background: #ffffff;
-      border: 1px solid #cbd5e1;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
-    }
+      background: #ffffff !important;
+      border: 1px solid #cbd5e1 !important;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08) !important;
 
-    .mockup-header {
-      background: #f1f5f9;
-      border-bottom: 1px solid #e2e8f0;
+      .mockup-header {
+        background: #f1f5f9 !important;
+        border-bottom: 1px solid #e2e8f0 !important;
 
-      .text-slate-400 {
-        color: #64748b !important;
+        .text-slate-400 {
+          color: #64748b !important;
+        }
+      }
+
+      /* Mockup metric cards */
+      .bg-slate-800\/70 {
+        background-color: #f8fafc !important;
+        border-color: #e2e8f0 !important;
+
+        .text-slate-400, span {
+          color: #64748b !important;
+        }
+        .text-white {
+          color: #0f172a !important;
+        }
+        .text-emerald-400 {
+          color: #059669 !important;
+        }
+      }
+
+      /* Mockup Queue Box */
+      .bg-slate-900\/90 {
+        background-color: #f8fafc !important;
+        border-color: #e2e8f0 !important;
+
+        .text-slate-300 {
+          color: #334155 !important;
+        }
+        .bg-emerald-500\/20 {
+          background-color: #dcfce7 !important;
+          color: #065f46 !important;
+          border-color: #86efac !important;
+        }
+      }
+
+      /* Mockup Queue items */
+      .bg-slate-800\/80 {
+        background-color: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+
+        .text-white {
+          color: #0f172a !important;
+        }
+        .text-slate-400 {
+          color: #64748b !important;
+        }
+      }
+
+      /* Mockup QR banner */
+      .bg-gradient-to-r.from-emerald-950\/60,
+      .bg-gradient-to-r {
+        background: linear-gradient(135deg, #ecfdf5 0%, #dcfce7 100%) !important;
+        border-color: #6ee7b7 !important;
+
+        .text-emerald-300, span {
+          color: #065f46 !important;
+        }
+        .pi-qrcode {
+          color: #059669 !important;
+        }
+        .bg-emerald-500 {
+          background-color: #059669 !important;
+          color: #ffffff !important;
+        }
       }
     }
 
@@ -119,27 +228,82 @@
       }
     }
 
-    /* General text overrides for Light Mode */
-    .text-white, h1, h2, h3, h4, h5, h6 {
-      color: #0f172a !important;
+    /* Footer Social Icons Light Mode */
+    .social-icon-link {
+      background-color: #ffffff !important;
+      border: 1px solid #cbd5e1 !important;
+      color: #475569 !important;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05) !important;
+
+      i {
+        color: #475569 !important;
+      }
+
+      &.social-email:hover {
+        background-color: #10b981 !important;
+        border-color: #10b981 !important;
+        i {
+          color: #ffffff !important;
+        }
+      }
+
+      &.social-insta:hover {
+        background-color: #e1306c !important;
+        border-color: #e1306c !important;
+        i {
+          color: #ffffff !important;
+        }
+      }
+
+      &.social-fb:hover {
+        background-color: #1877f2 !important;
+        border-color: #1877f2 !important;
+        i {
+          color: #ffffff !important;
+        }
+      }
     }
 
-    .text-slate-200, .text-slate-300, .text-slate-400, span, p, li {
-      color: #334155 !important;
+    /* Footer Direct WhatsApp Link */
+    footer {
+      .bg-emerald-500\/20 {
+        background-color: #dcfce7 !important;
+        border-color: #34d399 !important;
+        color: #059669 !important;
+
+        i {
+          color: #059669 !important;
+        }
+
+        &:hover {
+          background-color: #10b981 !important;
+          color: #ffffff !important;
+          i {
+            color: #ffffff !important;
+          }
+        }
+      }
+
+      .text-slate-200 {
+        color: #0f172a !important;
+      }
+
+      .text-slate-400, span {
+        color: #64748b !important;
+      }
+    }
+
+    /* Headings and Paragraphs text rules */
+    h1, h2, h3, h4, h5, h6 {
+      color: #0f172a;
+    }
+
+    p, li {
+      color: #334155;
     }
 
     strong {
-      color: #0f172a !important;
-    }
-
-    .bg-slate-900, .bg-slate-900\/90, .bg-slate-800\/70, .bg-slate-800\/80 {
-      background-color: #ffffff !important;
-      border-color: #e2e8f0 !important;
-    }
-
-    .bg-gradient-to-r.from-emerald-950\/80 {
-      background: linear-gradient(135deg, #ecfdf5 0%, #ffffff 50%, #f0fdf4 100%) !important;
-      border-color: #a7f3d0 !important;
+      color: #0f172a;
     }
 
     .border-slate-800, .border-slate-800\/60, .border-slate-800\/80 {
@@ -153,9 +317,41 @@
     }
 
     .feature-card {
+      h3 {
+        color: #0f172a !important;
+      }
+      p {
+        color: #475569 !important;
+      }
       &:hover {
-        background-color: #ffffff;
-        box-shadow: 0 15px 30px rgba(16, 185, 129, 0.15);
+        background-color: #ffffff !important;
+        box-shadow: 0 15px 30px rgba(16, 185, 129, 0.15) !important;
+      }
+    }
+
+    /* FAQ accordion in Light Mode */
+    #faq {
+      button {
+        color: #0f172a !important;
+        span {
+          color: #0f172a !important;
+        }
+        &:hover {
+          background-color: #f1f5f9 !important;
+        }
+      }
+    }
+
+    /* Final CTA Banner in Light Mode */
+    .bg-gradient-to-r.from-emerald-950\/80 {
+      background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 50%, #ffffff 100%) !important;
+      border-color: #a7f3d0 !important;
+
+      h2 {
+        color: #065f46 !important;
+      }
+      p {
+        color: #047857 !important;
       }
     }
 
