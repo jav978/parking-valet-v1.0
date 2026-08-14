@@ -1,0 +1,528 @@
+<div class="landing-container relative">
+  <!-- Dynamic Glow Background Ellipses -->
+  <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-emerald-500/10 blur-[140px] pointer-events-none rounded-full"></div>
+  <div class="absolute top-[35%] right-0 w-[500px] h-[400px] bg-blue-500/10 blur-[120px] pointer-events-none rounded-full"></div>
+
+  <!-- ─── 1. Header / Navigation Bar ─────────────────────────── -->
+  <header class="fixed top-0 left-0 right-0 z-50 glass-nav">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      <!-- Logo -->
+      <a routerLink="/" class="flex items-center gap-3 group">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform">
+          <i class="pi pi-car text-slate-950 font-bold text-xl"></i>
+        </div>
+        <span class="font-bold text-xl tracking-tight text-white flex items-center gap-1.5">
+          Valet <span class="gradient-text">Parking</span>
+          <span class="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 ml-1">v1.0</span>
+        </span>
+      </a>
+
+      <!-- Desktop Nav Links -->
+      <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
+        <a href="#caracteristicas" class="hover:text-emerald-400 transition-colors">Características</a>
+        <a href="#soluciones" class="hover:text-emerald-400 transition-colors">Soluciones</a>
+        <a href="#roi" class="hover:text-emerald-400 transition-colors">Calculadora ROI</a>
+        <a href="#faq" class="hover:text-emerald-400 transition-colors">Preguntas Frecuentes</a>
+      </nav>
+
+      <!-- Right Action Button -->
+      <div class="hidden md:flex items-center gap-3">
+        @if (isLoggedIn()) {
+          <a
+            routerLink="/dashboard"
+            class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-bold text-sm hover:brightness-110 shadow-lg shadow-emerald-500/25 transition-all flex items-center gap-2"
+          >
+            <i class="pi pi-th-large"></i>
+            <span>Ir al Dashboard</span>
+          </a>
+        } @else {
+          <a
+            routerLink="/auth/login"
+            class="px-5 py-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white font-medium text-sm border border-slate-700 transition-all flex items-center gap-2"
+          >
+            <i class="pi pi-sign-in text-emerald-400"></i>
+            <span>Iniciar Sesión</span>
+          </a>
+          <a
+            routerLink="/auth/register"
+            class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-bold text-sm hover:brightness-110 shadow-lg shadow-emerald-500/25 transition-all flex items-center gap-2"
+          >
+            <span>Probar Sistema</span>
+            <i class="pi pi-arrow-right text-xs"></i>
+          </a>
+        }
+      </div>
+
+      <!-- Mobile Hamburger Button -->
+      <button
+        (click)="toggleMobileMenu()"
+        class="md:hidden p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/60 focus:outline-none"
+        aria-label="Menu"
+      >
+        <i [class]="mobileMenuOpen() ? 'pi pi-times text-xl' : 'pi pi-bars text-xl'"></i>
+      </button>
+    </div>
+
+    <!-- Mobile Dropdown Menu -->
+    @if (mobileMenuOpen()) {
+      <div class="md:hidden glass-nav border-t border-slate-800 px-4 pt-3 pb-6 flex flex-col gap-4 animate-fadeIn">
+        <a href="#caracteristicas" (click)="toggleMobileMenu()" class="text-slate-300 hover:text-emerald-400 py-1 font-medium">Características</a>
+        <a href="#soluciones" (click)="toggleMobileMenu()" class="text-slate-300 hover:text-emerald-400 py-1 font-medium">Soluciones</a>
+        <a href="#roi" (click)="toggleMobileMenu()" class="text-slate-300 hover:text-emerald-400 py-1 font-medium">Calculadora ROI</a>
+        <a href="#faq" (click)="toggleMobileMenu()" class="text-slate-300 hover:text-emerald-400 py-1 font-medium">Preguntas Frecuentes</a>
+        <div class="pt-2 flex flex-col gap-2">
+          @if (isLoggedIn()) {
+            <a routerLink="/dashboard" class="w-full text-center py-3 rounded-xl bg-emerald-500 text-slate-950 font-bold">Ir al Dashboard</a>
+          } @else {
+            <a routerLink="/auth/login" class="w-full text-center py-2.5 rounded-xl bg-slate-800 text-white font-medium border border-slate-700">Iniciar Sesión</a>
+            <a routerLink="/auth/register" class="w-full text-center py-2.5 rounded-xl bg-emerald-500 text-slate-950 font-bold">Probar Sistema</a>
+          }
+        </div>
+      </div>
+    }
+  </header>
+
+  <!-- ─── 2. Hero Section ────────────────────────────────────── -->
+  <section class="pt-36 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+      <!-- Left Hero Text -->
+      <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
+        <!-- Badge -->
+        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold tracking-wide uppercase">
+          <i class="pi pi-sparkles text-sm"></i>
+          <span>Plataforma SaaS v1.0 de Alta Eficiencia</span>
+        </div>
+
+        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight">
+          Digitaliza, Controla y Multiplica la Eficiencia de tu <span class="gradient-text">Valet Parking</span>
+        </h1>
+
+        <p class="text-lg text-slate-300 max-w-2xl mx-auto lg:mx-0 font-normal leading-relaxed">
+          Elimina boletos de papel perdidos, automatiza arqueos de caja multimoneda (USD/VES), emite tickets térmicos con código QR y supervisa el estado de cada vehículo en tiempo real.
+        </p>
+
+        <!-- CTA Action Buttons -->
+        <div class="pt-4 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
+          <a
+            (click)="navigateToApp()"
+            class="w-full sm:w-auto px-8 py-4 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-400 text-slate-950 font-extrabold text-base hover:brightness-110 shadow-xl shadow-emerald-500/30 transition-all flex items-center justify-center gap-3 cursor-pointer"
+          >
+            <i class="pi pi-rocket text-lg"></i>
+            <span>{{ isLoggedIn() ? 'Ingresar al Dashboard' : 'Comenzar Ahora Gratis' }}</span>
+          </a>
+          <a
+            href="#caracteristicas"
+            class="w-full sm:w-auto px-7 py-4 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-200 font-semibold text-base border border-slate-700 transition-all flex items-center justify-center gap-2"
+          >
+            <i class="pi pi-info-circle text-emerald-400"></i>
+            <span>Ver Funcionalidades</span>
+          </a>
+        </div>
+
+        <!-- Social Proof Stats -->
+        <div class="pt-8 border-t border-slate-800/80 grid grid-cols-3 gap-4 max-w-md mx-auto lg:mx-0">
+          <div>
+            <div class="text-2xl font-bold text-white gradient-text">100%</div>
+            <div class="text-xs text-slate-400 font-medium mt-0.5">Control de Caja</div>
+          </div>
+          <div>
+            <div class="text-2xl font-bold text-white gradient-text">0.5s</div>
+            <div class="text-xs text-slate-400 font-medium mt-0.5">Generación Ticket QR</div>
+          </div>
+          <div>
+            <div class="text-2xl font-bold text-white gradient-text">USD / VES</div>
+            <div class="text-xs text-slate-400 font-medium mt-0.5">Cobro Multimoneda</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Interactive Mockup Container -->
+      <div class="lg:col-span-5 relative">
+        <div class="absolute -inset-1 rounded-2xl bg-gradient-to-r from-emerald-500/30 to-blue-500/30 blur-xl opacity-70"></div>
+
+        <div class="mockup-window relative z-10 glass-card">
+          <!-- Window Header bar -->
+          <div class="mockup-header">
+            <span class="dot red"></span>
+            <span class="dot yellow"></span>
+            <span class="dot green"></span>
+            <span class="text-xs text-slate-400 font-mono ml-2">https://parking-valet-v1-0.vercel.app/dashboard</span>
+          </div>
+
+          <!-- Window Content Inner -->
+          <div class="p-6 space-y-5">
+            <!-- Simulated Metric Cards -->
+            <div class="grid grid-cols-2 gap-3">
+              <div class="p-3.5 rounded-xl bg-slate-800/70 border border-slate-700/60">
+                <div class="flex items-center justify-between text-xs text-slate-400">
+                  <span>Vehículos Adentro</span>
+                  <i class="pi pi-car text-emerald-400"></i>
+                </div>
+                <div class="text-2xl font-bold text-white mt-1">14</div>
+                <div class="text-[11px] text-emerald-400 font-medium mt-1">87% Ocupación</div>
+              </div>
+
+              <div class="p-3.5 rounded-xl bg-slate-800/70 border border-slate-700/60">
+                <div class="flex items-center justify-between text-xs text-slate-400">
+                  <span>Recaudado Hoy</span>
+                  <i class="pi pi-wallet text-emerald-400"></i>
+                </div>
+                <div class="text-2xl font-bold text-white mt-1">$420.00</div>
+                <div class="text-[11px] text-emerald-400 font-medium mt-1">31,587.78 VES</div>
+              </div>
+            </div>
+
+            <!-- Simulated Vehicle Live Queue -->
+            <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">Tickets en Vivo</span>
+                <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">ACTIVOS</span>
+              </div>
+
+              <!-- Item 1 -->
+              <div class="flex items-center justify-between p-2.5 rounded-lg bg-slate-800/80 text-xs">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-7 h-7 rounded bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center text-[11px]">#104</div>
+                  <div>
+                    <div class="font-bold text-white">Toyota Fortuner</div>
+                    <div class="text-[10px] font-mono text-slate-400">AB123CD • Llave #A-12</div>
+                  </div>
+                </div>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300">ESTACIONADO</span>
+              </div>
+
+              <!-- Item 2 -->
+              <div class="flex items-center justify-between p-2.5 rounded-lg bg-slate-800/80 text-xs">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-7 h-7 rounded bg-blue-500/20 text-blue-400 font-bold flex items-center justify-center text-[11px]">#105</div>
+                  <div>
+                    <div class="font-bold text-white">Chevrolet Tahoe</div>
+                    <div class="text-[10px] font-mono text-slate-400">XY987ZT • Llave #B-04</div>
+                  </div>
+                </div>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300">ENTREGADO</span>
+              </div>
+            </div>
+
+            <!-- Simulated QR Quick Action -->
+            <div class="p-3 rounded-xl bg-gradient-to-r from-emerald-950/60 to-slate-900 border border-emerald-500/30 flex items-center justify-between text-xs">
+              <div class="flex items-center gap-2 text-emerald-300 font-semibold">
+                <i class="pi pi-qrcode text-base"></i>
+                <span>Generación de Ticket Térmico QR</span>
+              </div>
+              <span class="px-2.5 py-1 rounded-lg bg-emerald-500 text-slate-950 font-bold text-[11px]">IMPRIMIR</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 3. Soluciones "Antes vs. Con Parking Valet v1.0" ────── -->
+  <section id="soluciones" class="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-slate-800/60">
+    <div class="text-center max-w-3xl mx-auto mb-16 space-y-3">
+      <span class="text-xs font-bold uppercase tracking-widest text-emerald-400">Optimización de Operaciones</span>
+      <h2 class="text-3xl sm:text-4xl font-extrabold text-white">¿Por qué cambiar el papel por Parking Valet v1.0?</h2>
+      <p class="text-slate-400 text-sm sm:text-base">Reemplaza métodos tradicionales propensos a pérdidas financieras por automatización inteligente.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <!-- Traditional Way -->
+      <div class="p-8 rounded-2xl bg-red-950/10 border border-red-500/20 space-y-5">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-red-500/20 text-red-400 flex items-center justify-center font-bold text-xl">
+            <i class="pi pi-times"></i>
+          </div>
+          <h3 class="text-xl font-bold text-white">Métodos Tradicionales de Papel</h3>
+        </div>
+        <ul class="space-y-3.5 text-sm text-slate-300">
+          <li class="flex items-start gap-2.5">
+            <i class="pi pi-times-circle text-red-400 text-base mt-0.5"></i>
+            <span>Tickets de papel extraviados o mojados, generando conflictos con clientes por extravíos.</span>
+          </li>
+          <li class="flex items-start gap-2.5">
+            <i class="pi pi-times-circle text-red-400 text-base mt-0.5"></i>
+            <span>Descuadres de caja chica por cobros manuales o cálculos erróneos de tarifas.</span>
+          </li>
+          <li class="flex items-start gap-2.5">
+            <i class="pi pi-times-circle text-red-400 text-base mt-0.5"></i>
+            <span>Demoras al ubicar llaves o vehículos por falta de registro de casilla en tiempo real.</span>
+          </li>
+          <li class="flex items-start gap-2.5">
+            <i class="pi pi-times-circle text-red-400 text-base mt-0.5"></i>
+            <span>Incapacidad de rastrear la tasa del dólar del día para cobros en Bolívares.</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Modern System Way -->
+      <div class="p-8 rounded-2xl bg-emerald-950/20 border border-emerald-500/30 space-y-5 glass-card glow-emerald">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xl">
+            <i class="pi pi-check"></i>
+          </div>
+          <h3 class="text-xl font-bold text-white">Con Parking Valet v1.0</h3>
+        </div>
+        <ul class="space-y-3.5 text-sm text-slate-200">
+          <li class="flex items-start gap-2.5">
+            <i class="pi pi-check-circle text-emerald-400 text-base mt-0.5"></i>
+            <span><strong>Ticket Térmico con Código QR</strong> escaneable al instante para entrada y salida fluida.</span>
+          </li>
+          <li class="flex items-start gap-2.5">
+            <i class="pi pi-check-circle text-emerald-400 text-base mt-0.5"></i>
+            <span><strong>Caja Chica Multimoneda (USD/VES)</strong> con tasa oficial al día y cuadre exacto por turno.</span>
+          </li>
+          <li class="flex items-start gap-2.5">
+            <i class="pi pi-check-circle text-emerald-400 text-base mt-0.5"></i>
+            <span><strong>Control de Estados en Vivo</strong> (En Espera, Estacionado, Entregado) con ubicación de llave.</span>
+          </li>
+          <li class="flex items-start gap-2.5">
+            <i class="pi pi-check-circle text-emerald-400 text-base mt-0.5"></i>
+            <span><strong>Seguridad & Sesiones Únicas</strong> evitando inicios simultáneos no autorizados por cuenta.</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 4. Grid de Funcionalidades Principales ────────────── -->
+  <section id="caracteristicas" class="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-slate-800/60">
+    <div class="text-center max-w-3xl mx-auto mb-16 space-y-3">
+      <span class="text-xs font-bold uppercase tracking-widest text-emerald-400">Todo Incluido</span>
+      <h2 class="text-3xl sm:text-4xl font-extrabold text-white">Características Diseñadas para tu Negocio</h2>
+      <p class="text-slate-400 text-sm sm:text-base">Una suite completa para el control operativo, financiero y administrativo de estacionamientos.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- Feature 1 -->
+      <div class="p-6 rounded-2xl glass-card feature-card space-y-3.5">
+        <div class="w-12 h-12 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center text-xl">
+          <i class="pi pi-car"></i>
+        </div>
+        <h3 class="text-lg font-bold text-white">Recepción & Estados en Vivo</h3>
+        <p class="text-slate-400 text-xs sm:text-sm leading-relaxed">
+          Registro instantáneo de la placa del vehículo, asignación de casilla de llave y actualización en tiempo real de su estado.
+        </p>
+      </div>
+
+      <!-- Feature 2 -->
+      <div class="p-6 rounded-2xl glass-card feature-card space-y-3.5">
+        <div class="w-12 h-12 rounded-xl bg-teal-500/15 border border-teal-500/30 text-teal-400 flex items-center justify-center text-xl">
+          <i class="pi pi-qrcode"></i>
+        </div>
+        <h3 class="text-lg font-bold text-white">Tickets QR & Térmicos</h3>
+        <p class="text-slate-400 text-xs sm:text-sm leading-relaxed">
+          Compatibilidad nativa con impresoras térmicas POS. Los clientes reciben un ticket con QR para agilizar la entrega del vehículo.
+        </p>
+      </div>
+
+      <!-- Feature 3 -->
+      <div class="p-6 rounded-2xl glass-card feature-card space-y-3.5">
+        <div class="w-12 h-12 rounded-xl bg-blue-500/15 border border-blue-500/30 text-blue-400 flex items-center justify-center text-xl">
+          <i class="pi pi-dollar"></i>
+        </div>
+        <h3 class="text-lg font-bold text-white">Caja Chica & Multimoneda</h3>
+        <p class="text-slate-400 text-xs sm:text-sm leading-relaxed">
+          Cobro eficiente en USD o Bolívares con tasa de cambio automática. Control exacto de aperturas, retiros y cierres de turno.
+        </p>
+      </div>
+
+      <!-- Feature 4 -->
+      <div class="p-6 rounded-2xl glass-card feature-card space-y-3.5">
+        <div class="w-12 h-12 rounded-xl bg-purple-500/15 border border-purple-500/30 text-purple-400 flex items-center justify-center text-xl">
+          <i class="pi pi-chart-bar"></i>
+        </div>
+        <h3 class="text-lg font-bold text-white">Analítica & Reportes PDF/Excel</h3>
+        <p class="text-slate-400 text-xs sm:text-sm leading-relaxed">
+          Gráficas de horas pico, recaudación histórica, exportación de reportes detallados en Excel y formato PDF profesional.
+        </p>
+      </div>
+
+      <!-- Feature 5 -->
+      <div class="p-6 rounded-2xl glass-card feature-card space-y-3.5">
+        <div class="w-12 h-12 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center text-xl">
+          <i class="pi pi-shield"></i>
+        </div>
+        <h3 class="text-lg font-bold text-white">Roles & Sesiones Únicas</h3>
+        <p class="text-slate-400 text-xs sm:text-sm leading-relaxed">
+          Asignación granular de permisos (Administrador, Valet, Cajero) y bloqueo de inicios de sesión simultáneos para prevenir irregularidades.
+        </p>
+      </div>
+
+      <!-- Feature 6 -->
+      <div class="p-6 rounded-2xl glass-card feature-card space-y-3.5">
+        <div class="w-12 h-12 rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 flex items-center justify-center text-xl">
+          <i class="pi pi-mobile"></i>
+        </div>
+        <h3 class="text-lg font-bold text-white">Diseño 100% Adaptativo</h3>
+        <p class="text-slate-400 text-xs sm:text-sm leading-relaxed">
+          Interfaz ultrarrápida adaptable a teléfonos celulares Android/iOS, tablets y computadoras de escritorio.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 5. Calculadora Interactiva de ROI ─────────────────── -->
+  <section id="roi" class="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-slate-800/60">
+    <div class="p-8 sm:p-12 rounded-3xl glass-card glow-emerald relative overflow-hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        <!-- Text & Sliders -->
+        <div class="lg:col-span-7 space-y-6">
+          <span class="text-xs font-bold uppercase tracking-widest text-emerald-400">Calculadora de Impacto</span>
+          <h2 class="text-3xl font-extrabold text-white">Calcula el Retorno de Inversión (ROI) para tu Estacionamiento</h2>
+          <p class="text-slate-300 text-sm">Ajusta los valores de tu operación para estimar el potencial de facturación y el tiempo ahorrado en atención.</p>
+
+          <!-- Slider 1 -->
+          <div class="space-y-2">
+            <div class="flex justify-between text-sm">
+              <span class="text-slate-300 font-medium">Vehículos atendidos por día:</span>
+              <span class="text-emerald-400 font-bold text-base">{{ vehiclesPerDay() }} autos</span>
+            </div>
+            <input
+              type="range"
+              min="20"
+              max="500"
+              step="10"
+              [ngModel]="vehiclesPerDay()"
+              (ngModelChange)="vehiclesPerDay.set($event)"
+              class="w-full roi-slider cursor-pointer h-2 bg-slate-800 rounded-lg"
+            />
+          </div>
+
+          <!-- Slider 2 -->
+          <div class="space-y-2 pt-2">
+            <div class="flex justify-between text-sm">
+              <span class="text-slate-300 font-medium">Tarifa promedio por ticket ($):</span>
+              <span class="text-emerald-400 font-bold text-base">${{ avgRateUsd() }} USD</span>
+            </div>
+            <input
+              type="range"
+              min="1"
+              max="15"
+              step="0.5"
+              [ngModel]="avgRateUsd()"
+              (ngModelChange)="avgRateUsd.set($event)"
+              class="w-full roi-slider cursor-pointer h-2 bg-slate-800 rounded-lg"
+            />
+          </div>
+        </div>
+
+        <!-- Calculated Result Card -->
+        <div class="lg:col-span-5 p-6 rounded-2xl bg-slate-900/90 border border-emerald-500/40 text-center space-y-6">
+          <div>
+            <div class="text-xs uppercase text-slate-400 font-semibold tracking-wider">Facturación Mensual Estimada</div>
+            <div class="text-4xl sm:text-5xl font-black text-white gradient-text mt-1">
+              ${{ estimatedMonthlyRevenue.toLocaleString() }} USD
+            </div>
+          </div>
+
+          <div class="pt-4 border-t border-slate-800">
+            <div class="text-xs uppercase text-slate-400 font-semibold tracking-wider">Tiempo Operativo Ahorrado</div>
+            <div class="text-2xl font-bold text-emerald-400 mt-1">
+              ~{{ estimatedSavingsMinutes }} Horas / mes
+            </div>
+            <p class="text-[11px] text-slate-400 mt-1">Basado en la agilización de entrada/salida de 2.5 min por vehículo.</p>
+          </div>
+
+          <a
+            (click)="navigateToApp()"
+            class="w-full py-3.5 rounded-xl bg-emerald-500 text-slate-950 font-extrabold text-sm block hover:bg-emerald-400 transition-colors shadow-lg cursor-pointer"
+          >
+            Digitalizar Mi Operación Ahora
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 6. Preguntas Frecuentes (FAQ) ──────────────────────── -->
+  <section id="faq" class="py-20 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto border-t border-slate-800/60">
+    <div class="text-center mb-12 space-y-3">
+      <span class="text-xs font-bold uppercase tracking-widest text-emerald-400">Resuelve tus Dudas</span>
+      <h2 class="text-3xl font-extrabold text-white">Preguntas Frecuentes</h2>
+    </div>
+
+    <div class="space-y-4">
+      <!-- Q1 -->
+      <div class="rounded-xl glass-card overflow-hidden">
+        <button
+          (click)="toggleFaq(0)"
+          class="w-full p-5 text-left font-semibold text-white flex justify-between items-center gap-4 hover:bg-slate-800/50 transition-colors"
+        >
+          <span>¿Qué hardware o equipamiento necesito para usar Parking Valet v1.0?</span>
+          <i [class]="openFaq() === 0 ? 'pi pi-chevron-up text-emerald-400' : 'pi pi-chevron-down text-slate-400'"></i>
+        </button>
+        @if (openFaq() === 0) {
+          <div class="px-5 pb-5 text-sm text-slate-300 leading-relaxed border-t border-slate-800/60 pt-3">
+            El sistema funciona 100% en la nube desde cualquier dispositivo con navegador web (Teléfono celular Android/iPhone, Tablet, Laptop o PC). Para la impresión de tickets con QR, es compatible con cualquier impresora térmica POS estándar USB o Bluetooth.
+          </div>
+        }
+      </div>
+
+      <!-- Q2 -->
+      <div class="rounded-xl glass-card overflow-hidden">
+        <button
+          (click)="toggleFaq(1)"
+          class="w-full p-5 text-left font-semibold text-white flex justify-between items-center gap-4 hover:bg-slate-800/50 transition-colors"
+        >
+          <span>¿Cómo maneja el sistema el cobro en moneda extranjera y nacional?</span>
+          <i [class]="openFaq() === 1 ? 'pi pi-chevron-up text-emerald-400' : 'pi pi-chevron-down text-slate-400'"></i>
+        </button>
+        @if (openFaq() === 1) {
+          <div class="px-5 pb-5 text-sm text-slate-300 leading-relaxed border-t border-slate-800/60 pt-3">
+            Parking Valet v1.0 cuenta con soporte multimoneda nativo (Dólares y Bolívares). Puedes definir la tasa oficial de cambio del día y el sistema calculará automáticamente los montos equivalentes al momento del cobro en caja.
+          </div>
+        }
+      </div>
+
+      <!-- Q3 -->
+      <div class="rounded-xl glass-card overflow-hidden">
+        <button
+          (click)="toggleFaq(2)"
+          class="w-full p-5 text-left font-semibold text-white flex justify-between items-center gap-4 hover:bg-slate-800/50 transition-colors"
+        >
+          <span>¿Qué seguridad tiene el control de cuentas de operadores?</span>
+          <i [class]="openFaq() === 2 ? 'pi pi-chevron-up text-emerald-400' : 'pi pi-chevron-down text-slate-400'"></i>
+        </button>
+        @if (openFaq() === 2) {
+          <div class="px-5 pb-5 text-sm text-slate-300 leading-relaxed border-t border-slate-800/60 pt-3">
+            El sistema incluye control estricto de **Sesiones Únicas Activas**. Si una cuenta intenta ser utilizada en dos navegadores o dispositivos al mismo tiempo, el sistema notificará inmediatamente e invalidará el token de la sesión anterior para evitar irregularidades.
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 7. CTA Final Banner & Footer ───────────────────────── -->
+  <section class="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+    <div class="p-10 rounded-3xl bg-gradient-to-r from-emerald-950/80 via-slate-900 to-teal-950/80 border border-emerald-500/40 text-center space-y-6 glass-card">
+      <h2 class="text-3xl sm:text-4xl font-black text-white">¿Listo para transformar la gestión de tu Valet Parking?</h2>
+      <p class="text-slate-300 max-w-xl mx-auto text-sm sm:text-base">
+        Ingresa hoy al sistema y experimenta la velocidad, seguridad y control financiero en tiempo real.
+      </p>
+
+      <div class="pt-2 flex justify-center">
+        <a
+          (click)="navigateToApp()"
+          class="px-9 py-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-extrabold text-base hover:scale-105 transition-transform shadow-xl shadow-emerald-500/30 cursor-pointer"
+        >
+          {{ isLoggedIn() ? 'Ir al Panel de Control' : 'Ingresar al Sistema' }}
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="py-8 px-4 border-t border-slate-800/80 text-center text-xs text-slate-500 space-y-2">
+    <div class="flex items-center justify-center gap-2">
+      <i class="pi pi-car text-emerald-400"></i>
+      <span class="font-bold text-slate-300">Parking Valet v1.0</span>
+      <span>• © 2026 Todos los derechos reservados.</span>
+    </div>
+    <div class="flex items-center justify-center gap-4 text-slate-400 pt-1">
+      <a routerLink="/normativa" class="hover:text-emerald-400 transition-colors">Normativa & Términos</a>
+      <span>|</span>
+      <a routerLink="/auth/login" class="hover:text-emerald-400 transition-colors">Acceso Operadores</a>
+    </div>
+  </footer>
+</div>

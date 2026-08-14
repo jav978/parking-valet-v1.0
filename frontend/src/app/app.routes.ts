@@ -30,6 +30,15 @@ export const routes: Routes = [
   },
   {
     path: '',
+    pathMatch: 'full',
+    loadComponent: () => import('./features/landing/landing').then((m) => m.Landing),
+  },
+  {
+    path: 'landing',
+    loadComponent: () => import('./features/landing/landing').then((m) => m.Landing),
+  },
+  {
+    path: '',
     canActivate: [authGuard, subscriptionGuard],
     loadComponent: () => import('./layout/layout').then((m) => m.Layout),
     children: [
