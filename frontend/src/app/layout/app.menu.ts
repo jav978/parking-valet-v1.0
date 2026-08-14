@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { MenuItem } from 'primeng/api';
 import { AuthService } from '../core/services/auth.service';
+import { LayoutService } from './layout.service';
 
 @Component({
   selector: 'app-menu',
@@ -29,7 +30,7 @@ import { AuthService } from '../core/services/auth.service';
                       <ul class="submenu">
                         @for (sub of child.items; track sub.label) {
                           <li>
-                            <a [routerLink]="sub.routerLink" [queryParams]="sub.queryParams" class="menu-item" [class.active]="isActive(sub)">
+                            <a [routerLink]="sub.routerLink" [queryParams]="sub.queryParams" class="menu-item" [class.active]="isActive(sub)" (click)="onItemClick()">
                               <i [class]="sub.icon || 'pi pi-fw pi-circle'"></i>
                               <span>{{ sub.label }}</span>
                             </a>
@@ -40,7 +41,7 @@ import { AuthService } from '../core/services/auth.service';
                   </li>
                 } @else {
                   <li>
-                    <a [routerLink]="child.routerLink" [queryParams]="child.queryParams" class="menu-item" [class.active]="isActive(child)">
+                    <a [routerLink]="child.routerLink" [queryParams]="child.queryParams" class="menu-item" [class.active]="isActive(child)" (click)="onItemClick()">
                       <i [class]="child.icon || 'pi pi-fw pi-circle'"></i>
                       <span>{{ child.label }}</span>
                     </a>
@@ -56,7 +57,12 @@ import { AuthService } from '../core/services/auth.service';
 })
 export class AppMenu {
   private authService = inject(AuthService);
+  private layoutService = inject(LayoutService);
   private router = inject(Router);
+
+  onItemClick(): void {
+    this.layoutService.hideMenu();
+  }
   user = this.authService.user;
   expandedMenus = new Set<MenuItem>();
   currentPath = '';

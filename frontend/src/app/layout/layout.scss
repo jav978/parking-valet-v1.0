@@ -68,6 +68,41 @@
   }
 }
 
+/* ─── Responsive Mobile Adjustments (<= 991px) ─────────────── */
+@media (max-width: 991px) {
+  .layout-wrapper {
+    .layout-topbar {
+      width: 100% !important;
+      margin-left: 0 !important;
+      padding: 0 1rem;
+    }
+
+    .layout-sidebar {
+      transform: translateX(-100%) !important;
+      transition: transform 0.25s cubic-bezier(0, 0, 0.2, 1);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+    }
+
+    .layout-main-container {
+      margin-left: 0 !important;
+    }
+
+    .layout-main {
+      padding: 1rem !important;
+    }
+
+    &.layout-mobile-active {
+      .layout-sidebar {
+        transform: translateX(0) !important;
+      }
+
+      .layout-mask {
+        display: block !important;
+      }
+    }
+  }
+}
+
 /* ─── Topbar ──────────────────────────────────────────────── */
 .layout-topbar {
   position: fixed;

@@ -94,6 +94,13 @@
           [loading]="loading()"
           styleClass="w-full mt-2"
         />
+
+        @if (loading()) {
+          <div class="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium animate-pulse text-center">
+            <i class="pi pi-spin pi-spinner text-sm"></i>
+            <span>Conectando con el servidor backend... Si estaba inactivo en Render, puede demorar unos segundos en despertar.</span>
+          </div>
+        }
       </form>
 
       <div class="text-center mt-2">
