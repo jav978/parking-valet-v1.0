@@ -66,10 +66,10 @@
       <div class="md:hidden flex items-center gap-2">
         <button
           (click)="toggleDarkMode()"
-          class="p-2 rounded-lg bg-slate-800/80 text-amber-400 border border-slate-700"
+          class="nav-theme-toggle p-2.5 rounded-xl transition-all flex items-center justify-center"
           [title]="isDarkMode() ? 'Modo Claro' : 'Modo Oscuro'"
         >
-          <i [class]="isDarkMode() ? 'pi pi-sun text-base' : 'pi pi-moon text-base text-blue-400'"></i>
+          <i [class]="isDarkMode() ? 'pi pi-sun text-base text-amber-400' : 'pi pi-moon text-base text-indigo-500'"></i>
         </button>
 
         <button
@@ -239,10 +239,12 @@
 
   <!-- ─── 3. Soluciones "Antes vs. Con Parking Valet v1.0" ────── -->
   <section id="soluciones" class="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-slate-800/60">
-    <div class="text-center max-w-3xl mx-auto mb-16 space-y-3">
-      <span class="section-badge text-xs font-bold uppercase tracking-widest">Optimización de Operaciones</span>
-      <h2 class="section-title text-3xl sm:text-4xl font-extrabold">¿Por qué cambiar el papel por Parking Valet v1.0?</h2>
-      <p class="section-desc text-sm sm:text-base">Reemplaza métodos tradicionales propensos a pérdidas financieras por automatización inteligente.</p>
+    <div class="text-center max-w-3xl mx-auto mb-16 space-y-4">
+      <div>
+        <span class="section-badge text-xs font-bold uppercase tracking-widest">Optimización de Operaciones</span>
+      </div>
+      <h2 class="section-title text-3xl sm:text-4xl lg:text-4xl font-extrabold leading-tight sm:leading-snug">¿Por qué cambiar el papel por Parking Valet v1.0?</h2>
+      <p class="section-desc text-sm sm:text-base leading-relaxed max-w-2xl mx-auto">Reemplaza métodos tradicionales propensos a pérdidas financieras por automatización inteligente.</p>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -256,15 +258,15 @@
         </div>
         <ul class="space-y-4 text-sm card-text-traditional">
           <li class="flex items-start gap-3">
-            <i class="pi pi-times-circle text-red-400 text-lg mt-0.5 shrink-0"></i>
+            <i class="pi pi-times-circle text-red-500 text-lg mt-0.5 shrink-0"></i>
             <span>Tickets de papel extraviados o mojados, generando conflictos con clientes por extravíos.</span>
           </li>
           <li class="flex items-start gap-3">
-            <i class="pi pi-times-circle text-red-400 text-lg mt-0.5 shrink-0"></i>
+            <i class="pi pi-times-circle text-red-500 text-lg mt-0.5 shrink-0"></i>
             <span>Falta de transparencia en arqueos de caja y descuadres al manejar cobros multimoneda.</span>
           </li>
           <li class="flex items-start gap-3">
-            <i class="pi pi-times-circle text-red-400 text-lg mt-0.5 shrink-0"></i>
+            <i class="pi pi-times-circle text-red-500 text-lg mt-0.5 shrink-0"></i>
             <span>Sin trazabilidad de los operadores ni control de tiempos de espera en entregas.</span>
           </li>
         </ul>
@@ -280,15 +282,15 @@
         </div>
         <ul class="space-y-4 text-sm card-text-modern">
           <li class="flex items-start gap-3">
-            <i class="pi pi-check-circle text-emerald-400 text-lg mt-0.5 shrink-0"></i>
+            <i class="pi pi-check-circle text-emerald-500 text-lg mt-0.5 shrink-0"></i>
             <span>Tickets digitales con código QR impresos en papel térmico o enviados al smartphone.</span>
           </li>
           <li class="flex items-start gap-3">
-            <i class="pi pi-check-circle text-emerald-400 text-lg mt-0.5 shrink-0"></i>
+            <i class="pi pi-check-circle text-emerald-500 text-lg mt-0.5 shrink-0"></i>
             <span>Control de caja chica con doble moneda (USD/VES), tasa de cambio en vivo y arqueo exacto.</span>
           </li>
           <li class="flex items-start gap-3">
-            <i class="pi pi-check-circle text-emerald-400 text-lg mt-0.5 shrink-0"></i>
+            <i class="pi pi-check-circle text-emerald-500 text-lg mt-0.5 shrink-0"></i>
             <span>Auditoría de estados en tiempo real (Recibido, Estacionado, Entregado) por valet.</span>
           </li>
         </ul>
@@ -298,10 +300,12 @@
 
   <!-- ─── 4. Características Principales ─────────────────────── -->
   <section id="caracteristicas" class="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-slate-800/60">
-    <div class="text-center max-w-3xl mx-auto mb-16 space-y-3">
-      <span class="section-badge text-xs font-bold uppercase tracking-widest">Todo Incluido</span>
-      <h2 class="section-title text-3xl sm:text-4xl font-extrabold">Características Diseñadas para tu Negocio</h2>
-      <p class="section-desc text-sm sm:text-base">Una suite completa para el control operativo, financiero y administrativo de estacionamientos.</p>
+    <div class="text-center max-w-3xl mx-auto mb-16 space-y-4">
+      <div>
+        <span class="section-badge text-xs font-bold uppercase tracking-widest">Todo Incluido</span>
+      </div>
+      <h2 class="section-title text-3xl sm:text-4xl lg:text-4xl font-extrabold leading-tight sm:leading-snug">Características Diseñadas para tu Negocio</h2>
+      <p class="section-desc text-sm sm:text-base leading-relaxed max-w-2xl mx-auto">Una suite completa para el control operativo, financiero y administrativo de estacionamientos.</p>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -379,9 +383,11 @@
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
         <!-- Text & Sliders -->
         <div class="lg:col-span-7 space-y-6">
-          <span class="section-badge text-xs font-bold uppercase tracking-widest">Calculadora de Impacto</span>
-          <h2 class="section-title text-3xl font-extrabold">Calcula el Retorno de Inversión (ROI) para tu Estacionamiento</h2>
-          <p class="section-desc text-sm">Ajusta los valores de tu operación para estimar el potencial de facturación y el tiempo ahorrado en atención.</p>
+          <div>
+            <span class="section-badge text-xs font-bold uppercase tracking-widest">Calculadora de Impacto</span>
+          </div>
+          <h2 class="section-title text-3xl sm:text-4xl font-extrabold leading-tight sm:leading-snug">Calcula el Retorno de Inversión (ROI) para tu Estacionamiento</h2>
+          <p class="section-desc text-sm sm:text-base leading-relaxed">Ajusta los valores de tu operación para estimar el potencial de facturación y el tiempo ahorrado en atención.</p>
 
           <!-- Slider 1 -->
           <div class="space-y-2">
@@ -448,9 +454,11 @@
 
   <!-- ─── 6. Preguntas Frecuentes (FAQ) ──────────────────────── -->
   <section id="faq" class="py-20 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto border-t border-slate-800/60">
-    <div class="text-center mb-12 space-y-3">
-      <span class="section-badge text-xs font-bold uppercase tracking-widest">Resuelve tus Dudas</span>
-      <h2 class="section-title text-3xl font-extrabold">Preguntas Frecuentes</h2>
+    <div class="text-center mb-12 space-y-4">
+      <div>
+        <span class="section-badge text-xs font-bold uppercase tracking-widest">Resuelve tus Dudas</span>
+      </div>
+      <h2 class="section-title text-3xl sm:text-4xl font-extrabold leading-tight">Preguntas Frecuentes</h2>
     </div>
 
     <div class="space-y-4">
