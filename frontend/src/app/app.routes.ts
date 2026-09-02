@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, loginGuard } from './core/guards/auth.guard';
+import { authGuard, loginGuard, landingGuard } from './core/guards/auth.guard';
 import { subscriptionGuard } from './core/guards/subscription.guard';
 
 export const routes: Routes = [
@@ -31,10 +31,12 @@ export const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
+    canActivate: [landingGuard],
     loadComponent: () => import('./features/landing/landing').then((m) => m.Landing),
   },
   {
     path: 'landing',
+    canActivate: [landingGuard],
     loadComponent: () => import('./features/landing/landing').then((m) => m.Landing),
   },
   {

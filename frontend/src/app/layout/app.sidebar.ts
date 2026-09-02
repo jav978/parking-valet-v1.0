@@ -14,7 +14,7 @@ import { LayoutService } from './layout.service';
       <div>
         <!-- Sidebar Logo Header -->
         <div class="sidebar-header flex items-center gap-3 px-6 h-16 border-b border-surface-200 dark:border-surface-800">
-          <a class="flex items-center gap-3 text-lg font-bold text-surface-800 dark:text-surface-100" routerLink="/">
+          <a class="flex items-center gap-3 text-lg font-bold text-surface-800 dark:text-surface-100" routerLink="/dashboard">
             <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-primary-500/10 border border-primary-500/20">
               <i class="pi pi-car text-xl text-primary-500"></i>
             </div>

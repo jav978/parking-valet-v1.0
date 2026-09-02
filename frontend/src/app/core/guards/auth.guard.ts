@@ -28,3 +28,13 @@ export const loginGuard: CanActivateFn = () => {
 
   return true;
 };
+
+export const landingGuard: CanActivateFn = () => {
+  const authService = inject(AuthService);
+
+  if (authService.isAuthenticated()) {
+    authService.logout().subscribe({ error: () => {} });
+  }
+  return true;
+};
+
