@@ -39,14 +39,117 @@ export class TicketsService {
     return `/uploads/tickets/${filename}`;
   }
 
+  async lookupPlate(plateNumber: string) {
+    if (!plateNumber || !plateNumber.trim()) {
+      return { activeTicket: null, vehicle: null, client: null };
+    }
+
+    const cleanPlate = plateNumber.trim().toUpperCase();
+
+    const [activeTicket, vehicle] = await Promise.all([
+      this.prisma.ticket.findFirst({
+        where: {
+          plateNumber: { equals: cleanPlate, mode: 'insensitive' },
+          status: 'ACTIVE',
+          deletedAt: null,
+        },
+        include: {
+          lot: { select: { id: true, name: true, code: true } },
+          spot: { select: { id: true, spotNumber: true, floor: true, section: true } },
+        },
+      }),
+      this.prisma.vehicle.findFirst({
+        where: {
+          plateNumber: { equals: cleanPlate, mode: 'insensitive' },
+          deletedAt: null,
+        },
+        include: {
+          client: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              documentType: true,
+              documentNumber: true,
+              clientType: true,
+              phone: true,
+              email: true,
+            },
+          },
+        },
+      }),
+    ]);
+
+    return {
+      activeTicket: activeTicket
+        ? {
+            id: activeTicket.id,
+            ticketNumber: activeTicket.ticketNumber,
+            entryTime: activeTicket.entryTime,
+            spotNumber: activeTicket.spot?.spotNumber || 'N/A',
+            floor: activeTicket.spot?.floor || 0,
+            lotName: activeTicket.lot?.name || 'Estacionamiento',
+          }
+        : null,
+      vehicle: vehicle
+        ? {
+            id: vehicle.id,
+            plateNumber: vehicle.plateNumber,
+            brand: vehicle.brand,
+            model: vehicle.model,
+            color: vehicle.color,
+            vehicleType: vehicle.vehicleType,
+            clientId: vehicle.clientId,
+          }
+        : null,
+      client: vehicle?.client || null,
+    };
+  }
+
   async create(dto: CreateTicketDto, entryOperatorId: string) {
     const lot = await this.prisma.parkingLot.findUnique({ where: { id: dto.lotId } });
     if (!lot || lot.deletedAt) throw new NotFoundException('ParkingLot', dto.lotId);
 
+    const cleanPlate = dto.plateNumber.trim().toUpperCase();
+
+    // Validar si el vehículo ya posee un ticket ACTIVO dentro del parqueadero
+    const activeTicket = await this.prisma.ticket.findFirst({
+      where: {
+        plateNumber: { equals: cleanPlate, mode: 'insensitive' },
+        status: 'ACTIVE',
+        deletedAt: null,
+      },
+      include: {
+        spot: { select: { spotNumber: true } },
+        lot: { select: { name: true } },
+      },
+    });
+
+    if (activeTicket) {
+      const spotInfo = activeTicket.spot ? ` en el Puesto ${activeTicket.spot.spotNumber}` : '';
+      throw new BusinessException(
+        `El vehículo con placa ${cleanPlate} ya se encuentra DENTRO del estacionamiento con el Ticket #${activeTicket.ticketNumber}${spotInfo} (${activeTicket.lot?.name || 'Sucursal'}). No se puede emitir un ticket duplicado.`
+      );
+    }
+
     if (dto.spotId) {
       const spot = await this.prisma.parkingSpot.findUnique({ where: { id: dto.spotId } });
       if (!spot) throw new NotFoundException('ParkingSpot', dto.spotId);
-      if (spot.status !== 'AVAILABLE') throw new BusinessException('Parking spot is not available');
+      if (spot.status !== 'AVAILABLE') throw new BusinessException('El puesto de estacionamiento seleccionado no está disponible.');
+    }
+
+    // Auto-vincular vehículo y cliente registrados si no se proveyeron en el DTO
+    let vehicleId = dto.vehicleId;
+    let clientId = dto.clientId;
+
+    if (!vehicleId || !clientId) {
+      const existingVehicle = await this.prisma.vehicle.findFirst({
+        where: { plateNumber: { equals: cleanPlate, mode: 'insensitive' }, deletedAt: null },
+      });
+      if (existingVehicle) {
+        if (!vehicleId) vehicleId = existingVehicle.id;
+        if (!clientId && existingVehicle.clientId) clientId = existingVehicle.clientId;
+      }
     }
 
     let savedEntryPhotoUrls: string[] = [];
@@ -73,9 +176,9 @@ export class TicketsService {
           ticketNumber,
           lotId: dto.lotId,
           spotId: dto.spotId,
-          clientId: dto.clientId,
-          vehicleId: dto.vehicleId,
-          plateNumber: dto.plateNumber,
+          clientId: clientId,
+          vehicleId: vehicleId,
+          plateNumber: cleanPlate,
           entryTime: dto.entryTime ? new Date(dto.entryTime) : new Date(),
           entryOperatorId,
           notes: dto.notes,

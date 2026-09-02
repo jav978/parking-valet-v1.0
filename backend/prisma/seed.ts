@@ -360,7 +360,7 @@ async function main() {
     update: {},
   });
 
-  await prisma.parkingLot.upsert({
+  const lot2 = await prisma.parkingLot.upsert({
     where: { code: 'NOR-002' },
     create: {
       name: 'Estacionamiento Zona Norte',
@@ -371,8 +371,8 @@ async function main() {
       country: 'México',
       phone: '+521234567899',
       email: 'norte@parkingpro.com',
-      totalSpots: 30,
-      availableSpots: 30,
+      totalSpots: 20,
+      availableSpots: 20,
       openingTime: '00:00',
       closingTime: '23:59',
       is24h: true,
@@ -389,7 +389,7 @@ async function main() {
     update: {},
   });
 
-  await prisma.parkingLot.upsert({
+  const lot3 = await prisma.parkingLot.upsert({
     where: { code: 'EXPRESS-003' },
     create: {
       name: 'Valet Parking Express - Centro',
@@ -400,8 +400,8 @@ async function main() {
       country: 'México',
       phone: '+521234567888',
       email: 'express@parkingpro.com',
-      totalSpots: 25,
-      availableSpots: 22,
+      totalSpots: 20,
+      availableSpots: 20,
       openingTime: '08:00',
       closingTime: '22:00',
       is24h: false,
@@ -420,7 +420,7 @@ async function main() {
   console.log('  ✓ 3 Parking lots created');
 
   // ─── Parking Spots ────────────────────────────────────────
-  console.log('  Creating parking spots...');
+  console.log('  Creating parking spots for all parking lots...');
 
   const standardTypeId = spotTypeMap.get('STANDARD')!;
   const handicapTypeId = spotTypeMap.get('HANDICAP')!;
@@ -437,64 +437,88 @@ async function main() {
     status: SpotStatus;
     isActive: boolean;
   }> = [];
-  const floors = [1, 2];
-  const sections = ['A', 'B'];
 
-  for (const floor of floors) {
-    for (const section of sections) {
-      for (let num = 1; num <= 5; num++) {
-        const spotNumber = `${section}${String(num).padStart(2, '0')}`;
-        let spotTypeId = standardTypeId;
-        const status: SpotStatus = SpotStatus.AVAILABLE;
+  // 1. Estacionamiento Principal: Sótano 1 (-1) y Piso 1 (1)
+  const lot1Floors = [
+    { floor: -1, label: 'Sótano 1', prefix: 'S1' },
+    { floor: 1, label: 'Piso 1', prefix: '1A' },
+  ];
+  for (const f of lot1Floors) {
+    for (let num = 1; num <= 10; num++) {
+      const spotNumber = `${f.prefix}-${String(num).padStart(2, '0')}`;
+      let spotTypeId = standardTypeId;
+      if (num === 1) spotTypeId = handicapTypeId;
+      else if (num === 2) spotTypeId = evTypeId;
+      else if (num === 3) spotTypeId = vipTypeId;
+      else if (num === 10) spotTypeId = motorcycleTypeId;
 
-        if (section === 'A' && num === 1) spotTypeId = handicapTypeId;
-        else if (section === 'A' && num === 5) spotTypeId = evTypeId;
-        else if (section === 'B' && num === 1) spotTypeId = vipTypeId;
-
-        spotsData.push({
-          lotId: parkingLot.id,
-          spotNumber: `${floor}${spotNumber}`,
-          floor,
-          section,
-          spotTypeId,
-          status,
-          isActive: true,
-        });
-      }
+      spotsData.push({
+        lotId: parkingLot.id,
+        spotNumber,
+        floor: f.floor,
+        section: f.prefix,
+        spotTypeId,
+        status: SpotStatus.AVAILABLE,
+        isActive: true,
+      });
     }
   }
 
-  // Add motorcycle spots
-  spotsData.push({
-    lotId: parkingLot.id,
-    spotNumber: 'M01',
-    floor: 1,
-    section: 'M',
-    spotTypeId: motorcycleTypeId,
-    status: SpotStatus.AVAILABLE,
-    isActive: true,
-  });
+  // 2. Estacionamiento Zona Norte: Nivel 1 (1) y Nivel 2 (2)
+  for (let floor = 1; floor <= 2; floor++) {
+    for (let num = 1; num <= 10; num++) {
+      const spotNumber = `N${floor}-${String(num).padStart(2, '0')}`;
+      let spotTypeId = standardTypeId;
+      if (num === 1) spotTypeId = handicapTypeId;
+      else if (num === 2) spotTypeId = evTypeId;
+      else if (num === 3) spotTypeId = vipTypeId;
 
-  spotsData.push({
-    lotId: parkingLot.id,
-    spotNumber: 'M02',
-    floor: 1,
-    section: 'M',
-    spotTypeId: motorcycleTypeId,
-    status: SpotStatus.AVAILABLE,
-    isActive: true,
-  });
+      spotsData.push({
+        lotId: lot2.id,
+        spotNumber,
+        floor,
+        section: `N${floor}`,
+        spotTypeId,
+        status: SpotStatus.AVAILABLE,
+        isActive: true,
+      });
+    }
+  }
+
+  // 3. Valet Parking Express - Centro: Sótano 1 (-1) y Planta Baja (0)
+  const lot3Floors = [
+    { floor: -1, prefix: 'V-S1' },
+    { floor: 0, prefix: 'V-PB' },
+  ];
+  for (const f of lot3Floors) {
+    for (let num = 1; num <= 10; num++) {
+      const spotNumber = `${f.prefix}-${String(num).padStart(2, '0')}`;
+      let spotTypeId = standardTypeId;
+      if (num === 1) spotTypeId = handicapTypeId;
+      else if (num === 2 || num === 3) spotTypeId = vipTypeId;
+
+      spotsData.push({
+        lotId: lot3.id,
+        spotNumber,
+        floor: f.floor,
+        section: f.prefix,
+        spotTypeId,
+        status: SpotStatus.AVAILABLE,
+        isActive: true,
+      });
+    }
+  }
 
   await Promise.all(
     spotsData.map((s) =>
       prisma.parkingSpot.upsert({
         where: { lotId_spotNumber: { lotId: s.lotId, spotNumber: s.spotNumber } },
         create: s,
-        update: { status: s.status, spotTypeId: s.spotTypeId },
+        update: { status: s.status, spotTypeId: s.spotTypeId, floor: s.floor, section: s.section },
       }),
     ),
   );
-  console.log(`  ✓ ${spotsData.length} parking spots created`);
+  console.log(`  ✓ ${spotsData.length} parking spots created across 3 lots`);
 
   // ─── Rates ────────────────────────────────────────────────
   console.log('  Creating rates...');
@@ -698,9 +722,12 @@ async function main() {
   // ─── Demo Tickets ──────────────────────────────────────────
   console.log('  Creating demo tickets...');
 
-  const spot1 = await prisma.parkingSpot.findFirst({ where: { lotId: parkingLot.id, spotNumber: '1A02' } });
-  const spot2 = await prisma.parkingSpot.findFirst({ where: { lotId: parkingLot.id, spotNumber: '1B02' } });
+  const spot1 = await prisma.parkingSpot.findFirst({ where: { lotId: parkingLot.id, spotNumber: '1A-02' } });
+  const spot2 = await prisma.parkingSpot.findFirst({ where: { lotId: parkingLot.id, spotNumber: 'S1-02' } });
   const rateObj = await prisma.rate.findFirst({ where: { lotId: parkingLot.id } });
+
+  if (spot1) await prisma.parkingSpot.update({ where: { id: spot1.id }, data: { status: 'OCCUPIED' } });
+  if (spot2) await prisma.parkingSpot.update({ where: { id: spot2.id }, data: { status: 'OCCUPIED' } });
 
   await prisma.ticket.upsert({
     where: { ticketNumber: 'TKT-000001' },
@@ -716,7 +743,7 @@ async function main() {
       entryOperatorId: adminUser.id,
       notes: 'Entrada sin novedades',
     },
-    update: {},
+    update: { spotId: spot1?.id, status: 'ACTIVE' },
   });
 
   await prisma.ticket.upsert({
@@ -733,7 +760,7 @@ async function main() {
       entryOperatorId: operatorUser.id,
       notes: 'Vehículo VIP',
     },
-    update: {},
+    update: { spotId: spot2?.id, status: 'ACTIVE' },
   });
 
   await prisma.ticket.upsert({

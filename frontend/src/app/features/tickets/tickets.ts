@@ -88,7 +88,37 @@ export class Tickets {
 
   lots = signal<ParkingLot[]>([]);
   availableSpots = signal<ParkingSpot[]>([]);
+  allLotSpots = signal<any[]>([]);
   rates = signal<Rate[]>([]);
+
+  // Dynamic Plate Lookup & Warning Signals
+  lookupLoading = signal(false);
+  activeTicketWarning = signal<any | null>(null);
+  foundVehicle = signal<any | null>(null);
+  foundClient = signal<any | null>(null);
+  selectedSpotFloor = signal<string | number>('ALL');
+
+  isPlateBlocked = computed(() => !!this.activeTicketWarning());
+
+  spotFloors = computed(() => {
+    const spots = this.allLotSpots();
+    const floors = new Set<string>();
+    spots.forEach(s => {
+      const label = s.floor !== undefined && s.floor !== null ? (s.floor < 0 ? `Sótano ${Math.abs(s.floor)}` : `Piso ${s.floor}`) : 'Nivel Principal';
+      floors.add(label);
+    });
+    return Array.from(floors);
+  });
+
+  filteredSpotsForMap = computed(() => {
+    const spots = this.allLotSpots();
+    const selectedFloor = this.selectedSpotFloor();
+    if (selectedFloor === 'ALL') return spots;
+    return spots.filter(s => {
+      const label = s.floor !== undefined && s.floor !== null ? (s.floor < 0 ? `Sótano ${Math.abs(s.floor)}` : `Piso ${s.floor}`) : 'Nivel Principal';
+      return label === selectedFloor;
+    });
+  });
 
   entryPhotosOfSelected = computed(() => {
     const t = this.selectedTicket();
@@ -181,7 +211,13 @@ export class Tickets {
     this.http.get<ApiResponse<ParkingLot[]>>('/api/parking-lots')
       .pipe(catchError(() => of(null)))
       .subscribe(res => {
-        if (res) this.lots.set(res.data);
+        if (res) {
+          this.lots.set(res.data);
+          if (res.data.length > 0 && !this.createData.lotId) {
+            this.createData.lotId = res.data[0].id;
+            this.onLotChange();
+          }
+        }
       });
   }
 
@@ -194,14 +230,98 @@ export class Tickets {
   }
 
   onLotChange(): void {
-    if (!this.createData.lotId) { this.availableSpots.set([]); return; }
-    this.http.get<ApiResponse<ParkingSpot[]>>(`/api/parking-spots?lotId=${this.createData.lotId}&status=AVAILABLE`)
+    if (!this.createData.lotId) {
+      this.availableSpots.set([]);
+      this.allLotSpots.set([]);
+      return;
+    }
+
+    this.http.get<ApiResponse<any[]>>(`/api/parking-spots?lotId=${this.createData.lotId}`)
       .pipe(catchError(() => of(null)))
       .subscribe(res => {
-        if (res) {
-          this.availableSpots.set(res.data.map(s => ({ ...s, label: `${s.spotNumber}${s.floor ? ` (Piso ${s.floor})` : ''}` })));
+        if (res && res.data) {
+          this.allLotSpots.set(res.data);
+          const avail = res.data
+            .filter((s: any) => s.status === 'AVAILABLE')
+            .map((s: any) => ({
+              ...s,
+              label: `${s.spotNumber}${s.floor !== undefined ? ` (${s.floor < 0 ? 'Sótano ' + Math.abs(s.floor) : 'Piso ' + s.floor})` : ''}`
+            }));
+          this.availableSpots.set(avail);
         }
       });
+  }
+
+  onPlateInput(): void {
+    const raw = this.createData.plateNumber || '';
+    const plate = raw.trim().toUpperCase();
+    this.createData.plateNumber = plate;
+
+    if (plate.length < 3) {
+      this.activeTicketWarning.set(null);
+      this.foundVehicle.set(null);
+      this.foundClient.set(null);
+      return;
+    }
+
+    this.lookupLoading.set(true);
+    this.http.get<ApiResponse<any>>(`/api/tickets/lookup-plate?plateNumber=${encodeURIComponent(plate)}`)
+      .pipe(catchError(() => of(null)))
+      .subscribe(res => {
+        this.lookupLoading.set(false);
+        if (res && res.data) {
+          this.activeTicketWarning.set(res.data.activeTicket || null);
+          this.foundVehicle.set(res.data.vehicle || null);
+          this.foundClient.set(res.data.client || null);
+
+          if (res.data.vehicle) {
+            this.createData.vehicleId = res.data.vehicle.id;
+          } else {
+            this.createData.vehicleId = undefined;
+          }
+
+          if (res.data.client) {
+            this.createData.clientId = res.data.client.id;
+          } else {
+            this.createData.clientId = undefined;
+          }
+        }
+      });
+  }
+
+  autoAssignNextSpot(): void {
+    const avail = this.allLotSpots().filter(s => s.status === 'AVAILABLE');
+    if (avail.length === 0) {
+      this.toast.add({ severity: 'warn', summary: 'Sin Puestos Libres', detail: 'No hay puestos disponibles en este estacionamiento.' });
+      return;
+    }
+    const nextSpot = avail[0];
+    this.createData.spotId = nextSpot.id;
+    this.toast.add({ severity: 'success', summary: 'Puesto Auto-Asignado', detail: `Se asignó el Puesto ${nextSpot.spotNumber}` });
+  }
+
+  toggleSpotSelection(spot: any): void {
+    if (spot.status === 'OCCUPIED') {
+      this.toast.add({ severity: 'info', summary: 'Puesto Ocupado', detail: `El puesto ${spot.spotNumber} está ocupado actualmente.` });
+      return;
+    }
+    if (this.createData.spotId === spot.id) {
+      this.createData.spotId = undefined;
+    } else {
+      this.createData.spotId = spot.id;
+      this.toast.add({ severity: 'success', summary: 'Puesto Seleccionado', detail: `Puesto #${spot.spotNumber} asignado.` });
+    }
+  }
+
+  openCreateModal(): void {
+    this.createData = { lotId: this.lots().length > 0 ? this.lots()[0].id : '', plateNumber: '', photos: [] };
+    this.activeTicketWarning.set(null);
+    this.foundVehicle.set(null);
+    this.foundClient.set(null);
+    this.showCreateDialog = true;
+    if (this.createData.lotId) {
+      this.onLotChange();
+    }
   }
 
   createTicket(): void {

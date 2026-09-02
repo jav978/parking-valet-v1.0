@@ -38,4 +38,20 @@ export class ParkingLotService {
   deleteParkingLot(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
+
+  getSpotsMap(lotId?: string): Observable<ApiResponse<{ summary: any; floors: any[]; spots: any[] }>> {
+    const url = lotId ? `/api/parking-spots/map?lotId=${lotId}` : '/api/parking-spots/map';
+    return this.http.get<ApiResponse<any>>(url);
+  }
+
+  generateBatchSpots(payload: {
+    lotId: string;
+    floor: number;
+    prefix: string;
+    startNumber: number;
+    count: number;
+    spotTypeId: string;
+  }): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>('/api/parking-spots/generate-batch', payload);
+  }
 }

@@ -76,7 +76,7 @@ PORT=3015 EXPRESS_SERVER_URL=http://127.0.0.1:3015 npx -y mcp-excalidraw-server 
 
 # ─── Info ───────────────────────────────────────────────
 echo -e "\n${CYAN}══════════════════════════════════════════════${NC}"
-echo -e "${GREEN}  Backend:    http://localhost:3000/api${NC}"
+echo -e "${GREEN}  Backend:    http://localhost:3001/api${NC}"
 echo -e "${GREEN}  Frontend:   http://localhost:4200${NC}"
 echo -e "${GREEN}  Excalidraw: http://localhost:3015${NC}"
 echo -e "${CYAN}══════════════════════════════════════════════${NC}"

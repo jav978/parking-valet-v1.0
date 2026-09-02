@@ -129,45 +129,45 @@
   header="Sesión Activa Detectada"
   [(visible)]="showActiveSessionDialog"
   [modal]="true"
-  [style]="{ width: '90vw', maxWidth: '480px' }"
+  [style]="{ width: '90vw', maxWidth: '520px' }"
   [draggable]="false"
   [resizable]="false"
 >
   <div class="flex flex-col gap-4 py-2">
-    <div class="flex items-start gap-3">
-      <div class="flex items-center justify-center w-12 h-12 rounded-full bg-amber-500/20 text-amber-500 shrink-0 mt-1">
+    <div class="flex items-start gap-3.5">
+      <div class="flex items-center justify-center w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-400 shrink-0 mt-1 border border-amber-500/30">
         <i class="pi pi-exclamation-triangle text-2xl"></i>
       </div>
       <div>
-        <h4 class="text-base font-bold text-surface-900 dark:text-surface-0 mb-1">
+        <h4 class="text-base font-extrabold text-surface-900 dark:text-surface-0 mb-1">
           Ya existe una sesión abierta
         </h4>
-        <p class="text-sm text-surface-600 dark:text-surface-300 leading-relaxed">
+        <p class="text-xs text-surface-600 dark:text-surface-300 leading-relaxed">
           Se ha detectado que esta cuenta tiene una sesión activa en otro explorador o dispositivo. Por razones de seguridad, solo se permite una sesión activa simultánea.
         </p>
       </div>
     </div>
+
     <div class="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 text-xs text-amber-700 dark:text-amber-300 font-medium">
       <i class="pi pi-info-circle mr-1"></i> Si continúas, la sesión activa en el otro dispositivo será cerrada automáticamente.
     </div>
-  </div>
 
-  <ng-template pTemplate="footer">
-    <div class="flex flex-col sm:flex-row justify-end gap-2 w-full pt-2">
+    <div class="flex flex-col sm:flex-row justify-end gap-2.5 w-full pt-3 mt-1 border-t border-surface-200 dark:border-surface-700">
       <p-button
         label="Cancelar"
         icon="pi pi-times"
         severity="secondary"
         [outlined]="true"
-        (click)="showActiveSessionDialog.set(false)"
+        (onClick)="showActiveSessionDialog.set(false)"
       />
       <p-button
         label="Cerrar sesión anterior e ingresar"
         icon="pi pi-sign-in"
         severity="warn"
-        (click)="confirmForceLogin()"
+        [loading]="loading()"
+        (onClick)="confirmForceLogin()"
       />
     </div>
-  </ng-template>
+  </div>
 </p-dialog>
 

@@ -28,6 +28,30 @@ export class ParkingSpotsController {
     return this.parkingSpotsService.create(dto);
   }
 
+  @Post('generate-batch')
+  @Roles(ROLES.ADMIN, ROLES.SUPERVISOR)
+  @Permissions(PERMISSIONS.PARKING_SPOTS_CREATE)
+  @HttpCode(HttpStatus.CREATED)
+  async generateBatch(
+    @Body()
+    dto: {
+      lotId: string;
+      floor: number;
+      prefix: string;
+      startNumber: number;
+      count: number;
+      spotTypeId: string;
+    },
+  ) {
+    return this.parkingSpotsService.generateBatch(dto);
+  }
+
+  @Get('map')
+  @Permissions(PERMISSIONS.PARKING_SPOTS_LIST)
+  async getMap(@Query('lotId') lotId?: string) {
+    return this.parkingSpotsService.getMap(lotId);
+  }
+
   @Get()
   @Permissions(PERMISSIONS.PARKING_SPOTS_LIST)
   async findAll(@Query() filter: ParkingSpotFilterDto) {

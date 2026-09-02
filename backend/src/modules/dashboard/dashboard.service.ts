@@ -20,6 +20,7 @@ export class DashboardService {
       vehiclesInside,
       revenueResult,
       parkingLots,
+      realTotalSpotsCount,
       recentTickets,
       weeklyTickets,
     ] = await Promise.all([
@@ -51,7 +52,7 @@ export class DashboardService {
         _sum: { amount: true },
       }),
 
-      // 4. Estacionamientos y puestos
+      // 4. Estacionamientos y puestos reales
       this.prisma.parkingLot.findMany({
         where: {
           isActive: true,
@@ -61,12 +62,24 @@ export class DashboardService {
         select: {
           id: true,
           name: true,
-          totalSpots: true,
-          availableSpots: true,
+          code: true,
+          parkingSpots: {
+            where: { isActive: true, deletedAt: null },
+            select: { id: true, status: true },
+          },
         },
       }),
 
-      // 5. Actividad reciente (últimos 10 tickets)
+      // 5. Total de puestos reales registrados
+      this.prisma.parkingSpot.count({
+        where: {
+          isActive: true,
+          deletedAt: null,
+          ...(lotId ? { lotId } : {}),
+        },
+      }),
+
+      // 6. Actividad reciente (últimos 10 tickets)
       this.prisma.ticket.findMany({
         where: {
           deletedAt: null,
@@ -89,7 +102,7 @@ export class DashboardService {
         },
       }),
 
-      // 6. Entradas de los últimos 7 días
+      // 7. Entradas de los últimos 7 días
       this.prisma.ticket.findMany({
         where: {
           entryTime: { gte: sevenDaysAgo },
@@ -101,10 +114,24 @@ export class DashboardService {
     ]);
 
     const revenueToday = Number(revenueResult._sum.amount ?? 0);
-    const totalSpots = parkingLots.reduce((acc, p) => acc + p.totalSpots, 0);
-    const availableSpots = parkingLots.reduce((acc, p) => acc + p.availableSpots, 0);
-    const occupiedSpots = Math.max(0, totalSpots - availableSpots);
+    const totalSpots = realTotalSpotsCount > 0 ? realTotalSpotsCount : parkingLots.reduce((acc, p) => acc + p.parkingSpots.length, 0);
+    const occupiedSpots = vehiclesInside;
+    const availableSpots = Math.max(0, totalSpots - occupiedSpots);
     const occupancyPercentage = totalSpots > 0 ? Math.round((occupiedSpots / totalSpots) * 100) : 0;
+
+    // Procesar resumen de estacionamientos con puestos reales
+    const parkingLotsSummary = parkingLots.map((lot) => {
+      const lotTotal = lot.parkingSpots.length;
+      const lotOccupied = lot.parkingSpots.filter((s) => s.status === 'OCCUPIED').length;
+      return {
+        id: lot.id,
+        name: lot.name,
+        code: lot.code,
+        totalSpots: lotTotal,
+        availableSpots: Math.max(0, lotTotal - lotOccupied),
+        occupiedSpots: lotOccupied,
+      };
+    });
 
     // Procesar datos de gráfica semanal (últimos 7 días)
     const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];

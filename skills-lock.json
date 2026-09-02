@@ -30,6 +30,12 @@
       "sourceType": "github",
       "skillPath": "SKILL.md",
       "computedHash": "fff896300fe25d6d2e41161da12a5b05d0d57a8adb2390c72fbb7a72e0d02440"
+    },
+    "pipa-huddle-beta": {
+      "source": "lunchpaillola/pipa-skills",
+      "sourceType": "github",
+      "skillPath": "skills/pipa-huddle-beta/SKILL.md",
+      "computedHash": "bbc5727400afc98872c46f5e88d6cfbe157ac3fc4ce750052f4a2763b8b99b49"
     }
   }
 }

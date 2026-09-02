@@ -52,6 +52,13 @@ export class TicketsController {
     return this.ticketsService.getActiveByLot(lotId);
   }
 
+  @Get('lookup-plate')
+  @Roles(ROLES.ADMIN, ROLES.SUPERVISOR, ROLES.CASHIER, ROLES.OPERATOR)
+  @Permissions(PERMISSIONS.TICKETS_READ)
+  async lookupPlate(@Query('plateNumber') plateNumber: string) {
+    return this.ticketsService.lookupPlate(plateNumber);
+  }
+
   @Get(':id')
   @Roles(ROLES.ADMIN, ROLES.SUPERVISOR, ROLES.CASHIER, ROLES.OPERATOR)
   @Permissions(PERMISSIONS.TICKETS_READ)

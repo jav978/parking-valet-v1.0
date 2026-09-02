@@ -16,7 +16,7 @@ async function bootstrap(): Promise<void> {
 
   const configService = app.get(ConfigService);
   const appPrefix = configService.get<string>('APP_PREFIX', 'api');
-  const appPort = process.env.PORT ? parseInt(process.env.PORT, 10) : configService.get<number>('APP_PORT', 3000);
+  const appPort = process.env.PORT ? parseInt(process.env.PORT, 10) : configService.get<number>('APP_PORT', 3001);
   const corsOrigins = configService.get<string>('CORS_ORIGINS', '*');
 
   app.setGlobalPrefix(appPrefix);
