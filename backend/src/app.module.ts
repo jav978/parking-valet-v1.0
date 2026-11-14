@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { PrismaService } from './common/database/prisma.service';
+import { EventsModule } from './common/events/events.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { RolesModule } from './modules/roles/roles.module';
@@ -32,6 +33,7 @@ import { LicenseModule } from './modules/license/license.module';
       },
     ]),
     AuthModule,
+    EventsModule,
     UsersModule,
     RolesModule,
     PermissionsModule,

@@ -1,0 +1,187 @@
+<div class="mapa-page p-4 md:p-6 space-y-4">
+  <!-- Encabezado -->
+  <header class="flex flex-wrap items-center justify-between gap-3">
+    <div class="flex items-center gap-3">
+      <div class="w-11 h-11 rounded-xl bg-primary-500/10 border border-primary-500/30 grid place-items-center">
+        <i class="pi pi-map text-xl text-primary-500"></i>
+      </div>
+      <div>
+        <h1 class="text-xl font-extrabold text-surface-900 dark:text-surface-0 flex items-center gap-2">
+          Mapa en Vivo
+          <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full"
+                [class]="connected() ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30' : 'bg-surface-200 text-surface-500 dark:bg-surface-700 border border-surface-300 dark:border-surface-600'">
+            <span class="w-1.5 h-1.5 rounded-full" [class]="connected() ? 'bg-emerald-500 animate-pulse' : 'bg-surface-400'"></span>
+            {{ connected() ? 'EN VIVO' : 'CONECTANDO…' }}
+          </span>
+        </h1>
+        <p class="text-xs text-surface-500">Croquis de puestos en tiempo real · clic en un puesto para ver detalles</p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <p-select [options]="lotOptions()" optionLabel="label" optionValue="value"
+                [ngModel]="lotId()" (ngModelChange)="lotId.set($event); onLotChange()"
+                placeholder="Sucursal" class="w-56"></p-select>
+      <button pButton icon="pi pi-refresh" class="p-button-outlined p-button-secondary" [loading]="loading()"
+              (click)="refresh()" pTooltip="Refrescar" tooltipPosition="bottom"></button>
+    </div>
+  </header>
+
+  <!-- Resumen -->
+  <section class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+    <div class="p-3 rounded-xl border border-surface-200 dark:border-surface-700 bg-surface-0 dark:bg-surface-800">
+      <span class="text-[11px] font-bold text-surface-500 uppercase tracking-wide">Ocupados</span>
+      <div class="text-2xl font-extrabold text-red-500">{{ summary().occupied }}</div>
+    </div>
+    <div class="p-3 rounded-xl border border-surface-200 dark:border-surface-700 bg-surface-0 dark:bg-surface-800">
+      <span class="text-[11px] font-bold text-surface-500 uppercase tracking-wide">Libres</span>
+      <div class="text-2xl font-extrabold text-emerald-500">{{ summary().available }}</div>
+    </div>
+    <div class="p-3 rounded-xl border border-surface-200 dark:border-surface-700 bg-surface-0 dark:bg-surface-800">
+      <span class="text-[11px] font-bold text-surface-500 uppercase tracking-wide">Ocupación</span>
+      <div class="text-2xl font-extrabold text-surface-900 dark:text-surface-0">{{ summary().occupancyPct }}%</div>
+    </div>
+    <div class="p-3 rounded-xl border border-surface-200 dark:border-surface-700 bg-surface-0 dark:bg-surface-800">
+      <span class="text-[11px] font-bold text-surface-500 uppercase tracking-wide">Total</span>
+      <div class="text-2xl font-extrabold text-surface-900 dark:text-surface-0">{{ summary().total }}</div>
+    </div>
+  </section>
+
+  <!-- Croquis -->
+  @if (loading() && spots().length === 0) {
+    <div class="p-8 text-center text-surface-500 text-sm">
+      <i class="pi pi-spin pi-spinner mr-2"></i> Cargando croquis…
+    </div>
+  } @else {
+    <section class="space-y-4">
+      @for (floor of floors(); track floor.floorLabel) {
+        <div class="rounded-2xl border border-surface-200 dark:border-surface-700 bg-surface-0 dark:bg-surface-800 overflow-hidden">
+          <div class="flex items-center justify-between px-4 py-2.5 border-b border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-900/50">
+            <span class="font-extrabold text-sm text-surface-900 dark:text-surface-0 flex items-center gap-2">
+              <i class="pi pi-map-marker text-primary-500"></i> {{ floor.floorLabel }}
+            </span>
+            <span class="text-xs font-bold text-surface-500">{{ floor.occupied }}/{{ floor.total }} ocupados</span>
+          </div>
+
+          <div class="p-4 space-y-4">
+            @for (section of floor.sections; track section.name) {
+              <div>
+                <div class="text-[10px] font-extrabold text-surface-400 uppercase tracking-widest mb-2">Sección {{ section.name }}</div>
+                <div class="spot-grid">
+                  @for (spot of section.spots; track spot.id) {
+                    <button type="button" [class]="spotClass(spot)" (click)="openSpot(spot)"
+                            [pTooltip]="spot.activeTicket ? spot.activeTicket.plateNumber : (spot.status === 'AVAILABLE' ? 'Disponible' : spotStatusLabel(spot))"
+                            tooltipPosition="top">
+                      <span class="spot-num">{{ spot.spotNumber }}</span>
+                      @if (spot.activeTicket) {
+                        <svg class="spot-car" viewBox="0 0 24 12" aria-hidden="true">
+                          <path d="M2 8 L3.5 4.5 C3.8 3.9 4.4 3.5 5 3.5 H10 L13.5 1 C13.9 0.7 14.4 0.5 15 0.5 H18.5 C19.3 0.5 20 1 20.3 1.7 L21.5 4.5 L22.5 5 C23 5.3 23.2 5.8 23.2 6.4 V8.5 C23.2 9 22.8 9.3 22.4 9.3 H21 A2.2 2.2 0 0 1 16.6 9.3 H9.4 A2.2 2.2 0 0 1 5 9.3 H2.6 C2.2 9.3 1.9 9 1.9 8.6 Z"/>
+                          <circle cx="7.2" cy="9" r="1.8"/>
+                          <circle cx="18.8" cy="9" r="1.8"/>
+                        </svg>
+                        <span class="spot-plate">{{ spot.activeTicket.plateNumber }}</span>
+                      } @else if (spot.status === 'MAINTENANCE') {
+                        <i class="pi pi-wrench text-[10px]"></i>
+                      } @else if (spot.status === 'RESERVED') {
+                        <i class="pi pi-bookmark text-[10px]"></i>
+                      } @else {
+                        <span class="spot-free-label">Libre</span>
+                      }
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      } @empty {
+        <div class="p-8 text-center text-surface-500 text-sm">No hay puestos configurados para esta sucursal.</div>
+      }
+    </section>
+  }
+
+  <!-- Leyenda -->
+  <footer class="flex flex-wrap gap-4 text-xs text-surface-500 font-semibold">
+    <span class="flex items-center gap-1.5"><span class="legend-dot legend-dot--free"></span> Libre</span>
+    <span class="flex items-center gap-1.5"><span class="legend-dot legend-dot--occupied"></span> Ocupado</span>
+    <span class="flex items-center gap-1.5"><span class="legend-dot legend-dot--reserved"></span> Reservado</span>
+    <span class="flex items-center gap-1.5"><span class="legend-dot legend-dot--maintenance"></span> Mantenimiento</span>
+    <span class="flex items-center gap-1.5"><span class="legend-dot legend-dot--vip"></span> VIP</span>
+    <span class="flex items-center gap-1.5"><span class="legend-dot legend-dot--accessible"></span> Discapacitados</span>
+  </footer>
+</div>
+
+<!-- Panel de detalle del puesto -->
+<p-dialog [(visible)]="showDetail" [modal]="true" [style]="{ width: '26rem' }" [draggable]="false" [resizable]="false">
+  <ng-template pTemplate="header">
+    <span class="font-extrabold text-surface-900 dark:text-surface-0">Puesto {{ selectedSpot()?.spotNumber }}</span>
+  </ng-template>
+
+  @if (selectedSpot(); as spot) {
+    <div class="space-y-3">
+      <div class="flex items-center justify-between">
+        <span [class]="spotClass(spot)" style="width:auto; padding: 0.5rem 1rem; display:inline-flex;">
+          <span class="spot-num">{{ spot.spotNumber }}</span>
+          @if (spot.activeTicket) {
+            <svg class="spot-car" viewBox="0 0 24 12" aria-hidden="true">
+              <path d="M2 8 L3.5 4.5 C3.8 3.9 4.4 3.5 5 3.5 H10 L13.5 1 C13.9 0.7 14.4 0.5 15 0.5 H18.5 C19.3 0.5 20 1 20.3 1.7 L21.5 4.5 L22.5 5 C23 5.3 23.2 5.8 23.2 6.4 V8.5 C23.2 9 22.8 9.3 22.4 9.3 H21 A2.2 2.2 0 0 1 16.6 9.3 H9.4 A2.2 2.2 0 0 1 5 9.3 H2.6 C2.2 9.3 1.9 9 1.9 8.6 Z"/>
+              <circle cx="7.2" cy="9" r="1.8"/>
+              <circle cx="18.8" cy="9" r="1.8"/>
+            </svg>
+          }
+        </span>
+        <span class="text-xs font-extrabold px-2 py-1 rounded-full bg-surface-100 dark:bg-surface-700 text-surface-700 dark:text-surface-200">
+          {{ spotStatusLabel(spot) }}
+        </span>
+      </div>
+
+      <div class="text-xs text-surface-500 font-semibold">
+        Tipo: <span class="text-surface-900 dark:text-surface-0">{{ spot.spotType?.name || 'Estándar' }}</span>
+        · Piso: <span class="text-surface-900 dark:text-surface-0">{{ spot.floorLabel }}</span>
+        @if (spot.section) { · Sección: <span class="text-surface-900 dark:text-surface-0">{{ spot.section }}</span> }
+      </div>
+
+      @if (spot.activeTicket; as tkt) {
+        <div class="p-4 rounded-xl border border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800 space-y-2 text-sm">
+          <div class="flex justify-between">
+            <span class="text-surface-500 font-semibold text-xs">Ticket</span>
+            <span class="font-extrabold text-primary-500">#{{ tkt.ticketNumber }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-surface-500 font-semibold text-xs">Placa</span>
+            <span class="font-bold uppercase">{{ tkt.plateNumber }}</span>
+          </div>
+          @if (tkt.vehicle) {
+            <div class="flex justify-between">
+              <span class="text-surface-500 font-semibold text-xs">Vehículo</span>
+              <span class="font-bold">{{ tkt.vehicle.brand }} {{ tkt.vehicle.model }}</span>
+            </div>
+          }
+          @if (tkt.client) {
+            <div class="flex justify-between">
+              <span class="text-surface-500 font-semibold text-xs">Cliente</span>
+              <span class="font-bold">{{ tkt.client.name }}</span>
+            </div>
+          }
+          <div class="flex justify-between">
+            <span class="text-surface-500 font-semibold text-xs">Entrada</span>
+            <span class="font-bold">{{ tkt.entryTime | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-surface-500 font-semibold text-xs">Tiempo dentro</span>
+            <span class="font-bold text-amber-500">{{ Math.floor(tkt.minutesInside / 60) }}h {{ tkt.minutesInside % 60 }}m</span>
+          </div>
+        </div>
+      }
+
+      <div class="flex justify-end gap-2 pt-1">
+        <button pButton type="button" class="p-button-outlined p-button-secondary" label="Cerrar" (click)="showDetail = false"></button>
+        @if (spot.activeTicket) {
+          <button pButton type="button" class="p-button-success font-semibold" icon="pi pi-sign-out" label="Procesar salida" (click)="goTickets()"></button>
+        } @else if (spot.status === 'AVAILABLE') {
+          <button pButton type="button" class="p-button-success font-semibold" icon="pi pi-plus" label="Emitir ticket aquí" (click)="goTickets()"></button>
+        }
+      </div>
+    </div>
+  }
+</p-dialog>

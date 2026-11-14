@@ -6,6 +6,7 @@ import { CloseTicketDto } from './dto/close-ticket.dto';
 import { CancelTicketDto } from './dto/cancel-ticket.dto';
 import { TicketFilterDto } from './dto/ticket-filter.dto';
 import { FareCalculatorService, FareBreakdown } from './fare-calculator.service';
+import { ParkingMapGateway } from '../../common/events/parking-map.gateway';
 import { NotFoundException } from '../../common/exceptions/not-found.exception';
 import { BusinessException } from '../../common/exceptions/business.exception';
 import * as fs from 'fs';
@@ -20,6 +21,7 @@ export class TicketsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly fareCalculator: FareCalculatorService,
+    private readonly parkingMapGateway: ParkingMapGateway,
   ) {}
 
   private savePhotoFile(base64Data: string, prefix: string): string {
@@ -211,6 +213,9 @@ export class TicketsService {
 
       return createdTicket;
     });
+
+    // Notificar al mapa en vivo (fuera de la transacción, ya commiteada).
+    if (ticket.spotId) await this.parkingMapGateway.emitSpotUpdate(ticket.spotId);
 
     return this.findOne(ticket.id);
   }
@@ -537,6 +542,8 @@ export class TicketsService {
       }
     });
 
+    if (ticket.spotId) await this.parkingMapGateway.emitSpotUpdate(ticket.spotId);
+
     return this.findOne(id);
   }
 
@@ -550,7 +557,7 @@ export class TicketsService {
       throw new BusinessException('Cannot cancel a completed ticket');
     }
 
-    return this.prisma.$transaction(async (tx) => {
+    const cancelled = await this.prisma.$transaction(async (tx) => {
       if (ticket.spotId) {
         await tx.parkingSpot.update({
           where: { id: ticket.spotId },
@@ -571,8 +578,10 @@ export class TicketsService {
         },
       });
     });
-  }
 
+    if (ticket.spotId) await this.parkingMapGateway.emitSpotUpdate(ticket.spotId);
+    return cancelled;
+  }
   async getActiveByLot(lotId: string) {
     return this.prisma.ticket.findMany({
       where: { lotId, status: 'ACTIVE', deletedAt: null },

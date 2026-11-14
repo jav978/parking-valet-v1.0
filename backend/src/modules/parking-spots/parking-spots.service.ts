@@ -6,10 +6,14 @@ import { UpdateParkingSpotDto } from './dto/update-parking-spot.dto';
 import { ParkingSpotFilterDto } from './dto/parking-spot-filter.dto';
 import { NotFoundException } from '../../common/exceptions/not-found.exception';
 import { BusinessException } from '../../common/exceptions/business.exception';
+import { ParkingMapGateway } from '../../common/events/parking-map.gateway';
 
 @Injectable()
 export class ParkingSpotsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly parkingMapGateway: ParkingMapGateway,
+  ) {}
 
   async create(dto: CreateParkingSpotDto) {
     const lot = await this.prisma.parkingLot.findUnique({ where: { id: dto.lotId } });
@@ -35,6 +39,7 @@ export class ParkingSpotsService {
       data: { totalSpots: { increment: 1 } },
     });
 
+    await this.parkingMapGateway.emitSpotUpdate(spot.id);
     return spot;
   }
 
@@ -88,11 +93,14 @@ export class ParkingSpotsService {
       }
     }
 
-    return this.prisma.parkingSpot.update({
+    const updated = await this.prisma.parkingSpot.update({
       where: { id },
       data: dto,
       include: { lot: true, spotType: true },
     });
+
+    await this.parkingMapGateway.emitSpotUpdate(id);
+    return updated;
   }
 
   async remove(id: string) {

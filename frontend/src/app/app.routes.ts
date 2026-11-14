@@ -49,6 +49,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.Dashboard),
       },
       {
+        path: 'mapa',
+        loadComponent: () => import('./features/mapa/mapa').then((m) => m.Mapa),
+      },
+      {
         path: 'usuarios',
         loadComponent: () => import('./features/usuarios/usuarios').then((m) => m.Usuarios),
       },

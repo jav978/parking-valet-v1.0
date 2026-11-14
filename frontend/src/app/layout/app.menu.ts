@@ -110,6 +110,7 @@ export class AppMenu {
       {
         label: 'OPERACIONES',
         items: [
+          ...(hasPerm('tickets.list') ? [{ label: 'Mapa en Vivo', icon: 'pi pi-fw pi-map', routerLink: ['/mapa'] }] : []),
           ...(hasPerm('tickets.list') ? [{ label: 'Tickets', icon: 'pi pi-fw pi-ticket', routerLink: ['/tickets'] }] : []),
           ...(hasPerm('clients.list') ? [{ label: 'Clientes', icon: 'pi pi-fw pi-users', routerLink: ['/clientes'] }] : []),
           ...(hasPerm('vehicles.list') ? [{ label: 'Vehículos', icon: 'pi pi-fw pi-truck', routerLink: ['/vehiculos'] }] : []),
