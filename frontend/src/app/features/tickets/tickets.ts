@@ -102,6 +102,30 @@ export class Tickets {
   foundClient = signal<any | null>(null);
   selectedSpotFloor = signal<string | number>('ALL');
 
+  /** Sugerencia de tipo de puesto según el vehículo registrado (ej. Moto → puestos Moto). */
+  suggestedSpotType = signal<string | null>(null);
+  onlyCompatibleSpots = signal(true);
+
+  /** Etiqueta legible del tipo sugerido. */
+  suggestedSpotTypeLabel = computed(() => {
+    const labels: Record<string, string> = {
+      MOTORCYCLE: 'Moto', SUV: 'Camioneta', TRUCK: 'Camión', BUS: 'Bus',
+    };
+    return labels[this.suggestedSpotType() || ''] || '';
+  });
+
+  /** Vehículo → tipo de puesto compatible. */
+  private spotTypeForVehicle(vehicleType?: string | null): string | null {
+    const map: Record<string, string> = {
+      MOTORCYCLE: 'MOTORCYCLE',
+      BUS: 'BUS',
+      SUV: 'SUV',
+      TRUCK: 'TRUCK',
+      VAN: 'SUV',
+    };
+    return map[(vehicleType || '').toUpperCase()] || null;
+  }
+
   isPlateBlocked = computed(() => !!this.activeTicketWarning());
 
   spotFloors = computed(() => {
@@ -115,7 +139,12 @@ export class Tickets {
   });
 
   filteredSpotsForMap = computed(() => {
-    const spots = this.allLotSpots();
+    let spots = this.allLotSpots();
+    // Filtro inteligente: si el vehículo registrado tiene un tipo compatible
+    // (ej. moto), muestra primero los puestos de ese tipo.
+    if (this.onlyCompatibleSpots() && this.suggestedSpotType()) {
+      spots = spots.filter((s) => s.spotType?.code === this.suggestedSpotType());
+    }
     const selectedFloor = this.selectedSpotFloor();
     if (selectedFloor === 'ALL') return spots;
     return spots.filter(s => {
@@ -259,7 +288,7 @@ export class Tickets {
       return;
     }
 
-    this.http.get<ApiResponse<any[]>>(`/api/parking-spots?lotId=${this.createData.lotId}`)
+    this.http.get<ApiResponse<any[]>>(`/api/parking-spots?lotId=${this.createData.lotId}&limit=100`)
       .pipe(catchError(() => of(null)))
       .subscribe(res => {
         if (res && res.data) {
@@ -271,6 +300,10 @@ export class Tickets {
               label: `${s.spotNumber}${s.floor !== undefined ? ` (${s.floor < 0 ? 'Sótano ' + Math.abs(s.floor) : 'Piso ' + s.floor})` : ''}`
             }));
           this.availableSpots.set(avail);
+          // Si hay sugerencia activa, re-asignar el primer puesto compatible del nuevo lote.
+          if (this.suggestedSpotType()) {
+            this.autoAssignCompatibleSpot();
+          }
         }
       });
   }
@@ -284,6 +317,7 @@ export class Tickets {
       this.activeTicketWarning.set(null);
       this.foundVehicle.set(null);
       this.foundClient.set(null);
+      this.suggestedSpotType.set(null);
       return;
     }
 
@@ -308,8 +342,43 @@ export class Tickets {
           } else {
             this.createData.clientId = undefined;
           }
+
+          // ─── Sugerencia inteligente de puesto ───
+          const suggestion = this.spotTypeForVehicle(res.data.vehicle?.vehicleType);
+          this.suggestedSpotType.set(suggestion);
+          if (suggestion) {
+            this.autoAssignCompatibleSpot(suggestion);
+          }
         }
       });
+  }
+
+  /**
+   * Asigna automáticamente el primer puesto DISPONIBLE del tipo compatible
+   * con el vehículo registrado (ej. una moto va a un puesto de Moto).
+   */
+  autoAssignCompatibleSpot(spotTypeCode?: string | null): void {
+    const target = spotTypeCode || this.suggestedSpotType();
+    if (!target) return;
+    const compatible = this.allLotSpots().filter(
+      (s) => s.status === 'AVAILABLE' && s.spotType?.code === target,
+    );
+    if (compatible.length > 0) {
+      const spot = compatible[0];
+      this.createData.spotId = spot.id;
+      const label = this.suggestedSpotTypeLabel();
+      this.toast.add({
+        severity: 'success',
+        summary: `Puesto ${label} sugerido`,
+        detail: `${spot.spotNumber} asignado automáticamente (compatible con el vehículo).`,
+      });
+    } else {
+      this.toast.add({
+        severity: 'warn',
+        summary: `Sin puestos de ${this.suggestedSpotTypeLabel()}`,
+        detail: 'No hay puestos compatibles libres; desactiva el filtro o elige otro puesto.',
+      });
+    }
   }
 
   autoAssignNextSpot(): void {
@@ -341,6 +410,8 @@ export class Tickets {
     this.activeTicketWarning.set(null);
     this.foundVehicle.set(null);
     this.foundClient.set(null);
+    this.suggestedSpotType.set(null);
+    this.onlyCompatibleSpots.set(true);
     this.showCreateDialog = true;
     if (this.createData.lotId) {
       this.onLotChange();

@@ -313,6 +313,8 @@ async function main() {
     { code: 'MOTORCYCLE', name: 'Moto', description: 'Lugar para motocicletas' },
     { code: 'VIP', name: 'VIP', description: 'Lugar premium para clientes VIP' },
     { code: 'TRUCK', name: 'Camión', description: 'Lugar para camiones y vehículos grandes' },
+    { code: 'SUV', name: 'Camioneta', description: 'Lugar para camionetas, pickups y SUV' },
+    { code: 'BUS', name: 'Bus', description: 'Lugar para autobuses y vehículos de pasajeros' },
   ];
 
   const createdSpotTypes = await Promise.all(
@@ -342,8 +344,8 @@ async function main() {
       country: 'México',
       phone: '+521234567890',
       email: 'contacto@parkingpro.com',
-      totalSpots: 50,
-      availableSpots: 48,
+      totalSpots: 25,
+      availableSpots: 25,
       openingTime: '06:00',
       closingTime: '23:00',
       is24h: false,
@@ -355,6 +357,7 @@ async function main() {
       currency: 'USD',
       ticketPrefix: 'TKT',
       ticketNextNum: 4,
+      graceMinutes: 15,
       notes: 'Estacionamiento principal del sistema',
     },
     update: {},
@@ -427,6 +430,8 @@ async function main() {
   const evTypeId = spotTypeMap.get('EV')!;
   const motorcycleTypeId = spotTypeMap.get('MOTORCYCLE')!;
   const vipTypeId = spotTypeMap.get('VIP')!;
+  const suvTypeId = spotTypeMap.get('SUV')!;
+  const busTypeId = spotTypeMap.get('BUS')!;
 
   const spotsData: Array<{
     lotId: string;
@@ -462,6 +467,30 @@ async function main() {
         isActive: true,
       });
     }
+  }
+
+  // 1b. Estacionamiento Principal: puestos grandes (Camioneta y Bus)
+  for (const num of ['01', '02', '03']) {
+    spotsData.push({
+      lotId: parkingLot.id,
+      spotNumber: `1C-${num}`,
+      floor: 1,
+      section: '1C',
+      spotTypeId: suvTypeId,
+      status: SpotStatus.AVAILABLE,
+      isActive: true,
+    });
+  }
+  for (const num of ['01', '02']) {
+    spotsData.push({
+      lotId: parkingLot.id,
+      spotNumber: `B1-${num}`,
+      floor: 0,
+      section: 'B1',
+      spotTypeId: busTypeId,
+      status: SpotStatus.AVAILABLE,
+      isActive: true,
+    });
   }
 
   // 2. Estacionamiento Zona Norte: Nivel 1 (1) y Nivel 2 (2)
@@ -589,14 +618,46 @@ async function main() {
       baseAmount: 20,
       dailyMax: 150,
     },
+    {
+      lotId: parkingLot.id,
+      spotTypeId: spotTypeMap.get('TRUCK')!,
+      name: 'Por Hora - Camión',
+      rateType: RateType.HOURLY,
+      baseAmount: 50,
+      dailyMax: 350,
+    },
+    {
+      lotId: parkingLot.id,
+      spotTypeId: suvTypeId,
+      name: 'Por Hora - Camioneta',
+      rateType: RateType.HOURLY,
+      baseAmount: 35,
+      dailyMax: 250,
+    },
+    {
+      lotId: parkingLot.id,
+      spotTypeId: busTypeId,
+      name: 'Por Hora - Bus',
+      rateType: RateType.HOURLY,
+      baseAmount: 60,
+      dailyMax: 400,
+    },
   ];
 
+  // Idempotente: solo crea las tarifas que aún no existen para el lote.
+  const existingRates = await prisma.rate.findMany({
+    where: { lotId: parkingLot.id, deletedAt: null },
+    select: { name: true },
+  });
+  const existingRateNames = new Set(existingRates.map((r) => r.name));
+  const ratesToCreate = ratesData.filter((r) => !existingRateNames.has(r.name));
+
   await Promise.all(
-    ratesData.map((r) =>
+    ratesToCreate.map((r) =>
       prisma.rate.create({ data: r }),
     ),
   );
-  console.log(`  ✓ ${ratesData.length} rates created`);
+  console.log(`  ✓ ${ratesToCreate.length} rates created (${existingRates.length} already existed)`);
 
   // ─── Demo Clients ─────────────────────────────────────────
   console.log('  Creating demo clients...');
@@ -717,7 +778,37 @@ async function main() {
     update: {},
   });
 
-  console.log('  ✓ 4 demo vehicles created');
+  await prisma.vehicle.upsert({
+    where: { plateNumber: 'CAMIO-01' },
+    create: {
+      clientId: client2.id,
+      plateNumber: 'CAMIO-01',
+      brand: 'Toyota',
+      model: 'Hilux',
+      year: 2024,
+      color: 'Gris',
+      vehicleType: VehicleType.SUV,
+      isActive: true,
+    },
+    update: {},
+  });
+
+  await prisma.vehicle.upsert({
+    where: { plateNumber: 'BUS-01' },
+    create: {
+      clientId: client3.id,
+      plateNumber: 'BUS-01',
+      brand: 'Yutong',
+      model: 'ZK6122',
+      year: 2023,
+      color: 'Blanco',
+      vehicleType: VehicleType.BUS,
+      isActive: true,
+    },
+    update: {},
+  });
+
+  console.log('  ✓ 6 demo vehicles created');
 
   // ─── Demo Tickets ──────────────────────────────────────────
   console.log('  Creating demo tickets...');

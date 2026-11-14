@@ -304,6 +304,20 @@
         </button>
       </div>
 
+      <!-- Sugerencia inteligente por tipo de vehículo -->
+      @if (suggestedSpotType(); as sug) {
+        <div class="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-xl border border-primary-500/30 bg-primary-500/10 text-xs">
+          <span class="font-bold text-primary-600 dark:text-primary-400 flex items-center gap-1.5">
+            <i class="pi pi-sparkles"></i>
+            Vehículo compatible con puestos de <strong>{{ suggestedSpotTypeLabel() }}</strong>
+          </span>
+          <span class="flex items-center gap-2">
+            <p-checkbox [(ngModel)]="onlyCompatibleSpots" [binary]="true" inputId="compatibleFilter"></p-checkbox>
+            <label for="compatibleFilter" class="font-semibold text-surface-600 dark:text-surface-300 cursor-pointer">Solo puestos compatibles</label>
+          </span>
+        </div>
+      }
+
       <!-- Filtro por Niveles / Pisos -->
       @if (spotFloors().length > 1) {
         <div class="flex flex-wrap gap-1.5 text-xs pb-1">
