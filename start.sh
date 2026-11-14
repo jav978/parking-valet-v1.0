@@ -48,12 +48,20 @@ echo -e "${CYAN}   Parking System - Inicio de Servicios       ${NC}"
 echo -e "${CYAN}══════════════════════════════════════════════${NC}"
 
 # ─── Liberar puertos ────────────────────────────────────
-echo -e "\n${YELLOW}Verificando puertos...${NC}"
-kill_port 3000
+echo -e "\n${YELLOW}Verificando puertos de la aplicación...${NC}"
 kill_port 3001
 kill_port 3015
 kill_port 4200
 kill_port 4201
+
+# ─── Verificar PostgreSQL (Docker existente) ────────────
+echo -e "\n${YELLOW}Verificando conexión con PostgreSQL local (puerto 5432)...${NC}"
+if nc -z 127.0.0.1 5432 2>/dev/null || (exec 3<>/dev/tcp/127.0.0.1/5432) 2>/dev/null; then
+  echo -e "${GREEN}  ✓ PostgreSQL está activo en el puerto 5432.${NC}"
+else
+  echo -e "${RED}  ✗ ADVERTENCIA: No se detecta PostgreSQL en el puerto 5432.${NC}"
+  echo -e "${YELLOW}    Asegúrate de que el contenedor de Docker esté iniciado ('docker start postgres_db').${NC}"
+fi
 
 # ─── Backend ────────────────────────────────────────────
 echo -e "\n${YELLOW}[1/3] Iniciando backend (NestJS)...${NC}"
