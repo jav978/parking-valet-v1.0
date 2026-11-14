@@ -63,6 +63,7 @@
     "primeng": "^22.0.0-rc.1",
     "qrcode": "^1.5.4",
     "rxjs": "~7.8.0",
+    "socket.io-client": "^4.8.4",
     "tailwindcss-primeui": "^0.6.1",
     "tslib": "^2.3.0",
     "xlsx": "^0.18.5"
