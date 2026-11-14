@@ -133,6 +133,16 @@ export class TicketsService {
 
     const cleanPlate = dto.plateNumber.trim().toUpperCase();
 
+    // Validar referencias opcionales para evitar errores FK sin mensaje.
+    if (dto.vehicleId) {
+      const vehicle = await this.prisma.vehicle.findFirst({ where: { id: dto.vehicleId, deletedAt: null }, select: { id: true } });
+      if (!vehicle) throw new BusinessException('El vehículo indicado no existe.');
+    }
+    if (dto.clientId) {
+      const client = await this.prisma.client.findFirst({ where: { id: dto.clientId, deletedAt: null }, select: { id: true } });
+      if (!client) throw new BusinessException('El cliente indicado no existe.');
+    }
+
     // Validar si el vehículo ya posee un ticket ACTIVO dentro del parqueadero
     const activeTicket = await this.prisma.ticket.findFirst({
       where: {

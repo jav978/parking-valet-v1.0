@@ -11,9 +11,30 @@ import { BusinessException } from '../../common/exceptions/business.exception';
 export class VehiclesService {
   constructor(private readonly prisma: PrismaService) {}
 
+  /** Las placas se normalizan a mayúsculas para evitar duplicados encubiertos. */
+  private normalizePlate(plate?: string | null): string {
+    return (plate || '').trim().toUpperCase();
+  }
+
+  /** Valida que un clientId referenciado exista (evita errores FK sin mensaje). */
+  private async assertClientExists(clientId?: string | null) {
+    if (!clientId) return;
+    const client = await this.prisma.client.findFirst({
+      where: { id: clientId, deletedAt: null },
+      select: { id: true },
+    });
+    if (!client) {
+      throw new BusinessException('El cliente indicado no existe. Regístrelo primero o deje el campo vacío (Cliente Eventual).');
+    }
+  }
+
   async create(dto: CreateVehicleDto, createdById: string) {
+    const plate = this.normalizePlate(dto.plateNumber);
+    if (!plate) throw new BusinessException('La placa del vehículo es obligatoria');
+    await this.assertClientExists(dto.clientId);
+
     const existing = await this.prisma.vehicle.findUnique({
-      where: { plateNumber: dto.plateNumber },
+      where: { plateNumber: plate },
     });
 
     if (existing && !existing.deletedAt) {
@@ -23,13 +44,13 @@ export class VehiclesService {
     if (existing?.deletedAt) {
       return this.prisma.vehicle.update({
         where: { id: existing.id },
-        data: { ...dto, deletedAt: null, isActive: true, createdAt: new Date() },
+        data: { ...dto, plateNumber: plate, deletedAt: null, isActive: true, createdAt: new Date() },
         include: { client: true },
       });
     }
 
     return this.prisma.vehicle.create({
-      data: { ...dto },
+      data: { ...dto, plateNumber: plate },
       include: { client: true },
     });
   }
@@ -106,9 +127,12 @@ export class VehiclesService {
   async update(id: string, dto: UpdateVehicleDto, updatedById: string) {
     await this.findOne(id);
 
-    if (dto.plateNumber) {
+    const plate = dto.plateNumber ? this.normalizePlate(dto.plateNumber) : undefined;
+    await this.assertClientExists(dto.clientId);
+
+    if (plate) {
       const dup = await this.prisma.vehicle.findUnique({
-        where: { plateNumber: dto.plateNumber },
+        where: { plateNumber: plate },
       });
       if (dup && dup.id !== id && !dup.deletedAt) {
         throw new BusinessException('Ya existe otro vehículo con esa placa');
@@ -117,7 +141,7 @@ export class VehiclesService {
 
     return this.prisma.vehicle.update({
       where: { id },
-      data: dto,
+      data: { ...dto, ...(plate ? { plateNumber: plate } : {}) },
       include: { client: true },
     });
   }

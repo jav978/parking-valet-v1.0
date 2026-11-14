@@ -810,6 +810,39 @@ async function main() {
 
   console.log('  ✓ 6 demo vehicles created');
 
+  // ─── Vehículos de prueba adicionales (motos, camionetas, carros, buses) ───
+  const demoVehiclesExtra = [
+    // 6 carros
+    { plateNumber: 'GHI-111', brand: 'Chevrolet', model: 'Aveo', year: 2022, color: 'Blanco', vehicleType: VehicleType.CAR, clientId: client1.id },
+    { plateNumber: 'JKL-222', brand: 'Ford', model: 'Fiesta', year: 2021, color: 'Azul', vehicleType: VehicleType.CAR, clientId: client2.id },
+    { plateNumber: 'MNO-333', brand: 'Toyota', model: 'Yaris', year: 2023, color: 'Gris', vehicleType: VehicleType.CAR, clientId: client3.id },
+    { plateNumber: 'PQR-444', brand: 'Kia', model: 'Rio', year: 2022, color: 'Rojo', vehicleType: VehicleType.CAR, clientId: null },
+    { plateNumber: 'STU-555', brand: 'Mazda', model: 'Mazda3', year: 2024, color: 'Negro', vehicleType: VehicleType.CAR, clientId: null },
+    { plateNumber: 'VWX-666', brand: 'Renault', model: 'Logan', year: 2020, color: 'Blanco', vehicleType: VehicleType.CAR, clientId: client1.id },
+    // 3 motos
+    { plateNumber: 'MOTO-02', brand: 'Yamaha', model: 'FZ25', year: 2023, color: 'Negro', vehicleType: VehicleType.MOTORCYCLE, clientId: client1.id },
+    { plateNumber: 'MOTO-03', brand: 'Honda', model: 'CB160', year: 2024, color: 'Rojo', vehicleType: VehicleType.MOTORCYCLE, clientId: null },
+    { plateNumber: 'MOTO-04', brand: 'Bajaj', model: 'Pulsar 200', year: 2022, color: 'Azul', vehicleType: VehicleType.MOTORCYCLE, clientId: client2.id },
+    // 4 camionetas
+    { plateNumber: 'CAMIO-02', brand: 'Ford', model: 'Ranger', year: 2023, color: 'Blanco', vehicleType: VehicleType.SUV, clientId: client3.id },
+    { plateNumber: 'CAMIO-03', brand: 'Chevrolet', model: 'Colorado', year: 2022, color: 'Gris', vehicleType: VehicleType.SUV, clientId: null },
+    { plateNumber: 'CAMIO-04', brand: 'Toyota', model: 'Tacoma', year: 2024, color: 'Negro', vehicleType: VehicleType.SUV, clientId: null },
+    { plateNumber: 'CAMIO-05', brand: 'Nissan', model: 'Frontier', year: 2021, color: 'Plata', vehicleType: VehicleType.SUV, clientId: client1.id },
+    // 2 autobuses
+    { plateNumber: 'BUS-02', brand: 'Mercedes-Benz', model: 'O500', year: 2019, color: 'Blanco', vehicleType: VehicleType.BUS, clientId: null },
+    { plateNumber: 'BUS-03', brand: 'Hino', model: 'AK8J', year: 2020, color: 'Naranja', vehicleType: VehicleType.BUS, clientId: client3.id },
+  ];
+
+  for (const v of demoVehiclesExtra) {
+    await prisma.vehicle.upsert({
+      where: { plateNumber: v.plateNumber },
+      create: { ...v, isActive: true },
+      update: {},
+    });
+  }
+
+  console.log(`  ✓ ${6 + demoVehiclesExtra.length} demo vehicles created`);
+
   // ─── Demo Tickets ──────────────────────────────────────────
   console.log('  Creating demo tickets...');
 
