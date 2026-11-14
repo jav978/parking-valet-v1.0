@@ -111,6 +111,18 @@
   box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--p-cyan-500, #06b6d4) 55%, transparent);
 }
 
+.spot--motorcycle {
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, #84cc16 60%, transparent);
+}
+
+.spot--suv {
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, #6366f1 60%, transparent);
+}
+
+.spot--bus {
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, #ec4899 60%, transparent);
+}
+
 /* ─── Leyenda ─── */
 
 .legend-dot {
@@ -126,6 +138,9 @@
   &--maintenance { background: rgb(0 0 0 / 0.08); color: var(--p-gray-500, #6b7280); }
   &--vip { box-shadow: 0 0 0 1.5px var(--p-purple-500, #a855f7); }
   &--accessible { box-shadow: 0 0 0 1.5px var(--p-blue-500, #3b82f6); }
+  &--motorcycle { box-shadow: 0 0 0 1.5px #84cc16; }
+  &--suv { box-shadow: 0 0 0 1.5px #6366f1; }
+  &--bus { box-shadow: 0 0 0 1.5px #ec4899; }
 }
 
 /* Panel de detalle: el spot inline se muestra como chip */

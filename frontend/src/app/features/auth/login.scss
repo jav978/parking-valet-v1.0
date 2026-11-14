@@ -2,3 +2,8 @@
   display: block;
   min-height: 100vh;
 }
+
+/* Inputs más altos y aireados (consistencia con /auth/register) */
+:host ::ng-deep .p-inputtext {
+  padding-block: 0.7rem;
+}

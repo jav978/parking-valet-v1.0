@@ -169,12 +169,39 @@ export class Mapa {
 
   spotClass(spot: MapSpot): string {
     const base = `spot spot--${spot.status.toLowerCase()}`;
+    const code = (spot.spotType?.code || '').toUpperCase();
     const name = (spot.spotType?.name || '').toLowerCase();
-    if (name.includes('vip')) return `${base} spot--vip`;
-    if (name.includes('discapac')) return `${base} spot--accessible`;
-    if (name.includes('camión') || name.includes('camion') || name.includes('truck')) return `${base} spot--truck`;
-    if (name.includes('ev') || name.includes('eléctric') || name.includes('electric')) return `${base} spot--ev`;
+    if (code === 'VIP' || name.includes('vip')) return `${base} spot--vip`;
+    if (code === 'HANDICAP' || name.includes('discapac')) return `${base} spot--accessible`;
+    if (code === 'SUV' || name.includes('camioneta')) return `${base} spot--suv`;
+    if (code === 'BUS' || name.includes('bus')) return `${base} spot--bus`;
+    if (code === 'TRUCK' || name.includes('camión') || name.includes('camion')) return `${base} spot--truck`;
+    if (code === 'EV' || name.includes('eléctric') || name.includes('electric')) return `${base} spot--ev`;
+    if (code === 'MOTORCYCLE' || name.includes('moto')) return `${base} spot--motorcycle`;
     return base;
+  }
+
+  /**
+   * Icono del vehículo para la celda ocupada: se decide por el tipo de
+   * vehículo del ticket activo; si no hay info, por el tipo de puesto.
+   */
+  vehicleIcon(spot: MapSpot): 'car' | 'moto' | 'pickup' | 'bus' {
+    const vt = (spot.activeTicket?.vehicle?.type || '').toUpperCase();
+    const st = (spot.spotType?.code || '').toUpperCase();
+    if (vt === 'MOTORCYCLE' || st === 'MOTORCYCLE') return 'moto';
+    if (vt === 'BUS' || st === 'BUS') return 'bus';
+    if (['SUV', 'TRUCK', 'VAN'].includes(vt)) return 'pickup';
+    if (['SUV', 'TRUCK'].includes(st)) return 'pickup';
+    return 'car';
+  }
+
+  /** Etiqueta en español del tipo de vehículo (panel de detalle). */
+  vehicleTypeLabel(type?: string | null): string {
+    const labels: Record<string, string> = {
+      CAR: 'Carro', MOTORCYCLE: 'Moto', TRUCK: 'Camión', SUV: 'Camioneta',
+      VAN: 'Van', BUS: 'Bus', BICYCLE: 'Bicicleta', OTHER: 'Otro',
+    };
+    return labels[(type || '').toUpperCase()] || 'Vehículo';
   }
 
   // Estado legible para el panel de detalle

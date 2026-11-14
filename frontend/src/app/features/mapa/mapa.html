@@ -74,11 +74,36 @@
                             tooltipPosition="top">
                       <span class="spot-num">{{ spot.spotNumber }}</span>
                       @if (spot.activeTicket) {
-                        <svg class="spot-car" viewBox="0 0 24 12" aria-hidden="true">
-                          <path d="M2 8 L3.5 4.5 C3.8 3.9 4.4 3.5 5 3.5 H10 L13.5 1 C13.9 0.7 14.4 0.5 15 0.5 H18.5 C19.3 0.5 20 1 20.3 1.7 L21.5 4.5 L22.5 5 C23 5.3 23.2 5.8 23.2 6.4 V8.5 C23.2 9 22.8 9.3 22.4 9.3 H21 A2.2 2.2 0 0 1 16.6 9.3 H9.4 A2.2 2.2 0 0 1 5 9.3 H2.6 C2.2 9.3 1.9 9 1.9 8.6 Z"/>
-                          <circle cx="7.2" cy="9" r="1.8"/>
-                          <circle cx="18.8" cy="9" r="1.8"/>
-                        </svg>
+                        @switch (vehicleIcon(spot)) {
+                          @case ('moto') {
+                            <svg class="spot-car" viewBox="0 0 24 12" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+                              <circle cx="5.5" cy="8.8" r="2.4" fill="currentColor" stroke="none"/>
+                              <circle cx="18.5" cy="8.8" r="2.4" fill="currentColor" stroke="none"/>
+                              <path d="M5.5 8.8 H9.2 L11.6 4.6 H13.8 M11.6 4.6 L10 2.8 H8.6 M13.8 4.6 L17 8.8 L18.5 8.8 M13.8 4.6 L16.2 2.6 H18"/>
+                            </svg>
+                          }
+                          @case ('pickup') {
+                            <svg class="spot-car" viewBox="0 0 24 12" aria-hidden="true">
+                              <path d="M1.6 8.4 V5 H7 L8.6 1.6 H13.4 L15 5 H22.4 V8.4 C22.4 8.9 22 9.2 21.5 9.2 H20.2 A2.2 2.2 0 0 1 15.8 9.2 H8.2 A2.2 2.2 0 0 1 3.8 9.2 H2.5 C2 9.2 1.6 8.9 1.6 8.4 Z"/>
+                              <circle cx="6" cy="9" r="1.7"/>
+                              <circle cx="18" cy="9" r="1.7"/>
+                            </svg>
+                          }
+                          @case ('bus') {
+                            <svg class="spot-car" viewBox="0 0 24 12" aria-hidden="true">
+                              <path fill-rule="evenodd" d="M2 1.6 H18.5 C20.6 1.6 22.2 3.2 22.2 5.3 V8.2 C22.2 8.8 21.7 9.2 21.2 9.2 H19.8 A2.2 2.2 0 0 1 15.4 9.2 H8.6 A2.2 2.2 0 0 1 4.2 9.2 H2.8 C2.3 9.2 1.8 8.8 1.8 8.2 V2.4 C1.8 1.9 1.9 1.6 2 1.6 Z M4 3.2 H7 V5.4 H4 Z M9 3.2 H12 V5.4 H9 Z M14 3.2 H17 V5.4 H14 Z"/>
+                              <circle cx="6.4" cy="9" r="1.7"/>
+                              <circle cx="17.6" cy="9" r="1.7"/>
+                            </svg>
+                          }
+                          @default {
+                            <svg class="spot-car" viewBox="0 0 24 12" aria-hidden="true">
+                              <path d="M2 8 L3.5 4.5 C3.8 3.9 4.4 3.5 5 3.5 H10 L13.5 1 C13.9 0.7 14.4 0.5 15 0.5 H18.5 C19.3 0.5 20 1 20.3 1.7 L21.5 4.5 L22.5 5 C23 5.3 23.2 5.8 23.2 6.4 V8.5 C23.2 9 22.8 9.3 22.4 9.3 H21 A2.2 2.2 0 0 1 16.6 9.3 H9.4 A2.2 2.2 0 0 1 5 9.3 H2.6 C2.2 9.3 1.9 9 1.9 8.6 Z"/>
+                              <circle cx="7.2" cy="9" r="1.8"/>
+                              <circle cx="18.8" cy="9" r="1.8"/>
+                            </svg>
+                          }
+                        }
                         <span class="spot-plate">{{ spot.activeTicket.plateNumber }}</span>
                       } @else if (spot.status === 'MAINTENANCE') {
                         <i class="pi pi-wrench text-[10px]"></i>
@@ -108,6 +133,9 @@
     <span class="flex items-center gap-1.5"><span class="legend-dot legend-dot--maintenance"></span> Mantenimiento</span>
     <span class="flex items-center gap-1.5"><span class="legend-dot legend-dot--vip"></span> VIP</span>
     <span class="flex items-center gap-1.5"><span class="legend-dot legend-dot--accessible"></span> Discapacitados</span>
+    <span class="flex items-center gap-1.5"><span class="legend-dot legend-dot--motorcycle"></span> Moto</span>
+    <span class="flex items-center gap-1.5"><span class="legend-dot legend-dot--suv"></span> Camioneta</span>
+    <span class="flex items-center gap-1.5"><span class="legend-dot legend-dot--bus"></span> Bus</span>
   </footer>
 </div>
 
@@ -123,11 +151,36 @@
         <span [class]="spotClass(spot)" style="width:auto; padding: 0.5rem 1rem; display:inline-flex;">
           <span class="spot-num">{{ spot.spotNumber }}</span>
           @if (spot.activeTicket) {
-            <svg class="spot-car" viewBox="0 0 24 12" aria-hidden="true">
-              <path d="M2 8 L3.5 4.5 C3.8 3.9 4.4 3.5 5 3.5 H10 L13.5 1 C13.9 0.7 14.4 0.5 15 0.5 H18.5 C19.3 0.5 20 1 20.3 1.7 L21.5 4.5 L22.5 5 C23 5.3 23.2 5.8 23.2 6.4 V8.5 C23.2 9 22.8 9.3 22.4 9.3 H21 A2.2 2.2 0 0 1 16.6 9.3 H9.4 A2.2 2.2 0 0 1 5 9.3 H2.6 C2.2 9.3 1.9 9 1.9 8.6 Z"/>
-              <circle cx="7.2" cy="9" r="1.8"/>
-              <circle cx="18.8" cy="9" r="1.8"/>
-            </svg>
+            @switch (vehicleIcon(spot)) {
+              @case ('moto') {
+                <svg class="spot-car" viewBox="0 0 24 12" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="5.5" cy="8.8" r="2.4" fill="currentColor" stroke="none"/>
+                  <circle cx="18.5" cy="8.8" r="2.4" fill="currentColor" stroke="none"/>
+                  <path d="M5.5 8.8 H9.2 L11.6 4.6 H13.8 M11.6 4.6 L10 2.8 H8.6 M13.8 4.6 L17 8.8 L18.5 8.8 M13.8 4.6 L16.2 2.6 H18"/>
+                </svg>
+              }
+              @case ('pickup') {
+                <svg class="spot-car" viewBox="0 0 24 12" aria-hidden="true">
+                  <path d="M1.6 8.4 V5 H7 L8.6 1.6 H13.4 L15 5 H22.4 V8.4 C22.4 8.9 22 9.2 21.5 9.2 H20.2 A2.2 2.2 0 0 1 15.8 9.2 H8.2 A2.2 2.2 0 0 1 3.8 9.2 H2.5 C2 9.2 1.6 8.9 1.6 8.4 Z"/>
+                  <circle cx="6" cy="9" r="1.7"/>
+                  <circle cx="18" cy="9" r="1.7"/>
+                </svg>
+              }
+              @case ('bus') {
+                <svg class="spot-car" viewBox="0 0 24 12" aria-hidden="true">
+                  <path fill-rule="evenodd" d="M2 1.6 H18.5 C20.6 1.6 22.2 3.2 22.2 5.3 V8.2 C22.2 8.8 21.7 9.2 21.2 9.2 H19.8 A2.2 2.2 0 0 1 15.4 9.2 H8.6 A2.2 2.2 0 0 1 4.2 9.2 H2.8 C2.3 9.2 1.8 8.8 1.8 8.2 V2.4 C1.8 1.9 1.9 1.6 2 1.6 Z M4 3.2 H7 V5.4 H4 Z M9 3.2 H12 V5.4 H9 Z M14 3.2 H17 V5.4 H14 Z"/>
+                  <circle cx="6.4" cy="9" r="1.7"/>
+                  <circle cx="17.6" cy="9" r="1.7"/>
+                </svg>
+              }
+              @default {
+                <svg class="spot-car" viewBox="0 0 24 12" aria-hidden="true">
+                  <path d="M2 8 L3.5 4.5 C3.8 3.9 4.4 3.5 5 3.5 H10 L13.5 1 C13.9 0.7 14.4 0.5 15 0.5 H18.5 C19.3 0.5 20 1 20.3 1.7 L21.5 4.5 L22.5 5 C23 5.3 23.2 5.8 23.2 6.4 V8.5 C23.2 9 22.8 9.3 22.4 9.3 H21 A2.2 2.2 0 0 1 16.6 9.3 H9.4 A2.2 2.2 0 0 1 5 9.3 H2.6 C2.2 9.3 1.9 9 1.9 8.6 Z"/>
+                  <circle cx="7.2" cy="9" r="1.8"/>
+                  <circle cx="18.8" cy="9" r="1.8"/>
+                </svg>
+              }
+            }
           }
         </span>
         <span class="text-xs font-extrabold px-2 py-1 rounded-full bg-surface-100 dark:bg-surface-700 text-surface-700 dark:text-surface-200">
