@@ -21,6 +21,7 @@ export interface Ticket {
   entryOperatorId: string;
   exitOperatorId?: string;
   notes?: string;
+  qrHash?: string;
   cancelledAt?: string;
   cancelReason?: string;
   createdAt: string;
@@ -106,6 +107,8 @@ export interface TicketQuote {
     rateName: string;
     rateType: string;
     durationMinutes: number;
+    graceMinutesApplied: number;
+    billedMinutes: number;
     billedUnits: number;
     unitLabel: string;
     baseAmount: number;
@@ -117,6 +120,7 @@ export interface TicketQuote {
   taxRatePercent: number;
   taxAmount: number;
   total: number;
+  graceMinutes: number;
   calculatedAt: string;
 }
 

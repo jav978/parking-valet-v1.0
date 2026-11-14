@@ -317,6 +317,8 @@ model ParkingLot {
   hasCovered      Boolean  @default(false) @map("has_covered")
   taxPercentage   Decimal  @default(0) @map("tax_percentage") @db.Decimal(5, 2)
   currency        String   @default("USD")
+  /// Minutos de cortesía antes de iniciar el cobro (0 = sin gracia)
+  graceMinutes    Int      @default(0) @map("grace_minutes")
   logoUrl         String?  @map("logo_url")
   ticketPrefix    String   @default("TKT") @map("ticket_prefix")
   ticketNextNum   Int      @default(1) @map("ticket_next_num")

@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Prisma, Rate } from '@prisma/client';
+import * as crypto from 'crypto';
 import { PrismaService } from '../../common/database/prisma.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { CloseTicketDto } from './dto/close-ticket.dto';
@@ -22,7 +24,17 @@ export class TicketsService {
     private readonly prisma: PrismaService,
     private readonly fareCalculator: FareCalculatorService,
     private readonly parkingMapGateway: ParkingMapGateway,
+    private readonly configService: ConfigService,
   ) {}
+
+  /**
+   * Firma HMAC-SHA256 del ticket para validar autenticidad de impresiones
+   * (evita que un comprobante impreso pueda falsificarse fácilmente).
+   */
+  private signTicketNumber(ticketNumber: string): string {
+    const secret = this.configService.get<string>('ENCRYPTION_KEY') || 'parking-valet-fallback-secret';
+    return crypto.createHmac('sha256', secret).update(ticketNumber).digest('hex').slice(0, 32);
+  }
 
   private savePhotoFile(base64Data: string, prefix: string): string {
     if (!base64Data) return '';
@@ -192,6 +204,7 @@ export class TicketsService {
           entryOperatorId,
           notes: dto.notes,
           entryPhotoUrl: savedEntryPhotoUrls.length > 0 ? savedEntryPhotoUrls[0] : null,
+          qrHash: this.signTicketNumber(ticketNumber),
         },
         include: {
           lot: { select: { id: true, name: true, code: true } },
@@ -212,6 +225,15 @@ export class TicketsService {
       }
 
       return createdTicket;
+    }).catch((err) => {
+      // El índice único parcial (plate, ACTIVE) es la última línea de defensa
+      // contra el doble registro de una misma placa por dos operadores.
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+        throw new BusinessException(
+          `El vehículo con placa ${cleanPlate} acaba de ser registrado por otro operador (ticket duplicado). Refresque la lista.`,
+        );
+      }
+      throw err;
     });
 
     // Notificar al mapa en vivo (fuera de la transacción, ya commiteada).
@@ -278,7 +300,7 @@ export class TicketsService {
     const ticket = await this.prisma.ticket.findFirst({
       where: { id, deletedAt: null },
       include: {
-        lot: { select: { id: true, name: true, code: true, taxPercentage: true } },
+        lot: { select: { id: true, name: true, code: true, taxPercentage: true, graceMinutes: true } },
         spot: { select: { id: true, spotNumber: true, floor: true, section: true, spotTypeId: true } },
         client: { select: { id: true, firstName: true, lastName: true, documentType: true, documentNumber: true } },
         vehicle: { select: { id: true, plateNumber: true, brand: true, model: true, color: true } },
@@ -332,7 +354,7 @@ export class TicketsService {
     const ticket = await this.prisma.ticket.findFirst({
       where: { id, deletedAt: null },
       include: {
-        lot: { select: { id: true, taxPercentage: true, name: true } },
+        lot: { select: { id: true, taxPercentage: true, graceMinutes: true, name: true } },
         spot: { select: { id: true, spotTypeId: true, spotNumber: true } },
         rate: true,
       },
@@ -354,7 +376,7 @@ export class TicketsService {
 
     const now = new Date();
     const durationMinutes = Math.max(0, Math.round((now.getTime() - ticket.entryTime.getTime()) / 60000));
-    const breakdown = this.fareCalculator.calculate(rate, durationMinutes);
+    const breakdown = this.fareCalculator.calculate(rate, durationMinutes, ticket.lot.graceMinutes ?? 0);
 
     const taxRate = Number(ticket.lot.taxPercentage) / 100;
     const taxable = breakdown.subtotal;
@@ -374,6 +396,7 @@ export class TicketsService {
       taxRatePercent: Number(ticket.lot.taxPercentage),
       taxAmount: this.fareCalculator.round2(tax),
       total: this.fareCalculator.round2(total),
+      graceMinutes: ticket.lot.graceMinutes ?? 0,
       calculatedAt: now.toISOString(),
     };
   }
@@ -401,7 +424,7 @@ export class TicketsService {
         'No hay tarifa activa configurada para este lote. Configure una tarifa antes de cerrar el ticket.',
       );
     }
-    const breakdown = this.fareCalculator.calculate(rate, durationMinutes);
+    const breakdown = this.fareCalculator.calculate(rate, durationMinutes, ticket.lot.graceMinutes ?? 0);
     const serverBaseAmount = breakdown.subtotal;
 
     // Rechazar montos que no provengan del cálculo del servidor (tolerancia por redondeo).
@@ -466,6 +489,9 @@ export class TicketsService {
     const totalDue = taxableAmount + tax;
     const exitCashRegisterId = (updateData.exitCashRegister as { connect?: { id: string } })?.connect?.id ?? null;
 
+    // Estadía dentro del período de gracia → no hay nada que cobrar.
+    if (totalDue <= 0) updateData.paymentStatus = 'PAID';
+
     await this.prisma.$transaction(async (tx) => {
       if (ticket.spotId) {
         await tx.parkingSpot.update({
@@ -494,7 +520,7 @@ export class TicketsService {
         });
       }
 
-      if (dto.payment) {
+      if (dto.payment && totalDue > 0) {
         const amount = Number(dto.payment.amount);
         if (amount > totalDue + BASE_AMOUNT_TOLERANCE) {
           throw new BusinessException(
@@ -537,7 +563,7 @@ export class TicketsService {
             },
           });
         }
-      } else {
+      } else if (totalDue > 0) {
         updateData.paymentStatus = 'PENDING';
       }
     });
@@ -545,6 +571,24 @@ export class TicketsService {
     if (ticket.spotId) await this.parkingMapGateway.emitSpotUpdate(ticket.spotId);
 
     return this.findOne(id);
+  }
+
+  async verifyQr(ticketNumber: string, hash: string) {
+    if (!ticketNumber || !hash) {
+      return { valid: false, reason: 'Faltan ticketNumber o hash' };
+    }
+    const ticket = await this.prisma.ticket.findFirst({
+      where: { ticketNumber: ticketNumber.trim(), deletedAt: null },
+      select: { id: true, ticketNumber: true, qrHash: true, status: true, plateNumber: true },
+    });
+    if (!ticket) return { valid: false, reason: 'Ticket no encontrado' };
+    const expected = this.signTicketNumber(ticket.ticketNumber);
+    const valid = ticket.qrHash === hash && expected === hash;
+    return {
+      valid,
+      reason: valid ? 'Firma válida' : 'La firma no coincide con el ticket',
+      ticket: valid ? ticket : undefined,
+    };
   }
 
   async cancel(id: string, dto: CancelTicketDto) {

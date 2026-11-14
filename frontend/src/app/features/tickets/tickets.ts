@@ -72,10 +72,13 @@ export class Tickets {
 
   showCreateDialog = false;
   showCloseDialog = false;
+  showCancelDialog = false;
   showDetailDialog = false;
   showPrintDialog = false;
 
   selectedTicket = signal<Ticket | undefined>(undefined);
+  cancelTarget = signal<Ticket | undefined>(undefined);
+  cancelReason = '';
   qrDataUrl = signal<string>('');
 
   createData: CreateTicketRequest = { lotId: '', plateNumber: '', photos: [] };
@@ -469,18 +472,35 @@ export class Tickets {
   }
 
   cancelTicket(ticket: Ticket): void {
-    if (!confirm(`¿Cancelar ticket ${ticket.ticketNumber}?`)) return;
+    this.cancelTarget.set(ticket);
+    this.cancelReason = '';
+    this.showCancelDialog = true;
+  }
+
+  cancelReasonOptions = [
+    { label: 'Error de placa registrada', value: 'Error de placa registrada' },
+    { label: 'Cliente se retiró sin pagar el registro', value: 'Cliente se retiró sin pagar el registro' },
+    { label: 'Ticket duplicado por el operador', value: 'Ticket duplicado por el operador' },
+    { label: 'Prueba interna / simulación', value: 'Prueba interna / simulación' },
+    { label: 'Otro motivo', value: 'Otro motivo' },
+  ];
+
+  submitCancel(): void {
+    const ticket = this.cancelTarget();
+    if (!ticket || !this.cancelReason.trim()) return;
     this.submitting.set(true);
 
-    this.http.patch<ApiResponse<Ticket>>(`${this.api}/${ticket.id}/cancel`, {})
+    this.http.patch<ApiResponse<Ticket>>(`${this.api}/${ticket.id}/cancel`, { cancelReason: this.cancelReason.trim() })
       .pipe(catchError(err => {
         this.error.set(err.error?.message || 'Error al cancelar ticket');
+        this.toast.add({ severity: 'error', summary: 'Error al cancelar', detail: err.error?.message || 'Error al cancelar ticket' });
         this.submitting.set(false);
         return of(null);
       }))
       .subscribe(res => {
         if (res) {
-          this.toast.add({ severity: 'info', summary: 'Ticket cancelado', detail: `#${ticket.ticketNumber}` });
+          this.toast.add({ severity: 'info', summary: 'Ticket cancelado', detail: `#${ticket.ticketNumber} · Motivo: ${this.cancelReason.trim()}` });
+          this.showCancelDialog = false;
           this.loadTickets();
         }
         this.submitting.set(false);
@@ -514,6 +534,7 @@ export class Tickets {
       entry: ticket.entryTime,
       client: ticket.client ? `${ticket.client.firstName} ${ticket.client.lastName} (${ticket.client.documentNumber || ''})` : 'Cliente General',
       lot: ticket.lot?.name || 'Estacionamiento',
+      sig: (ticket as any).qrHash || '',
     });
 
     try {

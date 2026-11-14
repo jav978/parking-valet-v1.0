@@ -59,6 +59,14 @@ export class TicketsController {
     return this.ticketsService.lookupPlate(plateNumber);
   }
 
+  /** Valida la autenticidad de un ticket escaneado (firma HMAC). */
+  @Get('verify-qr')
+  @Roles(ROLES.ADMIN, ROLES.SUPERVISOR, ROLES.CASHIER, ROLES.OPERATOR)
+  @Permissions(PERMISSIONS.TICKETS_READ)
+  async verifyQr(@Query('ticketNumber') ticketNumber: string, @Query('hash') hash: string) {
+    return this.ticketsService.verifyQr(ticketNumber, hash);
+  }
+
   @Get(':id')
   @Roles(ROLES.ADMIN, ROLES.SUPERVISOR, ROLES.CASHIER, ROLES.OPERATOR)
   @Permissions(PERMISSIONS.TICKETS_READ)

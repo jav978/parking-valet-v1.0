@@ -19,7 +19,6 @@ dist/
 *.p12
 
 # Database / Prisma
-/backend/prisma/migrations/
 /backend/prisma/dev.db
 /backend/prisma/dev.db-journal
 

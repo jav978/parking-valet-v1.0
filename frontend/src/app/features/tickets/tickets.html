@@ -432,6 +432,9 @@
           <div>
             <span class="block text-surface-500 font-semibold">Unidades facturadas</span>
             <span class="font-bold text-surface-900 dark:text-surface-0">{{ q.breakdown.billedUnits }} {{ q.breakdown.unitLabel }}</span>
+            @if (q.breakdown.graceMinutesApplied > 0) {
+              <span class="block text-[10px] text-emerald-600 dark:text-emerald-400 font-bold"><i class="pi pi-clock mr-0.5"></i>Gracia aplicada: {{ q.breakdown.graceMinutesApplied }} min</span>
+            }
           </div>
           <div>
             <span class="block text-surface-500 font-semibold">Monto tarifa</span>
@@ -735,4 +738,35 @@
       <span>Cerrar</span>
     </button>
   </ng-template>
+</p-dialog>
+
+<!-- Diálogo de Cancelación con motivo obligatorio -->
+<p-dialog [(visible)]="showCancelDialog" [modal]="true" header="Cancelar Ticket" [style]="{ width: '24rem' }" [draggable]="false" [resizable]="false">
+  @if (cancelTarget(); as tkt) {
+    <div class="space-y-4">
+      <div class="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-sm">
+        <span class="font-extrabold text-red-600 dark:text-red-400">#{{ tkt.ticketNumber }}</span>
+        <span class="text-surface-600 dark:text-surface-300"> · Placa <strong class="uppercase">{{ tkt.plateNumber }}</strong> · Estado: <strong>Activo</strong></span>
+        <p class="text-xs text-surface-500 mt-1 font-semibold">El puesto asociado quedará libre. Esta acción queda registrada con el motivo seleccionado.</p>
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-surface-700 dark:text-surface-300 mb-1">Motivo de cancelación *</label>
+        <p-select [options]="cancelReasonOptions" optionLabel="label" optionValue="value"
+                  [(ngModel)]="cancelReason" placeholder="Seleccione el motivo" class="w-full"></p-select>
+      </div>
+    </div>
+
+    <ng-template #footer>
+      <button pButton type="button" class="p-button-text p-button-secondary" (click)="showCancelDialog = false" [disabled]="submitting()">
+        <i class="pi pi-times mr-1"></i>
+        <span>Volver</span>
+      </button>
+      <button pButton type="button" class="p-button-danger font-semibold" [loading]="submitting()" [disabled]="!cancelReason.trim()"
+              (click)="submitCancel()">
+        <i class="pi pi-ban mr-1"></i>
+        <span>Confirmar cancelación</span>
+      </button>
+    </ng-template>
+  }
 </p-dialog>
