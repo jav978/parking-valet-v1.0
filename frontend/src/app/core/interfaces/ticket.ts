@@ -73,6 +73,12 @@ export interface CreateTicketRequest {
   photos?: string[];
 }
 
+export interface ClosePaymentRequest {
+  paymentMethod: 'CASH' | 'CARD' | 'TRANSFER' | 'SUBSCRIPTION' | 'APP' | 'OTHER';
+  amount: number;
+  referenceNumber?: string;
+}
+
 export interface CloseTicketRequest {
   rateId?: string;
   baseAmount?: number;
@@ -82,6 +88,36 @@ export interface CloseTicketRequest {
   exitCashRegisterId?: string;
   notes?: string;
   photos?: string[];
+  payment?: ClosePaymentRequest;
+}
+
+/** Desglose del cobro calculado por el servidor (GET /tickets/:id/quote) */
+export interface TicketQuote {
+  ticket: {
+    id: string;
+    ticketNumber: string;
+    plateNumber: string;
+    entryTime: string;
+    lotName: string;
+    spotNumber: string | null;
+  };
+  breakdown: {
+    rateId: string;
+    rateName: string;
+    rateType: string;
+    durationMinutes: number;
+    billedUnits: number;
+    unitLabel: string;
+    baseAmount: number;
+    fractionalAmount: number;
+    subtotal: number;
+    dailyMaxApplied: number | null;
+    capped: boolean;
+  };
+  taxRatePercent: number;
+  taxAmount: number;
+  total: number;
+  calculatedAt: string;
 }
 
 export interface TicketFilterParams {

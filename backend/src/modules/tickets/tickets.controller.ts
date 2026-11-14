@@ -66,6 +66,17 @@ export class TicketsController {
     return this.ticketsService.findOne(id);
   }
 
+  /** Vista previa del cobro calculado por el servidor (desglose de tarifa). */
+  @Get(':id/quote')
+  @Roles(ROLES.ADMIN, ROLES.SUPERVISOR, ROLES.CASHIER)
+  @Permissions(PERMISSIONS.TICKETS_CLOSE)
+  async quote(
+    @Param('id', UuidValidationPipe) id: string,
+    @Query('rateId') rateId?: string,
+  ) {
+    return this.ticketsService.quote(id, rateId);
+  }
+
   @Patch(':id/close')
   @Roles(ROLES.ADMIN, ROLES.SUPERVISOR, ROLES.CASHIER)
   @Permissions(PERMISSIONS.TICKETS_CLOSE)

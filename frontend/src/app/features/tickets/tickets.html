@@ -401,18 +401,47 @@
         </div>
       </div>
 
-      <!-- Tarifa Seleccionada y Monto Base -->
+      <!-- Tarifa Seleccionada (el monto lo calcula el SERVIDOR) -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label class="block text-xs font-bold text-surface-700 dark:text-surface-300 mb-1">Esquema de Tarifa *</label>
-          <p-select [options]="rates()" optionLabel="name" optionValue="id" [(ngModel)]="closeData.rateId" class="w-full"></p-select>
+          <p-select [options]="rates()" optionLabel="name" optionValue="id" [(ngModel)]="closeData.rateId" (ngModelChange)="onRateChange()" [disabled]="quoteLoading()" class="w-full"></p-select>
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-surface-700 dark:text-surface-300 mb-1">Monto Base ($ USD) *</label>
-          <p-inputnumber [(ngModel)]="closeData.baseAmount" mode="currency" currency="USD" locale="en-US" [min]="0" (ngModelChange)="onLostTicketToggle()" class="w-full"></p-inputnumber>
+          <label class="block text-xs font-bold text-surface-700 dark:text-surface-300 mb-1">Descuento ($ USD)</label>
+          <p-inputnumber [(ngModel)]="closeData.discountAmount" mode="currency" currency="USD" locale="en-US" [min]="0" [max]="closeCalculatedTotal().base" [disabled]="quoteLoading()" class="w-full"></p-inputnumber>
         </div>
       </div>
+
+      <!-- Cálculo del SERVIDOR: tiempo + tarifa aplicada -->
+      @if (quoteLoading()) {
+        <div class="p-3 rounded-xl border border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800 text-xs text-surface-500 flex items-center gap-2">
+          <i class="pi pi-spin pi-spinner"></i> Calculando tarifa en el servidor...
+        </div>
+      } @else if (quote(); as q) {
+        <div class="p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/5 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+          <div>
+            <span class="block text-surface-500 font-semibold">Tiempo transcurrido</span>
+            <span class="font-bold text-surface-900 dark:text-surface-0">{{ Math.floor(q.breakdown.durationMinutes / 1440) }}d {{ Math.floor((q.breakdown.durationMinutes % 1440) / 60) }}h {{ q.breakdown.durationMinutes % 60 }}m</span>
+          </div>
+          <div>
+            <span class="block text-surface-500 font-semibold">Tarifa aplicada</span>
+            <span class="font-bold text-surface-900 dark:text-surface-0">{{ q.breakdown.rateName }}</span>
+          </div>
+          <div>
+            <span class="block text-surface-500 font-semibold">Unidades facturadas</span>
+            <span class="font-bold text-surface-900 dark:text-surface-0">{{ q.breakdown.billedUnits }} {{ q.breakdown.unitLabel }}</span>
+          </div>
+          <div>
+            <span class="block text-surface-500 font-semibold">Monto tarifa</span>
+            <span class="font-bold text-primary-500">${{ q.breakdown.subtotal | number:'1.2-2' }}</span>
+            @if (q.breakdown.capped) {
+              <span class="block text-[10px] text-amber-600 dark:text-amber-400 font-bold"><i class="pi pi-info-circle mr-0.5"></i>Tope diario aplicado (${{ q.breakdown.dailyMaxApplied | number:'1.2-2' }})</span>
+            }
+          </div>
+        </div>
+      }
 
       <!-- CASO DE USO: CHECKBOX TICKET PERDIDO (+30% SURCHARGE) -->
       <div class="p-4 rounded-xl border border-red-500/30 bg-red-500/10 space-y-2">
@@ -447,7 +476,7 @@
           }
 
           <div class="flex justify-between text-surface-500">
-            <span>+ IVA (16%):</span>
+            <span>+ IVA ({{ calc.taxRatePercent }}%):</span>
             <span class="font-bold">${{ calc.tax | number:'1.2-2' }}</span>
           </div>
 
@@ -462,6 +491,39 @@
           </div>
         </div>
       }
+
+      <!-- Pago Integrado: Cobrar y Salir en un solo paso -->
+      <div class="p-4 rounded-xl border border-emerald-500/30 bg-emerald-500/5 space-y-3">
+        <div class="flex items-center gap-3">
+          <p-checkbox [(ngModel)]="payNow" [binary]="true" inputId="payNowCheck"></p-checkbox>
+          <label for="payNowCheck" class="text-sm font-extrabold text-emerald-600 dark:text-emerald-400 cursor-pointer flex items-center gap-1.5">
+            <i class="pi pi-wallet"></i>
+            <span>Registrar pago al cerrar (Cobrar y Salir)</span>
+          </label>
+        </div>
+
+        @if (payNow) {
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-surface-700 dark:text-surface-300 mb-1">Método de Pago *</label>
+              <p-select [options]="paymentMethodOptions" optionLabel="label" optionValue="value" [(ngModel)]="paymentMethod" class="w-full"></p-select>
+            </div>
+            @if (paymentMethod !== 'CASH') {
+              <div>
+                <label class="block text-xs font-bold text-surface-700 dark:text-surface-300 mb-1">N° de Referencia *</label>
+                <input pInputText type="text" placeholder="Ej. 009876543" [(ngModel)]="paymentReference" class="w-full" />
+              </div>
+            }
+          </div>
+          <div class="text-xs text-surface-500 font-semibold pl-7">
+            El pago se registra junto al cierre en una sola transacción, con movimiento de caja automático.
+          </div>
+        } @else {
+          <div class="text-xs text-amber-600 dark:text-amber-400 font-semibold pl-7 -ml-3">
+            <i class="pi pi-exclamation-triangle mr-1"></i>El ticket quedará con pago PENDIENTE (se cobra después desde el módulo de Pagos).
+          </div>
+        }
+      </div>
 
       <div>
         <label class="block text-xs font-bold text-surface-700 dark:text-surface-300 mb-1">Notas de Cierre / Obsevaciones</label>

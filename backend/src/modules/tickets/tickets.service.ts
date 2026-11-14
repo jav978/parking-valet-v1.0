@@ -1,19 +1,26 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma, Rate } from '@prisma/client';
 import { PrismaService } from '../../common/database/prisma.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { CloseTicketDto } from './dto/close-ticket.dto';
 import { CancelTicketDto } from './dto/cancel-ticket.dto';
 import { TicketFilterDto } from './dto/ticket-filter.dto';
+import { FareCalculatorService, FareBreakdown } from './fare-calculator.service';
 import { NotFoundException } from '../../common/exceptions/not-found.exception';
 import { BusinessException } from '../../common/exceptions/business.exception';
 import * as fs from 'fs';
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
+/** Tolerancia para aceptar baseAmount legado enviado por clientes antiguos. */
+const BASE_AMOUNT_TOLERANCE = 0.01;
+
 @Injectable()
 export class TicketsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly fareCalculator: FareCalculatorService,
+  ) {}
 
   private savePhotoFile(base64Data: string, prefix: string): string {
     if (!base64Data) return '';
@@ -267,7 +274,7 @@ export class TicketsService {
       where: { id, deletedAt: null },
       include: {
         lot: { select: { id: true, name: true, code: true, taxPercentage: true } },
-        spot: { select: { id: true, spotNumber: true, floor: true, section: true } },
+        spot: { select: { id: true, spotNumber: true, floor: true, section: true, spotTypeId: true } },
         client: { select: { id: true, firstName: true, lastName: true, documentType: true, documentNumber: true } },
         vehicle: { select: { id: true, plateNumber: true, brand: true, model: true, color: true } },
         rate: true,
@@ -285,6 +292,87 @@ export class TicketsService {
     return ticket;
   }
 
+  /**
+   * Resuelve la tarifa aplicable: explícita → asignada al ticket → activa del lote
+   * (filtrada por el tipo de puesto del ticket cuando es posible).
+   */
+  private async resolveRate(
+    ticket: { rateId?: string | null; lotId: string; spot?: { spotTypeId?: string | null } | null },
+    rateId?: string,
+  ): Promise<Rate | null> {
+    if (rateId) {
+      const rate = await this.prisma.rate.findFirst({ where: { id: rateId, deletedAt: null, isActive: true } });
+      if (!rate) throw new BusinessException('La tarifa seleccionada no existe o está inactiva.');
+      return rate;
+    }
+    if (ticket.rateId) {
+      const rate = await this.prisma.rate.findFirst({ where: { id: ticket.rateId, deletedAt: null, isActive: true } });
+      if (rate) return rate;
+    }
+    const spotTypeId = ticket.spot?.spotTypeId ?? null;
+    const where: Prisma.RateWhereInput = {
+      lotId: ticket.lotId,
+      isActive: true,
+      deletedAt: null,
+      ...(spotTypeId ? { spotTypeId } : {}),
+    };
+    return this.prisma.rate.findFirst({ where, orderBy: { createdAt: 'desc' } });
+  }
+
+  /**
+   * Vista previa del cobro: calcula la tarifa en el servidor para que el operador
+   * vea el desglose exacto antes de cerrar. No muta nada.
+   */
+  async quote(id: string, rateId?: string) {
+    const ticket = await this.prisma.ticket.findFirst({
+      where: { id, deletedAt: null },
+      include: {
+        lot: { select: { id: true, taxPercentage: true, name: true } },
+        spot: { select: { id: true, spotTypeId: true, spotNumber: true } },
+        rate: true,
+      },
+    });
+    if (!ticket) throw new NotFoundException('Ticket', id);
+    if (ticket.status !== 'ACTIVE') {
+      throw new BusinessException('Solo se puede cotizar un ticket activo.');
+    }
+
+    const rate = await this.resolveRate(
+      { rateId: ticket.rateId, lotId: ticket.lotId, spot: ticket.spot },
+      rateId,
+    );
+    if (!rate) {
+      throw new BusinessException(
+        'No hay tarifa activa configurada para este lote. Configure una tarifa en el módulo de Tarifas antes de cerrar el ticket.',
+      );
+    }
+
+    const now = new Date();
+    const durationMinutes = Math.max(0, Math.round((now.getTime() - ticket.entryTime.getTime()) / 60000));
+    const breakdown = this.fareCalculator.calculate(rate, durationMinutes);
+
+    const taxRate = Number(ticket.lot.taxPercentage) / 100;
+    const taxable = breakdown.subtotal;
+    const tax = taxable * taxRate;
+    const total = taxable + tax;
+
+    return {
+      ticket: {
+        id: ticket.id,
+        ticketNumber: ticket.ticketNumber,
+        plateNumber: ticket.plateNumber,
+        entryTime: ticket.entryTime,
+        lotName: ticket.lot.name,
+        spotNumber: ticket.spot?.spotNumber ?? null,
+      },
+      breakdown,
+      taxRatePercent: Number(ticket.lot.taxPercentage),
+      taxAmount: this.fareCalculator.round2(tax),
+      total: this.fareCalculator.round2(total),
+      calculatedAt: now.toISOString(),
+    };
+  }
+
   async close(id: string, dto: CloseTicketDto, exitOperatorId: string) {
     const ticket = await this.findOne(id);
 
@@ -298,14 +386,34 @@ export class TicketsService {
       throw new BusinessException('Exit time cannot be before entry time');
     }
 
+    // ─── Cálculo de tarifa EN EL SERVIDOR (anti-fraude) ───
+    const rate = await this.resolveRate(
+      { rateId: ticket.rateId, lotId: ticket.lotId, spot: ticket.spot },
+      dto.rateId,
+    );
+    if (!rate) {
+      throw new BusinessException(
+        'No hay tarifa activa configurada para este lote. Configure una tarifa antes de cerrar el ticket.',
+      );
+    }
+    const breakdown = this.fareCalculator.calculate(rate, durationMinutes);
+    const serverBaseAmount = breakdown.subtotal;
+
+    // Rechazar montos que no provengan del cálculo del servidor (tolerancia por redondeo).
+    if (dto.baseAmount !== undefined && Math.abs(Number(dto.baseAmount) - serverBaseAmount) > BASE_AMOUNT_TOLERANCE) {
+      throw new BusinessException(
+        `El monto enviado (${Number(dto.baseAmount).toFixed(2)}) no coincide con la tarifa calculada por el sistema (${serverBaseAmount.toFixed(2)}) para ${breakdown.billedUnits} ${breakdown.unitLabel} con la tarifa "${rate.name}". Utilice el monto calculado; para ajustar el cobro aplique un descuento.`,
+      );
+    }
+
     const updateData: Prisma.TicketUpdateInput = {
       exitTime,
       durationMinutes,
       exitOperator: { connect: { id: exitOperatorId } },
       status: 'COMPLETED',
+      rate: { connect: { id: rate.id } },
     };
 
-    if (dto.rateId) updateData.rate = { connect: { id: dto.rateId } };
     if (dto.exitCashRegisterId) {
       updateData.exitCashRegister = { connect: { id: dto.exitCashRegisterId } };
     } else {
@@ -323,28 +431,35 @@ export class TicketsService {
     }
     if (dto.notes !== undefined) updateData.notes = dto.notes;
 
-    if (dto.baseAmount !== undefined) {
-      updateData.baseAmount = dto.baseAmount;
-      const discount = dto.discountAmount ?? 0;
-      updateData.discountAmount = discount;
-
-      const isLost = dto.isLostTicket ?? false;
-      const penalty = isLost ? (dto.penaltyAmount ?? (dto.baseAmount * 0.30)) : 0;
-      updateData.isLostTicket = isLost;
-      updateData.penaltyAmount = penalty;
-
-      const taxRate = Number(ticket.lot.taxPercentage) / 100;
-      const taxableAmount = dto.baseAmount - discount + penalty;
-      const tax = taxableAmount * taxRate;
-      updateData.taxAmount = tax;
-      updateData.totalAmount = taxableAmount + tax;
-      updateData.paymentStatus = 'PENDING';
+    // Desglose calculado en servidor: base → descuento → penalidad → impuesto → total.
+    const discount = dto.discountAmount ?? 0;
+    if (discount > serverBaseAmount) {
+      throw new BusinessException(
+        `El descuento ($${discount.toFixed(2)}) no puede superar el monto de la tarifa ($${serverBaseAmount.toFixed(2)}).`,
+      );
     }
+    updateData.baseAmount = serverBaseAmount;
+    updateData.discountAmount = discount;
+
+    const isLost = dto.isLostTicket ?? false;
+    const penalty = isLost ? (dto.penaltyAmount ?? (serverBaseAmount * 0.30)) : 0;
+    updateData.isLostTicket = isLost;
+    updateData.penaltyAmount = penalty;
+
+    const taxRate = Number(ticket.lot.taxPercentage) / 100;
+    const taxableAmount = serverBaseAmount - discount + penalty;
+    const tax = taxableAmount * taxRate;
+    updateData.taxAmount = tax;
+    updateData.totalAmount = taxableAmount + tax;
 
     let savedExitPhotoUrls: string[] = [];
     if (dto.photos && dto.photos.length > 0) {
       savedExitPhotoUrls = dto.photos.map((p, idx) => this.savePhotoFile(p, `exit-${id}-${idx + 1}`));
     }
+
+    // ─── Pago integrado ("Cobrar y Salir") dentro de la misma transacción ───
+    const totalDue = taxableAmount + tax;
+    const exitCashRegisterId = (updateData.exitCashRegister as { connect?: { id: string } })?.connect?.id ?? null;
 
     await this.prisma.$transaction(async (tx) => {
       if (ticket.spotId) {
@@ -372,6 +487,53 @@ export class TicketsService {
             caption: `Foto Salida #${idx + 1}`,
           })),
         });
+      }
+
+      if (dto.payment) {
+        const amount = Number(dto.payment.amount);
+        if (amount > totalDue + BASE_AMOUNT_TOLERANCE) {
+          throw new BusinessException(
+            `El monto del pago ($${amount.toFixed(2)}) excede el total a cobrar ($${totalDue.toFixed(2)}).`,
+          );
+        }
+        if (amount <= 0) {
+          throw new BusinessException('El monto del pago debe ser mayor a cero.');
+        }
+        if (dto.payment.paymentMethod !== 'CASH' && !dto.payment.referenceNumber) {
+          throw new BusinessException('Los pagos con tarjeta o transferencia requieren un número de referencia.');
+        }
+
+        await tx.payment.create({
+          data: {
+            ticketId: id,
+            paymentMethod: dto.payment.paymentMethod,
+            amount,
+            referenceNumber: dto.payment.referenceNumber,
+            createdById: exitOperatorId,
+          },
+        });
+
+        updateData.paymentStatus = amount >= totalDue - BASE_AMOUNT_TOLERANCE ? 'PAID' : 'PENDING';
+        await tx.ticket.update({
+          where: { id },
+          data: { paymentStatus: updateData.paymentStatus },
+        });
+
+        // Movimiento de caja asociado al cobro (si hay caja abierta asignada a la salida).
+        if (exitCashRegisterId) {
+          await tx.cashRegisterMovement.create({
+            data: {
+              cashRegisterId: exitCashRegisterId,
+              type: 'INCOME',
+              amount,
+              referenceNumber: dto.payment.referenceNumber,
+              description: `Cobro Ticket #${ticket.ticketNumber} (${dto.payment.paymentMethod})`,
+              createdById: exitOperatorId,
+            },
+          });
+        }
+      } else {
+        updateData.paymentStatus = 'PENDING';
       }
     });
 
@@ -427,20 +589,19 @@ export class TicketsService {
     tx: Prisma.TransactionClient,
     lotId: string,
   ): Promise<string> {
-    const lot = await tx.parkingLot.findUnique({
-      where: { id: lotId },
-      select: { ticketPrefix: true, ticketNextNum: true, code: true },
-    });
+    // Incremento ATÓMICO: el UPDATE bloquea la fila del lote, por lo que dos
+    // creaciones concurrentes nunca obtienen el mismo número (antes era
+    // read-then-update y producía números duplicados en horas pico).
+    const rows = await tx.$queryRaw<
+      Array<{ ticket_prefix: string | null; code: string | null; ticket_next_num: number }>
+    >`UPDATE "parking_lots" SET "ticket_next_num" = "ticket_next_num" + 1 WHERE "id" = ${lotId}::uuid RETURNING "ticket_prefix", "code", "ticket_next_num"`;
 
-    if (!lot) throw new NotFoundException('ParkingLot', lotId);
+    if (!rows || rows.length === 0) throw new NotFoundException('ParkingLot', lotId);
 
-    const prefix = lot.ticketPrefix || lot.code || 'TKT';
-    const nextNum = lot.ticketNextNum ?? 1;
-
-    await tx.parkingLot.update({
-      where: { id: lotId },
-      data: { ticketNextNum: nextNum + 1 },
-    });
+    const row = rows[0];
+    const prefix = row.ticket_prefix || row.code || 'TKT';
+    // El número asignado es el valor ANTERIOR al incremento.
+    const nextNum = row.ticket_next_num - 1;
 
     return `${prefix}-${String(nextNum).padStart(6, '0')}`;
   }

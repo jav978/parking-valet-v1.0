@@ -19,7 +19,7 @@ import { MessageService, SharedModule } from 'primeng/api';
 import { catchError, of } from 'rxjs';
 import * as QRCode from 'qrcode';
 
-import { Ticket, CreateTicketRequest, CloseTicketRequest, TicketFilterParams } from '../../core/interfaces/ticket';
+import { Ticket, CreateTicketRequest, CloseTicketRequest, TicketFilterParams, TicketQuote } from '../../core/interfaces/ticket';
 import { ApiResponse } from '../../core/interfaces/api-response';
 import { AuthService } from '../../core/services/auth.service';
 import { ExchangeRateService } from '../../core/services/exchange-rate.service';
@@ -45,6 +45,7 @@ interface Rate { id: string; name: string; baseAmount?: number; }
 })
 export class Tickets {
   protected Number = Number;
+  protected Math = Math;
   private http = inject(HttpClient);
   private toast = inject(MessageService);
   private authService = inject(AuthService);
@@ -144,9 +145,27 @@ export class Tickets {
     { value: 'REFUNDED', label: 'Reembolsado' },
   ];
 
-  // Dynamic Lost Ticket Calculation
+  // Quote calculado por el SERVIDOR (fuente única de verdad del cobro)
+  quote = signal<TicketQuote | null>(null);
+  quoteLoading = signal(false);
+
+  // Pago integrado "Cobrar y Salir"
+  payNow = true;
+  paymentMethod: 'CASH' | 'CARD' | 'TRANSFER' | 'APP' | 'OTHER' = 'CASH';
+  paymentReference = '';
+
+  paymentMethodOptions = [
+    { value: 'CASH', label: 'Efectivo' },
+    { value: 'CARD', label: 'Tarjeta' },
+    { value: 'TRANSFER', label: 'Transferencia' },
+    { value: 'APP', label: 'App / Pago Móvil' },
+    { value: 'OTHER', label: 'Otro' },
+  ];
+
+  // Desglose de Cálculo Final (alimentado por el quote del servidor)
   closeCalculatedTotal = computed(() => {
-    const base = this.closeData.baseAmount || 0;
+    const q = this.quote();
+    const base = q?.breakdown.subtotal ?? this.closeData.baseAmount ?? 0;
     const discount = this.closeData.discountAmount || 0;
     const isLost = this.closeData.isLostTicket || false;
 
@@ -154,8 +173,8 @@ export class Tickets {
     const penalty = isLost ? Number((base * 0.30).toFixed(2)) : 0;
     const taxable = base - discount + penalty;
 
-    const t = this.selectedTicket();
-    const taxRate = t?.lot ? (Number((t.lot as any).taxPercentage || 16) / 100) : 0.16;
+    const taxRatePercent = q?.taxRatePercent ?? 16;
+    const taxRate = taxRatePercent / 100;
     const tax = Number((taxable * taxRate).toFixed(2));
     const totalUSD = Number((taxable + tax).toFixed(2));
     const exRate = this.exchangeRateService.activeRate();
@@ -166,6 +185,7 @@ export class Tickets {
       isLost,
       penalty,
       tax,
+      taxRatePercent,
       totalUSD,
       totalVES: Number((totalUSD * exRate).toFixed(2)),
     };
@@ -350,18 +370,55 @@ export class Tickets {
   openCloseDialog(ticket: Ticket): void {
     this.selectedTicket.set(ticket);
 
-    // Estimación inicial del monto base
-    const base = ticket.baseAmount || (ticket.rate as any)?.baseAmount || 5;
+    // Esquema de tarifa: el asignado al ticket o el primero activo como inicial
+    const rateId = ticket.rateId || (this.rates().length > 0 ? this.rates()[0].id : undefined);
     this.closeData = {
-      rateId: ticket.rateId || (this.rates().length > 0 ? this.rates()[0].id : undefined),
-      baseAmount: base,
+      rateId,
+      baseAmount: 0,
       discountAmount: 0,
       isLostTicket: false,
       penaltyAmount: 0,
       notes: '',
       photos: [],
     };
+    this.payNow = true;
+    this.paymentMethod = 'CASH';
+    this.paymentReference = '';
     this.showCloseDialog = true;
+    // El monto lo calcula el SERVIDOR; solo mostramos su desglose.
+    this.loadQuote(ticket.id);
+  }
+
+  loadQuote(ticketId: string): void {
+    this.quoteLoading.set(true);
+    const params: Record<string, string> = {};
+    if (this.closeData.rateId) params['rateId'] = this.closeData.rateId;
+
+    this.http.get<ApiResponse<TicketQuote>>(`${this.api}/${ticketId}/quote`, { params })
+      .pipe(catchError(err => {
+        this.toast.add({
+          severity: 'error',
+          summary: 'No se pudo calcular la tarifa',
+          detail: err.error?.message || 'Error al consultar el cobro en el servidor',
+        });
+        this.quoteLoading.set(false);
+        return of(null);
+      }))
+      .subscribe(res => {
+        if (res) {
+          this.quote.set(res.data);
+          // El monto base SIEMPRE viene del servidor; el operador no lo escribe.
+          this.closeData.baseAmount = res.data.breakdown.subtotal;
+        }
+        this.quoteLoading.set(false);
+      });
+  }
+
+  /** Al cambiar el esquema de tarifa se recalcula en el servidor. */
+  onRateChange(): void {
+    const ticket = this.selectedTicket();
+    if (!ticket) return;
+    this.loadQuote(ticket.id);
   }
 
   onLostTicketToggle(): void {
@@ -372,25 +429,37 @@ export class Tickets {
   closeTicket(): void {
     const ticket = this.selectedTicket();
     if (!ticket) return;
-    this.submitting.set(true);
+    const calc = this.closeCalculatedTotal();
 
     const payload: CloseTicketRequest = {
       ...this.closeData,
-      penaltyAmount: this.closeCalculatedTotal().penalty,
+      penaltyAmount: calc.penalty,
     };
 
+    // Pago integrado en la misma transacción del cierre ("Cobrar y Salir")
+    if (this.payNow) {
+      payload.payment = {
+        paymentMethod: this.paymentMethod,
+        amount: calc.totalUSD,
+        referenceNumber: this.paymentReference.trim() || undefined,
+      };
+    }
+
+    this.submitting.set(true);
     this.http.patch<ApiResponse<Ticket>>(`${this.api}/${ticket.id}/close`, payload)
       .pipe(catchError(err => {
         this.error.set(err.error?.message || 'Error al procesar cobro y salida');
+        this.toast.add({ severity: 'error', summary: 'Error al cerrar', detail: err.error?.message || 'Error al procesar cobro y salida' });
         this.submitting.set(false);
         return of(null);
       }))
       .subscribe(res => {
         if (res) {
+          const paid = !!payload.payment;
           this.toast.add({
             severity: 'success',
-            summary: payload.isLostTicket ? 'Ticket Perdido Procesado (+30% recargo)' : 'Cobro y Salida Completada',
-            detail: `Ticket #${ticket.ticketNumber} cerrado exitosamente`
+            summary: payload.isLostTicket ? 'Ticket Perdido Procesado (+30% recargo)' : (paid ? 'Cobrado y Salida Completada' : 'Salida Completada (Pago Pendiente)'),
+            detail: `Ticket #${ticket.ticketNumber} · Total: $${calc.totalUSD.toFixed(2)}${paid ? ' · Pago: ' + this.paymentMethod : ''}`
           });
           this.showCloseDialog = false;
           this.loadTickets();
